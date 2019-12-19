@@ -1,0 +1,8 @@
+#!/bin/sh
+set -e
+
+PRIVATE="$1"
+PUBLIC=$(echo "$PRIVATE" | wg pubkey)
+jq -n --arg private_key "$PRIVATE" \
+    --arg public_key "$PUBLIC" \
+    '{"private_key": $private_key, "public_key": $public_key}'

@@ -1,0 +1,9 @@
+[
+%{ for c in clients ~}
+  {
+    # ${c.name}
+    publicKey = "${c.public_key}";
+    allowedIPs = [ "${c.ip}/32" ];
+  }
+%{ endfor ~}
+]

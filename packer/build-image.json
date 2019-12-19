@@ -1,0 +1,44 @@
+{
+  "variables": {
+    "digitalocean_token": "{{env `TF_VAR_digitalocean_token`}}",
+    "digitalocean_spaces_key": "{{env `TF_VAR_digitalocean_spaces_key`}}",
+    "digitalocean_spaces_secret": "{{env `TF_VAR_digitalocean_spaces_secret`}}",
+    "digitalocean_region": "tor1",
+    "nix_channel": "nixos-19.09"
+  },
+  "builders": [
+    {
+      "type": "digitalocean",
+      "api_token": "{{user `digitalocean_token`}}",
+      "image": "ubuntu-18-04-x64",
+      "region": "{{user `digitalocean_region`}}",
+      "size": "s-1vcpu-1gb",
+      "ssh_username": "root",
+      "snapshot_regions": ["{{user `digitalocean_region`}}"],
+      "snapshot_name": "{{user `nix_channel`}}-{{timestamp}}"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "curl https://raw.githubusercontent.com/elitak/nixos-infect/master/nixos-infect | PROVIDER=digitalocean NIX_CHANNEL={{user `nix_channel`}} NO_REBOOT=true bash 2>&1 | tee /var/log/infect.log"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "echo Rebooting..",
+        "reboot &"
+      ]
+    },
+    {
+      "type": "shell",
+      "pause_before": "10s",
+      "timeout": "10s",
+      "inline": [
+        "echo done provisioning"
+      ]
+    }
+  ]
+}
