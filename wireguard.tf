@@ -1,4 +1,4 @@
-# hack, generate wg private keys manually, to keep the keys from chaning on refresh
+# hack, generate wg private keys manually, to keep the keys from changing on refresh
 resource "random_id" "wg_priv_keys" {
   count = length(var.wg_nodes)
 
