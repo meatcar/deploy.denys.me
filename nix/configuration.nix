@@ -11,7 +11,9 @@ in
   imports = [
     "${toString modulesPath}/virtualisation/digital-ocean-image.nix"
     ./base.nix
+    ./docker.nix
     ./wireguard.nix
+    ./mumble.nix
   ];
 
   environment.systemPackages = [
