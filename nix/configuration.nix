@@ -12,6 +12,7 @@ in
     "${toString modulesPath}/virtualisation/digital-ocean-image.nix"
     ./base.nix
     ./docker.nix
+    ./backups.nix
     ./wireguard.nix
     ./mumble.nix
   ];

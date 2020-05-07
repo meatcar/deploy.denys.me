@@ -28,5 +28,18 @@ variable "hostname" {
 
 variable "wg_nodes" {
   description = "A list of descriptive wireguard node names"
-  default     = ["server", "laptop", "phone"]
+  default     = ["server", "laptop", "phone", "cube.denys.me"]
+}
+
+variable "restic_repository" {
+  description = "Restic repository url"
+}
+variable "restic_password" {
+  description = "Restic repository password"
+}
+variable "restic_key_id" {
+  description = "Key ID for Restic repository"
+}
+variable "restic_secret" {
+  description = "Secret Access Key for Restic repository "
 }
