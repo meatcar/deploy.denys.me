@@ -44,11 +44,6 @@ resource "null_resource" "provision_wg_keys" {
   }
 
   provisioner "file" {
-    content     = local.wg_server.private_key
-    destination = "/var/secrets/wg_server_private_key"
-  }
-
-  provisioner "file" {
     content = templatefile(
       "${path.module}/templates/wg-clients.nix.tmpl",
     { clients = local.wg_clients })
