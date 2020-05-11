@@ -1,10 +1,24 @@
-{ pkgs ? import <nixpkgs> {} }:
+{ pkgs ? import ./nix {} }:
 pkgs.mkShell {
-  buildInputs = [
-    pkgs.terraform-full
-    pkgs.packer
-    (pkgs.callPackage (fetchGit https://github.com/nix-community/nixos-generators) {})
-    pkgs.wireguard
-    pkgs.jq
+  name = "deploy.denys.me";
+  buildInputs = with pkgs; [
+    (
+      terraform.withPlugins (
+        p: [
+          p.local
+          p.external
+          p.null
+          p.random
+          p.aws
+          p.digitalocean
+          p.cloudflare
+        ]
+      )
+    )
+    packer
+    wireguard
+    jq
+    nixos-generators
+    niv
   ];
 }
