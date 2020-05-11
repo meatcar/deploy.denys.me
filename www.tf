@@ -93,7 +93,7 @@ resource "null_resource" "nixos_rebuild" {
   triggers = {
     droplet_id           = digitalocean_droplet.www.id
     provision_wg_keys_id = null_resource.provision_wg_keys.id
-    hashes               = join(" ", [for f in fileset("${path.module}", "nix/*") : filesha256("${path.module}/${f}")])
+    hashes               = join(" ", [for f in fileset("${path.module}", "nixos/*") : filesha256("${path.module}/${f}")])
   }
 
   connection {
@@ -105,7 +105,7 @@ resource "null_resource" "nixos_rebuild" {
   }
 
   provisioner "file" {
-    source      = "${path.module}/nix/"
+    source      = "${path.module}/nixos/"
     destination = "/etc/nixos"
   }
 
