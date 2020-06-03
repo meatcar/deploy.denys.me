@@ -17,10 +17,10 @@ resource "digitalocean_droplet" "www" {
 resource "null_resource" "provision_secrets" {
   triggers = {
     local-wg_server-private_key_hash = sha256(local.wg_server.private_key)
-    var-restic_repository_hash = sha256(var.restic_repository)
-    var-restic_password_hash = sha256(var.restic_password)
-    var-restic_key_id_hash = sha256(var.restic_key_id)
-    var-restic_secret_hash = sha256(var.restic_secret)
+    var-restic_repository_hash       = sha256(var.restic_repository)
+    var-restic_password_hash         = sha256(var.restic_password)
+    var-restic_key_id_hash           = sha256(var.restic_key_id)
+    var-restic_secret_hash           = sha256(var.restic_secret)
   }
 
   connection {
@@ -32,7 +32,7 @@ resource "null_resource" "provision_secrets" {
   }
 
   provisioner "remote-exec" {
-    inline = [ "mkdir -p /var/secrets" ]
+    inline = ["mkdir -p /var/secrets"]
   }
 
   provisioner "file" {
@@ -41,15 +41,15 @@ resource "null_resource" "provision_secrets" {
   }
 
   provisioner "file" {
-    content = var.restic_repository
+    content     = var.restic_repository
     destination = "/var/secrets/restic_repository"
   }
   provisioner "file" {
-    content = var.restic_password
+    content     = var.restic_password
     destination = "/var/secrets/restic_password"
   }
   provisioner "file" {
-    content = <<-EOT
+    content     = <<-EOT
       B2_ACCOUNT_ID=${var.restic_key_id}
       B2_ACCOUNT_KEY=${var.restic_secret}
       EOT
@@ -109,7 +109,20 @@ resource "null_resource" "nixos_rebuild" {
     destination = "/etc/nixos"
   }
 
+  provisioner "file" {
+    content = templatefile(
+      "${path.module}/templates/secrets.nix",
+      {
+        password         = var.nix_znc_password,
+        nickservPassword = var.nix_znc_nickservpassword
+        hash             = var.nix_znc_hash,
+        salt             = var.nix_znc_salt
+      }
+    )
+    destination = "/etc/nixos/secrets.nix"
+  }
+
   provisioner "remote-exec" {
-    inline = [ "nixos-rebuild switch" ]
+    inline = ["nixos-rebuild switch"]
   }
 }

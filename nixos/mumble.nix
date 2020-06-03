@@ -1,5 +1,4 @@
-{ pkgs, ... }:
-{
+{ config, pkgs, ... }: {
   systemd.tmpfiles.rules = [
     "d /persist/murmur 0700 murmur nogroup -"
     "L /var/lib/murmur - - - - /persist/murmur"
@@ -8,9 +7,9 @@
   services.murmur = {
     enable = true;
     welcometext = ''
-      <br />Welcome to <i>mumble.denys.me</i>!
+      <br />Welcome to <i>mumble.${config.mine.domain}</i>!
       <br />Be nice, and enjoy your stay! :) :) :D
-      <br /><h3>NOTICE</h3> This server has moved to <u>mumble.denys.me</u>.
+      <br /><h3>NOTICE</h3> This server has moved to <u>mumble.${config.mine.domain}</u>.
       <br />Please let your friends know :)
     '';
   };
