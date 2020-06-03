@@ -43,3 +43,19 @@ variable "restic_key_id" {
 variable "restic_secret" {
   description = "Secret Access Key for Restic repository "
 }
+
+variable "nix_znc_password" {
+  description = "ZNC User's password for misc plugins"
+}
+
+variable "nix_znc_hash" {
+  description = "ZNC User's password hash using 'echo pass\npass | nix-shell -p znc --command \"znc --makepass\"'"
+}
+
+variable "nix_znc_salt" {
+  description = "ZNC User's password salt using 'echo pass\npass | nix-shell -p znc --command \"znc --makepass\"'"
+}
+
+variable "nix_znc_nickservpassword" {
+  description = "ZNC User's nickserv password"
+}
