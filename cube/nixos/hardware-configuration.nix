@@ -67,7 +67,7 @@
       options = [ "subvol=@home" "ssd" "compress=zstd" ];
     };
 
-    "/persist" = {
+    "${config.persistPath}" = {
       device = "/dev/mapper/king120ga";
       fsType = "btrfs";
       options = [ "subvol=@persist" "ssd" "compress=zstd" ];
@@ -78,7 +78,7 @@
       fsType = "vfat";
     };
 
-    "/data" = {
+    "${config.storagePath}" = {
       device = "/dev/disk/by-uuid/9fbbc081-5aec-4553-95dd-cf33f5727c28";
       fsType = "btrfs";
       options = [ "compress=zstd" ];
@@ -91,21 +91,22 @@
     fstrim.enable = true;
     btrfs.autoScrub = {
       enable = true;
-      fileSystems = [ "/" "/data" ];
+      fileSystems = [ "/" "${config.storagePath}" ];
     };
     smartd = {
       enable = true;
       defaults.autodetected = "-a -o on -s (S/../.././02|L/../../7/04)";
     };
   };
-  #services.beesd.filesystems = {
-  #        data = {
-  #          spec = "UUID=9fbbc081-5aec-4553-95dd-cf33f5727c28";
-  #        };
-  #        data = {
-  #          spec = "UUID=ac583763-282e-4845-b7b6-f28fe39ce72e";
-  #        };
-  #};
+
+  # services.beesd.filesystems = {
+  #   root = {
+  #     spec = "UUID=ac583763-282e-4845-b7b6-f28fe39ce72e";
+  #   };
+  #   data = {
+  #     spec = "UUID=9fbbc081-5aec-4553-95dd-cf33f5727c28";
+  #   };
+  # };
 
   nix.maxJobs = lib.mkDefault 4;
 }
