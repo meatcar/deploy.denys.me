@@ -54,7 +54,7 @@ in
 
     users.users.meatcar = {
       isNormalUser = true;
-      extraGroups = [ "wheel" ];
+      extraGroups = [ "wheel" "docker" ];
       hashedPassword =
         "!";
       openssh.authorizedKeys.keys =
