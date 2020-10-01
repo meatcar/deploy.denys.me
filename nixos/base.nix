@@ -9,7 +9,10 @@
 
   system.autoUpgrade.enable = true;
   system.autoUpgrade.channel = "https://nixos.org/channels/nixos-20.03";
-  nix.gc.automatic = true;
+  nix.gc = {
+    automatic = true;
+    options = "--delete-older-than 1w";
+  };
   nix.autoOptimiseStore = true;
 
   services.sshd.enable = true;
