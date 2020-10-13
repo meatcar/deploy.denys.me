@@ -41,6 +41,7 @@
       ./secrets.nix
       ./hardware-configuration.nix
       ./modules/system.nix
+      ./modules/ssmtp.nix
       ./modules/docker.nix
       ./modules/dynamicdns.nix
       ./modules/acme.nix
