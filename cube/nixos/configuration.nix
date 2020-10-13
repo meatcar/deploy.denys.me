@@ -34,6 +34,10 @@
         type = types.path;
         description = "Mountpoint of main persisted system storeage";
       };
+      notificationEmail = mkOption {
+        type = types.str;
+        description = "An email address to send system notifications to";
+      };
     };
 
   imports =
@@ -42,6 +46,7 @@
       ./hardware-configuration.nix
       ./modules/system.nix
       ./modules/ssmtp.nix
+      ./modules/smartd.nix
       ./modules/docker.nix
       ./modules/dynamicdns.nix
       ./modules/acme.nix

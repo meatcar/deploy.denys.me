@@ -94,8 +94,14 @@
       fileSystems = [ "/" "${config.storagePath}" ];
     };
     smartd = {
-      enable = true;
-      defaults.autodetected = "-a -o on -s (S/../.././02|L/../../7/04)";
+      devices = [
+        { device = "/dev/disk/by-id/ata-KINGSTON_SA400S37120G_50026B778284DC58"; }
+        { device = "/dev/disk/by-id/ata-KINGSTON_SA400S37120G_50026B7782881240"; }
+        { device = "/dev/disk/by-id/ata-WDC_WD20EZRX-00D8PB0_WD-WCC4M2FCXZSZ"; }
+        { device = "/dev/disk/by-id/ata-WDC_WD20EZRX-00D8PB0_WD-WCC4N2RF5DJT"; }
+        { device = "/dev/disk/by-id/ata-ST2000DM001-9YN164_S1E0A734"; }
+        { device = "/dev/disk/by-id/ata-ST2000DM001-9YN164_S1F0BYQJ"; }
+      ];
     };
   };
 
