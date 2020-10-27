@@ -53,6 +53,10 @@ in
     };
 
   config = {
+    systemd.tmpfiles.rules = [
+      "d /persist/znc 0700 znc znc -"
+      "L /var/lib/znc - - - - /persist/znc"
+    ];
 
     system.activationScripts =
       let
@@ -66,7 +70,10 @@ in
                 { nickservPassword, ... }: ''
                   ZNC_SASL_MODDATA=/var/lib/znc/users/${username}/networks/${servername}/moddata/sasl
                   mkdir -p $ZNC_SASL_MODDATA
-                  echo $'password ${nickservPassword}\nusername ${username}' > $ZNC_SASL_MODDATA/.registry''))
+                  echo $'password ${nickservPassword}\nusername ${username}' > $ZNC_SASL_MODDATA/.registry
+                  chown -R znc:znc $ZNC_SASL_MODDATA
+                  chmod 0600 $ZNC_SASL_MODDATA/.registry
+                ''))
               (concatStringsSep "\n")
             ]
           ))
@@ -77,7 +84,7 @@ in
 
     services.znc =
       let
-        makeUserNetworks = { password, networks, ... }:
+        makeNetworks = { password, networks, ... }:
           lib.mapAttrs
             (servername: server-config:
               {
@@ -90,6 +97,7 @@ in
                   "stickychan"
                   "keepnick"
                   "sasl"
+                  "log"
                 ];
               } // server-config.extraConfig
             )
@@ -101,24 +109,35 @@ in
             AltNick = lib.mkDefault "${username}_";
             QuitMsg = lib.mkDefault "bye bye.";
             LoadModule =
-              [ "chansaver" "controlpanel" "log" "notes" "autoreply" "alias" ];
+              [
+                "chansaver"
+                "controlpanel"
+                "log"
+                "notes"
+                "autoreply"
+                "alias"
+                "push"
+              ];
 
             Pass.password = {
               Method = "sha256";
               Hash = user-config.hash;
               Salt = user-config.salt;
             };
-            Network = makeUserNetworks user-config;
+            Network = makeNetworks user-config;
           } // user-config.extraConfig;
       in
       {
         enable = true;
-        mutable = false;
+        mutable = true;
         useLegacyConfig = false;
         openFirewall = false;
         modulePackages = [ pkgs.zncModules.push pkgs.zncModules.backlog ];
         config = {
-          LoadModule = [ "webadmin" "backlog" ];
+          LoadModule = [
+            "webadmin"
+            "backlog"
+          ];
           TrustedProxy = [ "127.0.0.1" "::1" ];
           Listener.l = {
             AllowIRC = true;
@@ -147,6 +166,8 @@ in
             '';
           };
         };
+        # virualHosts doesn't generate streams. Let's do it by hand.
+        # Streaming is nescessary because znc does both HTTP _and_ IRC.
         appendStreamConfig = ''
           upstream znc-irc {
             server ${upstream};
