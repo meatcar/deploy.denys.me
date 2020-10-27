@@ -2,70 +2,78 @@
 let cfg = config.mine.znc;
 in
 {
-  options.mine.znc = {
-    port = lib.mkOption {
-      type = lib.types.int;
-      description = "Port to expose IRC on";
-      default = 7000;
-    };
-    users = lib.mkOption {
-      description = "znc users";
-      type = lib.types.attrsOf (lib.types.submodule {
-        options = {
-          password = lib.mkOption {
-            type = lib.types.str;
-            description = "Password to encrypt user's files with";
-          };
-          hash = lib.mkOption {
-            type = lib.types.str;
-            description = "ZNC Password hash";
-          };
-          salt = lib.mkOption {
-            type = lib.types.str;
-            description = "ZNC Password salt";
-          };
-          extraConfig = lib.mkOption {
-            type = lib.types.attrs;
-            description = "ZNC User extra configuration";
-          };
-          networks = lib.mkOption {
-            description = "Users' networks";
-            type = lib.types.attrsOf (lib.types.submodule {
-              options = {
-                nickservPassword = lib.mkOption {
-                  description = "Network's nickserv password";
-                  type = lib.types.str;
+  options.mine.znc =
+    let
+      inherit (lib) mkOption types;
+    in
+    {
+      port = mkOption {
+        type = types.int;
+        description = "Port to expose IRC on";
+        default = 7000;
+      };
+      users = mkOption {
+        description = "znc users";
+        type = types.attrsOf (types.submodule {
+          options = {
+            password = mkOption {
+              type = types.str;
+              description = "Password to encrypt user's files with";
+            };
+            hash = mkOption {
+              type = types.str;
+              description = "ZNC Password hash";
+            };
+            salt = mkOption {
+              type = types.str;
+              description = "ZNC Password salt";
+            };
+            extraConfig = mkOption {
+              type = types.attrs;
+              description = "ZNC User extra configuration";
+            };
+            networks = mkOption {
+              description = "Users' networks";
+              type = types.attrsOf (types.submodule {
+                options = {
+                  nickservPassword = mkOption {
+                    description = "Network's nickserv password";
+                    type = types.str;
+                  };
+                  extraConfig = mkOption {
+                    type = types.attrs;
+                    description = "Network's extra configuration";
+                  };
                 };
-                extraConfig = lib.mkOption {
-                  type = lib.types.attrs;
-                  description = "Network's extra configuration";
-                };
-              };
-            });
+              });
+            };
           };
-        };
-      });
+        });
+      };
     };
-  };
 
   config = {
 
-    system.activationScripts = with lib; {
-      znc-sasl2 = pipe cfg.users [
-        (mapAttrsToList (username: user-config:
-          pipe user-config.networks [
-            (mapAttrsToList (servername:
-              { nickservPassword, ... }: ''
-                ZNC_SASL_MODDATA=/var/lib/znc/users/${username}/networks/${servername}/moddata/sasl
-                mkdir -p $ZNC_SASL_MODDATA
-                echo $'password ${nickservPassword}\nusername ${username}' > $ZNC_SASL_MODDATA/.registry''))
-            (concatStringsSep "\n")
-          ]
-        ))
-        (concatStringsSep "\n")
-        (stringAfter [ "etc" ])
-      ];
-    };
+    system.activationScripts =
+      let
+        inherit (lib) pipe mapAttrsToList concatStringsSep stringAfter;
+      in
+      {
+        znc-sasl2 = pipe cfg.users [
+          (mapAttrsToList (username: user-config:
+            pipe user-config.networks [
+              (mapAttrsToList (servername:
+                { nickservPassword, ... }: ''
+                  ZNC_SASL_MODDATA=/var/lib/znc/users/${username}/networks/${servername}/moddata/sasl
+                  mkdir -p $ZNC_SASL_MODDATA
+                  echo $'password ${nickservPassword}\nusername ${username}' > $ZNC_SASL_MODDATA/.registry''))
+              (concatStringsSep "\n")
+            ]
+          ))
+          (concatStringsSep "\n")
+          (stringAfter [ "etc" ])
+        ];
+      };
 
     services.znc =
       let
