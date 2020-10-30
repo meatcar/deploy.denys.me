@@ -15,6 +15,7 @@ in
     ./nginx.nix
     ./mumble.nix
     ./znc.nix
+    ./nodered.nix
   ];
 
   options.mine = {
@@ -30,18 +31,24 @@ in
   };
 
   config = {
-    mine.domain = "denys.me";
-    mine.githubKeyUser = "meatcar";
-    mine.znc.users = {
-      meatcar = {
-        extraConfig = {
-          Admin = true;
-          RealName = "Denys Pavlov";
-        };
-        networks = {
-          freenode = { extraConfig = { Server = "chat.freenode.net +7000"; }; };
+    mine = {
+      domain = "denys.me";
+      githubKeyUser = "meatcar";
+      znc = {
+        enable = true;
+        users = {
+          meatcar = {
+            extraConfig = {
+              Admin = true;
+              RealName = "Denys Pavlov";
+            };
+            networks = {
+              freenode = { extraConfig = { Server = "chat.freenode.net +7000"; }; };
+            };
+          };
         };
       };
+      nodered.enable = true;
     };
 
     time.timeZone = "America/Toronto";

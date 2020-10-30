@@ -4,13 +4,19 @@ in
 {
   options.mine.znc =
     let
-      inherit (lib) mkOption types;
+      inherit (lib) mkOption types mkEnableOption;
     in
     {
+      enable = mkEnableOption "znc config";
       port = mkOption {
         type = types.int;
-        description = "Port to expose IRC on";
         default = 7000;
+        description = "Port to expose IRC on";
+      };
+      domain = mkOption {
+        type = types.str;
+        default = "znc.${config.mine.domain}";
+        description = "ZNC domain";
       };
       users = mkOption {
         description = "znc users";
@@ -52,7 +58,7 @@ in
       };
     };
 
-  config = {
+  config = lib.mkIf cfg.enable {
     systemd.tmpfiles.rules = [
       "d /persist/znc 0700 znc znc -"
       "L /var/lib/znc - - - - /persist/znc"
@@ -151,12 +157,11 @@ in
 
     services.nginx =
       let
-        domain = "znc.${config.mine.domain}";
         upstream =
           "localhost:${toString config.services.znc.config.Listener.l.Port}";
       in
       {
-        virtualHosts."${domain}" = {
+        virtualHosts."${cfg.domain}" = {
           enableACME = true;
           forceSSL = true;
           locations."/" = {
@@ -175,9 +180,9 @@ in
           server {
             listen ${toString cfg.port} ssl;
             listen [::]:${toString cfg.port} ssl;
-            ssl_certificate /var/lib/acme/${domain}/fullchain.pem;
-            ssl_certificate_key /var/lib/acme/${domain}/key.pem;
-            ssl_trusted_certificate /var/lib/acme/${domain}/full.pem;
+            ssl_certificate /var/lib/acme/${cfg.domain}/fullchain.pem;
+            ssl_certificate_key /var/lib/acme/${cfg.domain}/key.pem;
+            ssl_trusted_certificate /var/lib/acme/${cfg.domain}/full.pem;
             proxy_pass znc-irc;
           }
         '';
