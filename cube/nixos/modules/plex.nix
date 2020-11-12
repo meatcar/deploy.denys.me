@@ -9,6 +9,7 @@
 
     services.plex = {
       enable = true;
+      openFirewall = true;
     };
 
     services.nginx.virtualHosts."plex.${config.fqdn}" = {
