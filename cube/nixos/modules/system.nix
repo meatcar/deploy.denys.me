@@ -32,7 +32,6 @@
     vim
     tmux
     byobu
-    mosh
     pciutils
     usbutils
     git
@@ -45,6 +44,9 @@
     mosh.enable = true;
     command-not-found.enable = true;
   };
+
+  services.eternal-terminal.enable = true;
+  networking.firewall.allowedTCPPorts = [ config.services.eternal-terminal.port ];
 
   users = {
     mutableUsers = false;
