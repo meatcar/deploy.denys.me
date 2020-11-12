@@ -72,7 +72,10 @@
   };
 
   nixpkgs.config.allowUnfree = true;
-  nix.gc.automatic = true;
+  nix.gc = {
+    automatic = true;
+    options = "--delete-older-than 1w";
+  };
   system.autoUpgrade.enable = true;
 
   # This value determines the NixOS release from which the default
