@@ -6,10 +6,10 @@
     defaults.monitored = "-a -n standby,24 -o on -s (S/../.././02|L/../../7/04)";
     notifications = {
       test = true;
+      wall.enable = false;
       mail = {
         enable = true;
         recipient = config.notificationEmail;
-        wall = false;
       };
     };
   };
