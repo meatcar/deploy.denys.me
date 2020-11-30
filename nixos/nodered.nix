@@ -21,7 +21,7 @@ in
 
   config = lib.mkIf cfg.enable {
     systemd.tmpfiles.rules = [
-      "d /persist/nodered 0700 1000 1000 -"
+      "d /persist/nodered 0700 1000 100 -"
     ];
 
     docker-containers.nodered = {
@@ -39,24 +39,8 @@ in
         locations."/" = {
           proxyPass = "http://localhost:${toString cfg.port}";
           proxyWebsockets = true;
-          # extraConfig = ''
-          #   proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-          # '';
         };
       };
-      # appendStreamConfig = ''
-      #   upstream nodered {
-      #     server localhost:${cfg.port};
-      #   }
-      #   server {
-      #     listen ${toString cfg.port} ssl;
-      #     listen [::]:${toString cfg.port} ssl;
-      #     ssl_certificate /var/lib/acme/${cfg.domain}/fullchain.pem;
-      #     ssl_certificate_key /var/lib/acme/${cfg.domain}/key.pem;
-      #     ssl_trusted_certificate /var/lib/acme/${cfg.domain}/full.pem;
-      #     proxy_pass znc-irc;
-      #   }
-      # '';
     };
   };
 }
