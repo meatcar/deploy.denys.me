@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+{ config, lib, ... }:
 {
   options =
     let
@@ -26,10 +26,6 @@
         default = "${config.hostname}.${config.domain}";
         description = "the Fully Qualified Domain Name of the server";
       };
-      storagePath = mkOption {
-        type = types.path;
-        description = "Mountpoint of main storage array";
-      };
       persistPath = mkOption {
         type = types.path;
         description = "Mountpoint of main persisted system storeage";
@@ -38,36 +34,19 @@
         type = types.str;
         description = "An email address to send system notifications to";
       };
+      storagePath = mkOption {
+        type = types.path;
+        description = "Mountpoint of main storage array";
+      };
+      storageUser = mkOption {
+        type = types.str;
+        description = "The main user that have R/W access to the storagePath";
+        default = "storage";
+      };
+      storageGroup = mkOption {
+        type = types.str;
+        description = "The group of users that have R/W access to the storagePath";
+        default = "storage";
+      };
     };
-
-  imports =
-    [
-      ./secrets.nix
-      ./hardware-configuration.nix
-      ./modules/system.nix
-      ./modules/ssmtp.nix
-      ./modules/smartd.nix
-      ./modules/docker.nix
-      ./modules/dynamicdns.nix
-      ./modules/acme.nix
-      ./modules/samba.nix
-      ./modules/plex.nix
-      ./modules/tautulli.nix
-      ./modules/jackett.nix
-      ./modules/sonarr.nix
-      ./modules/deluge.nix
-    ];
-
-  config = {
-    domain = "denys.me";
-    hostname = "cube";
-    sshKeysUrl = "https://github.com/meatcar.keys";
-    storagePath = "/data";
-    persistPath = "/persist";
-
-    services.nginx.enable = true;
-    networking = {
-      firewall.allowedTCPPorts = [ 80 443 ];
-    };
-  };
 }

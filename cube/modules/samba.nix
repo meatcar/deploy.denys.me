@@ -4,7 +4,7 @@
     enable = true;
     extraConfig = ''
       workgroup = WORKGROUP
-      guest account = nobody
+      guest account = ${config.storageUser}
       map to guest = Bad Password
       server min protocol = SMB2_10
       client min protocol = SMB2
@@ -27,21 +27,21 @@
         url = "https://github.com/christgau/wsdd.git";
       };
     in
-      {
-        enable = true;
-        description = "Web Service Discovery Daemon";
-        documentation = [ "https://github.com/christgau/wsdd" ];
-        after = [
-          "network-online.target"
-          "samba-smbd.service"
-        ];
-        wantedBy = [ "multi-user.target" ];
-        serviceConfig = {
-          ExecStart = "${pkgs.python3}/bin/python3 ${wsdd}/src/wsdd.py --shortlog";
-          User = "nobody";
-          Group = "nogroup";
-        };
+    {
+      enable = true;
+      description = "Web Service Discovery Daemon";
+      documentation = [ "https://github.com/christgau/wsdd" ];
+      after = [
+        "network-online.target"
+        "samba-smbd.service"
+      ];
+      wantedBy = [ "multi-user.target" ];
+      serviceConfig = {
+        ExecStart = "${pkgs.python3}/bin/python3 ${wsdd}/src/wsdd.py --shortlog";
+        User = config.storageUser;
+        Group = config.storageGroup;
       };
+    };
 
   networking.firewall.allowedTCPPorts = [ 445 139 ] ++ [ 3702 5357 ];
   networking.firewall.allowedUDPPorts = [ 137 138 ];
