@@ -1,6 +1,12 @@
-{ config, ... }: {
+{ config, ... }:
+let
+  cfg = config.services.sonarr;
+in
+{
   services.sonarr = {
     enable = true;
+    user = config.storageUser;
+    group = config.storageGroup;
     dataDir = "${config.persistPath}/var/lib/sonarr";
   };
 

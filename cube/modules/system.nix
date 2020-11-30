@@ -48,6 +48,8 @@
   services.eternal-terminal.enable = true;
   networking.firewall.allowedTCPPorts = [ config.services.eternal-terminal.port ];
 
+  ids.uids.${config.storageUser} = 997;
+  ids.gids.${config.storageUser} = 998;
   users = {
     mutableUsers = false;
     users =
@@ -67,10 +69,19 @@
         meatcar = {
           isNormalUser = true;
           hashedPassword = config.hashedPassword;
-          extraGroups = [ "wheel" "docker" ];
+          extraGroups = [ "wheel" "docker" config.storageGroup ];
           openssh.authorizedKeys.keys = fetchLines config.sshKeysUrl;
         };
+        ${config.storageUser} = {
+          isSystemUser = true;
+          uid = config.ids.uids.${config.storageUser};
+          group = config.storageGroup;
+          shell = pkgs.nologin;
+        };
       };
+    groups.${config.storageGroup} = {
+      gid = config.ids.gids.${config.storageGroup};
+    };
   };
 
   nixpkgs.config.allowUnfree = true;

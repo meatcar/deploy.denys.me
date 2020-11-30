@@ -21,8 +21,8 @@
     services.ddclient = {
       enable = false;
       protocol = "cloudflare";
-      username = config.cloudflare.email;
-      password = config.cloudflare.key;
+      username = builtins.readFile "";
+      password = builtins.readFile "";
       domains = [ config.fqdn ];
       zone = config.domain;
     };

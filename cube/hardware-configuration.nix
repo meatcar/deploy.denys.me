@@ -13,10 +13,10 @@
 
   boot = {
     kernelModules = [ "kvm-intel" ];
-    extraModulePackages = [];
+    extraModulePackages = [ ];
     initrd = {
       availableKernelModules = [ "ehci_pci" "ahci" "usb_storage" "usbhid" "sd_mod" ];
-      kernelModules = [];
+      kernelModules = [ ];
       supportedFilesystems = [ "btrfs" ];
       luks = {
         reusePassphrases = true;
@@ -25,16 +25,16 @@
             device = "/dev/disk/by-uuid/d289c688-38fc-434e-a8ea-899ebf18a413";
             allowDiscards = true;
             fallbackToPassword = true;
-            keyFile = "/dev/disk/by-uuid/no-such-uuid";
-            keyFileSize = 2048;
+            keyFile = "/dev/disk/by-id/usb-SanDisk_Ultra_Fit_4C530000070430202130-0:0";
+            keyFileSize = 8192;
           };
 
           "king120gb" = {
             device = "/dev/disk/by-uuid/550dd120-9025-427f-b8b2-aff5cc9af18b";
             allowDiscards = true;
             fallbackToPassword = true;
-            keyFile = "/dev/disk/by-uuid/no-such-uuid";
-            keyFileSize = 2048;
+            keyFile = "/dev/disk/by-id/usb-SanDisk_Ultra_Fit_4C530000070430202130-0:0";
+            keyFileSize = 8192;
           };
         };
       };
@@ -85,7 +85,7 @@
     };
   };
 
-  swapDevices = [];
+  swapDevices = [ ];
 
   services = {
     fstrim.enable = true;
