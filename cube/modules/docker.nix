@@ -12,16 +12,15 @@
       config.virtualisation.oci-containers.containers
       [
         builtins.attrNames
-        (map
-          (name: {
-            name = "docker-${name}";
-            value = {
-              serviceConfig = {
-                StandardOutput = lib.mkForce "journal";
-                StandardError = lib.mkForce "journal";
-              };
+        (map (name: {
+          name = "docker-${name}";
+          value = {
+            serviceConfig = {
+              StandardOutput = lib.mkForce "journal";
+              StandardError = lib.mkForce "journal";
             };
-          }))
+          };
+        }))
         builtins.listToAttrs
       ];
 }
