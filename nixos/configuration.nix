@@ -9,6 +9,7 @@ in
     ./secrets.nix # provided by terraform
     ./base.nix
     ./docker.nix
+    ./docker-fix.nix
     ./backups.nix
     ./wireguard.nix
     ./acme.nix
