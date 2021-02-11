@@ -16,7 +16,7 @@
   networking.firewall.allowedTCPPorts = [ 64738 ];
   networking.firewall.allowedUDPPorts = [ 64738 ];
 
-  docker-containers.mumbledj = {
+  virtualisation.oci-containers.containers.mumbledj = {
     image = "reikion/mumbledj";
     volumes = [
       "/persist/mumbledj/config.yaml:/home/mumbledj/.config/mumbledj/config.yaml"

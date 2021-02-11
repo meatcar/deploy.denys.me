@@ -24,7 +24,7 @@ in
       "d /persist/nodered 0700 1000 100 -"
     ];
 
-    docker-containers.nodered = {
+    virtualisation.oci-containers.containers.nodered = {
       image = "nodered/node-red";
       ports = [ "1880:${toString cfg.port}" ];
       volumes = [

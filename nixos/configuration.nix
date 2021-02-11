@@ -54,7 +54,7 @@ in
     time.timeZone = "America/Toronto";
 
     environment.systemPackages =
-      [ pkgs.mosh pkgs.byobu pkgs.tmux pkgs.direnv pkgs.vim ];
+      [ pkgs.mosh pkgs.byobu pkgs.tmux pkgs.direnv pkgs.vim pkgs.git ];
 
     users.users.root.openssh.authorizedKeys.keys =
       fetchLines "https://github.com/${config.mine.githubKeyUser}.keys";
