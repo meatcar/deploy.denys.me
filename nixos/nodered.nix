@@ -29,7 +29,9 @@ in
       ports = [ "1880:${toString cfg.port}" ];
       volumes = [
         "/persist/nodered:/data"
+        "/var/run/docker.sock:/var/run/docker.sock"
       ];
+      extraOptions = [ "--group-add=${toString config.users.groups.docker.gid}" ];
     };
 
     services.nginx = {
