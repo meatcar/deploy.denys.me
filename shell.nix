@@ -1,6 +1,12 @@
-{ pkgs ? import ./nix { } }:
+{ sources ? import ./nix/sources.nix }:
+let
+  pkgs = import sources.nixpkgs { };
+in
 pkgs.mkShell {
   name = "deploy.denys.me";
+  NIX_PATH = builtins.concatStringsSep ":" [
+    "nixpkgs=${sources.nixpkgs}"
+  ];
   buildInputs = with pkgs; [
     niv
     packer
@@ -18,9 +24,20 @@ pkgs.mkShell {
     jq
     (pkgs.writeShellScriptBin "push-and-rebuild" ''
       IP=$(${pkgs.terraform}/bin/terraform output ip)
-      echo Pushing to $IP
-      ${pkgs.rsync}/bin/rsync -avz nixos root@$IP:/etc
-      ssh root@$IP nixos-rebuild switch
+      REMOTE_USER=
+      SUDO=
+      if ssh root@$IP >/dev/null 2>&1; then
+        REMOTE_USER=root
+      else
+        REMOTE_USER=meatcar
+        SUDO=sudo
+      fi
+      echo "Pushing to $REMOTE_USER@$IP"
+      ${pkgs.rsync}/bin/rsync -avz nixos "$REMOTE_USER@$IP:/etc"
+      if [ -n "$SUDO" ]; then
+        echo "** sudo password for $REMOTE_USER@$IP will be required..."
+      fi
+      ssh -t "$REMOTE_USER@$IP" "$SUDO" nixos-rebuild switch
     ''
     )
     (pkgs.writeShellScriptBin "dev-watch" ''
