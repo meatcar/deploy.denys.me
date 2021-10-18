@@ -98,7 +98,7 @@ resource "null_resource" "nixos_rebuild" {
 
   connection {
     host    = digitalocean_droplet.www.ipv4_address
-    user    = "root"
+    user    = "meatcar"
     type    = "ssh"
     timeout = "2m"
     agent   = "true"
