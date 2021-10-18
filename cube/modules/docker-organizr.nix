@@ -1,34 +1,37 @@
 { config, pkgs, lib, ... }:
 let
-  cfg = config.services.ombi;
+  cfg = config.services.organizr;
   port = toString cfg.port;
 in
 {
   options = {
-    services.ombi = {
+    services.organizr = {
       port = lib.mkOption {
         type = lib.types.int;
-        description = "ombi port to listen to locally";
-        default = 3579;
+        description = "organizr port to listen to locally";
+        default = 8191;
       };
     };
   };
 
   config = {
-    virtualisation.oci-containers.containers.ombi = {
-      image = "ghcr.io/linuxserver/ombi";
-      ports = [ "${port}:3579" ];
+    systemd.tmpfiles.rules = [
+      "d ${config.storagePath}/organizr 0755 - - - -"
+    ];
+
+    virtualisation.oci-containers.containers.organizr = {
+      image = "ghcr.io/organizr/organizr";
+      ports = [ "${port}:80" ];
       volumes = [
-        "${config.persistPath}/ombi:/config"
+        "${config.persistPath}/organizr:/config"
       ];
       environment = {
         PUID = toString config.ids.uids.${config.storageUser};
         PGID = toString config.ids.gids.${config.storageGroup};
       };
-      extraOptions = [ "--network=host" ];
     };
 
-    services.nginx.virtualHosts."ombi.${config.fqdn}" = {
+    services.nginx.virtualHosts."organizr.${config.fqdn}" = {
       enableACME = true;
       forceSSL = true;
       locations."/".proxyPass = "http://127.0.0.1:${port}";

@@ -16,7 +16,7 @@ in
       "d ${config.persistPath}/transmission 0755 - - - -"
     ];
     virtualisation.oci-containers.containers.transmission = {
-      image = "linuxserver/transmission";
+      image = "ghcr.io/linuxserver/transmission";
       dependsOn = [ "wireguard" ];
       volumes = [
         "${config.persistPath}/transmission:/config"
@@ -36,7 +36,7 @@ in
       ];
     };
     virtualisation.oci-containers.containers.wireguard.ports = [
-      "9091:${toString cfg.port}"
+      "${toString cfg.port}:9091"
     ];
     services.nginx.virtualHosts."transmission.${config.fqdn}" = {
       enableACME = true;
