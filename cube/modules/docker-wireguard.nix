@@ -7,7 +7,7 @@
   ];
 
   virtualisation.oci-containers.containers.wireguard = {
-    image = "linuxserver/wireguard";
+    image = "ghcr.io/linuxserver/wireguard";
     ports = [ "51820:51820/udp" ];
     volumes = [
       "/sys:/sys:rw"

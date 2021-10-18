@@ -13,16 +13,18 @@
     ./modules/acme.nix
     ./modules/samba.nix
     ./modules/plex.nix
-    # ./modules/jellyfin.nix
     ./modules/tautulli.nix
-    ./modules/jackett.nix
     ./modules/sonarr.nix
     ./modules/radarr.nix
     ./modules/docker.nix
     ./modules/docker-diun.nix
+    ./modules/docker-wireguard.nix
     ./modules/docker-ombi.nix
     ./modules/docker-transmission.nix
-    ./modules/docker-wireguard.nix
+    ./modules/docker-jackett.nix
+    ./modules/docker-calibre-web.nix
+    ./modules/docker-organizr.nix
+    ./modules/docker-scrutiny.nix
   ];
 
   config = {
