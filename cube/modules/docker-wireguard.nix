@@ -1,6 +1,5 @@
 { config, pkgs, lib, ... }:
 {
-  boot.extraModulePackages = [ config.boot.kernelPackages.wireguard ];
   boot.kernelModules = [ "wireguard" ];
   systemd.tmpfiles.rules = [
     "d ${config.persistPath}/wireguard 0755 - - - -"

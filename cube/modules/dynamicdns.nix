@@ -21,16 +21,16 @@
     services.ddclient = {
       enable = false;
       protocol = "cloudflare";
-      username = builtins.readFile "";
-      password = builtins.readFile "";
+      username = config.cloudflare.email;
+      passwordFile = config.sops.secrets."cloudflare-key".path;
       domains = [ config.fqdn ];
       zone = config.domain;
     };
 
     services.cfdyndns = {
       enable = true;
-      apikey = config.cloudflare.key;
       email = config.cloudflare.email;
+      apikeyFile = config.sops.secrets."cloudflare-key".path;
       records = [ config.fqdn ];
     };
   };

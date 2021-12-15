@@ -13,10 +13,6 @@
         type = types.str;
         description = "the hostname of the server";
       };
-      hashedPassword = mkOption {
-        type = types.str;
-        description = "the hashed password, generated with `nix-shell -p mkpasswd --command 'mkpasswd -m sha-512`";
-      };
       sshKeysUrl = mkOption {
         type = types.str;
         description = "the URL of the ssh keys to authorize";
