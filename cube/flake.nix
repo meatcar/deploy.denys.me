@@ -5,28 +5,22 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
-    deploy-rs.url = "github:serokell/deploy-rs";
-    deploy-rs.inputs.nixpkgs.follows = "nixpkgs";
-
   };
   outputs = { self, ... }@inputs:
     (inputs.flake-utils.lib.eachDefaultSystem
       (system:
         let
-          pkgs = import inputs.nixpkgs {
-            inherit system;
-            overlays = [ inputs.deploy-rs.overlay ];
-          };
+          pkgs = import inputs.nixpkgs { inherit system; };
           sops = pkgs.callPackage inputs.sops-nix { };
+          nix = pkgs.nixFlakes;
         in
         {
           devShell = pkgs.mkShell rec {
             name = "cube-denys-me";
             buildInputs = [
               sops.ssh-to-pgp
-              pkgs.nixFlakes
-              (pkgs.nixos-rebuild.override { nix = pkgs.nixFlakes; })
-              pkgs.deploy-rs.deploy-rs
+              nix
+              (pkgs.nixos-rebuild.override { inherit nix; })
             ];
             nativeBuildInputs = [
               sops.sops-import-keys-hook
@@ -48,14 +42,5 @@
           inputs.sops-nix.nixosModules.sops
         ];
       };
-      deploy.nodes.cube = {
-        hostname = "192.168.11.117";
-        profiles.system = {
-          user = "root";
-          path = inputs.deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.cube;
-        };
-      };
-
-      checks = builtins.mapAttrs (system: deployLib: deployLib.deployChecks self.deploy) inputs.deploy-rs.lib;
     };
 }
