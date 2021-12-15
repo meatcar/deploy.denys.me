@@ -4,17 +4,8 @@ let
   port = toString cfg.port;
 in
 {
-  options = {
-    services.ombi = {
-      port = lib.mkOption {
-        type = lib.types.int;
-        description = "ombi port to listen to locally";
-        default = 3579;
-      };
-    };
-  };
-
   config = {
+    services.ombi.port = 3579;
     virtualisation.oci-containers.containers.ombi = {
       image = "ghcr.io/linuxserver/ombi";
       ports = [ "${port}:3579" ];

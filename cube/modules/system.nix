@@ -12,15 +12,15 @@
   # Per-interface useDHCP will be mandatory in the future, so this generated config
   # replicates the default behaviour.
   networking.useDHCP = false;
-  networking.interfaces.enp7s0.useDHCP = true;
-  networking.interfaces.enp8s0 = {
-    useDHCP = false;
-    ipv4.addresses = [{ address = "192.168.0.9"; prefixLength = 24; }];
+  networking.interfaces.enp2s0.useDHCP = true;
+  networking.interfaces.enp3s0 = {
+    useDHCP = true;
+    #ipv4.addresses = [{ address = "192.168.0.9"; prefixLength = 24; }];
   };
-  networking.defaultGateway = {
-    address = "192.168.0.1";
-    interface = "enp8s0";
-  };
+  #networking.defaultGateway = {
+  #  address = "192.168.0.1";
+  #  interface = "enp3s0";
+  #};
   networking.nameservers = [ "1.1.1.1" "8.8.8.8" ];
 
   time.timeZone = "America/Toronto";
@@ -63,12 +63,12 @@
       in
       {
         root = {
-          hashedPassword = config.hashedPassword;
+          passwordFile = config.sops.secrets.hashedPassword.path;
           openssh.authorizedKeys.keys = fetchLines config.sshKeysUrl;
         };
         meatcar = {
           isNormalUser = true;
-          hashedPassword = config.hashedPassword;
+          passwordFile = config.sops.secrets.hashedPassword.path;
           extraGroups = [ "wheel" "docker" config.storageGroup ];
           openssh.authorizedKeys.keys = fetchLines config.sshKeysUrl;
         };
@@ -89,7 +89,11 @@
     automatic = true;
     options = "--delete-older-than 1w";
   };
-  system.autoUpgrade.enable = true;
+  nix.package = pkgs.nixFlakes;
+  system.autoUpgrade = {
+    enable = false;
+    flake = "github:meatcar/cube.denys.me";
+  };
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
