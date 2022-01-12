@@ -9,9 +9,7 @@ resource "digitalocean_droplet" "www" {
   size               = "s-1vcpu-1gb"
   private_networking = false
 
-  ssh_keys = [
-    "${var.ssh_fingerprint}",
-  ]
+  ssh_keys = [ var.ssh_fingerprint ]
 }
 
 resource "null_resource" "provision_secrets" {
@@ -93,7 +91,7 @@ resource "null_resource" "nixos_rebuild" {
   triggers = {
     droplet_id           = digitalocean_droplet.www.id
     provision_wg_keys_id = null_resource.provision_wg_keys.id
-    hashes               = join(" ", [for f in fileset("${path.module}", "nixos/*") : filesha256("${path.module}/${f}")])
+    hashes               = join(" ", [for f in fileset(path.module, "nixos/*") : filesha256("${path.module}/${f}")])
   }
 
   connection {

@@ -6,4 +6,29 @@ terraform {
     encrypt        = true
     dynamodb_table = "terraform-state-lock-denys-me"
   }
+
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"
+    }
+    cloudflare = {
+      source = "cloudflare/cloudflare"
+    }
+    digitalocean = {
+      source = "digitalocean/digitalocean"
+    }
+    external = {
+      source = "hashicorp/external"
+    }
+    local = {
+      source = "hashicorp/local"
+    }
+    null = {
+      source = "hashicorp/null"
+    }
+    random = {
+      source = "hashicorp/random"
+    }
+  }
+  required_version = ">= 0.13"
 }
