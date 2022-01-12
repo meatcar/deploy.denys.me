@@ -1,6 +1,6 @@
 # for state
 provider "aws" {
-  version = "~> 2.8"
+  version = "~> 3.56.0"
   region = "us-east-1"
 }
 
