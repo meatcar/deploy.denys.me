@@ -54,23 +54,27 @@
     mutableUsers = false;
     users =
       let
-        fetchLines = url:
-          lib.pipe url [
+        sshKeys = lib.pipe
+          {
+            url = config.sshKeysUrl;
+            sha256 = "sha256:1g214y4ibdnxavsbrhds1hwxz30lff808nh2kzw3wxwkb8f1z1yd";
+          }
+          [
             builtins.fetchurl
-            lib.fileContents
+            builtins.readFile
             (lib.splitString "\n")
           ];
       in
       {
         root = {
-          openssh.authorizedKeys.keys = fetchLines config.sshKeysUrl;
           passwordFile = config.age.secrets.hashedPassword.path;
+          openssh.authorizedKeys.keys = sshKeys;
         };
         meatcar = {
           isNormalUser = true;
           passwordFile = config.age.secrets.hashedPassword.path;
           extraGroups = [ "wheel" "docker" config.storageGroup ];
-          openssh.authorizedKeys.keys = fetchLines config.sshKeysUrl;
+          openssh.authorizedKeys.keys = sshKeys;
         };
         ${config.storageUser} = {
           isSystemUser = true;

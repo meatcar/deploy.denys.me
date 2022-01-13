@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, inputs, ... }:
 {
   services.samba = {
     enable = true;
@@ -23,9 +23,7 @@
 
   systemd.services.samba-wsdd =
     let
-      wsdd = builtins.fetchGit {
-        url = "https://github.com/christgau/wsdd.git";
-      };
+      wsdd = inputs.wsdd;
     in
     {
       enable = true;
