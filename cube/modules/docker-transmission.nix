@@ -21,8 +21,8 @@ in
       volumes = [
         "${config.persistPath}/transmission:/config"
         "${config.storagePath}/System/transmission:${config.storagePath}/System/transmission"
-        "${config.sops.secrets.transmissionUser.path}:/username"
-        "${config.sops.secrets.transmissionPass.path}:/password"
+        "${config.age.secrets.transmissionUser.path}:/username"
+        "${config.age.secrets.transmissionPass.path}:/password"
       ];
       environment = {
         TZ = config.time.timeZone;

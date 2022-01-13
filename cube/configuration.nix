@@ -2,7 +2,6 @@
 {
   imports = [
     ./options.nix
-    ./sops.nix
     ./secrets.nix
     ./hardware-configuration.nix
     ./modules/system.nix

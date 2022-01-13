@@ -22,7 +22,7 @@
       enable = false;
       protocol = "cloudflare";
       username = config.cloudflare.email;
-      passwordFile = config.sops.secrets."cloudflare-key".path;
+      passwordFile = config.age.secrets.cloudflareKey.path;
       domains = [ config.fqdn ];
       zone = config.domain;
     };
@@ -30,7 +30,7 @@
     services.cfdyndns = {
       enable = true;
       email = config.cloudflare.email;
-      apikeyFile = config.sops.secrets."cloudflare-key".path;
+      apikeyFile = config.age.secrets.cloudflareKey.path;
       records = [ config.fqdn ];
     };
   };
