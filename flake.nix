@@ -5,10 +5,16 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
   };
   outputs = { self, ... }@inputs:
+    let
+      nixpkgsConfig = {
+        config = { allowUnfree = true; };
+      };
+      specialArgs = { inherit inputs; };
+    in
     (inputs.flake-utils.lib.eachDefaultSystem
       (system:
         let
-          pkgs = import inputs.nixpkgs { inherit system; };
+          pkgs = import inputs.nixpkgs (nixpkgsConfig // { inherit system; });
         in
         {
           devShell = pkgs.mkShell rec {
@@ -19,6 +25,7 @@
             buildInputs = with pkgs; [
               packer
               nixos-generators
+              nixos-rebuild
               (terraform_1.withPlugins (p: [
                 p.local
                 p.external
@@ -33,30 +40,41 @@
               (pkgs.writeShellScriptBin "push-and-rebuild" ''
                 IP=$(${pkgs.terraform}/bin/terraform output ip)
                 REMOTE_USER=
-                SUDO=
-                if ssh root@$IP >/dev/null 2>&1; then
-                  REMOTE_USER=root
-                else
-                  REMOTE_USER=meatcar
-                  SUDO=sudo
-                fi
-                echo "Pushing to $REMOTE_USER@$IP"
-                ${pkgs.rsync}/bin/rsync -avz nixos "$REMOTE_USER@$IP:/etc"
-                if [ -n "$SUDO" ]; then
-                  echo "** sudo password for $REMOTE_USER@$IP will be required..."
-                fi
-                ssh -t "$REMOTE_USER@$IP" "$SUDO" nixos-rebuild switch
+                  SUDO=
+                    if ssh root@$IP >/dev/null 2>&1; then
+                    REMOTE_USER=root
+                    else
+                    REMOTE_USER=meatcar
+                    SUDO=sudo
+                    fi
+                    echo "Pushing to $REMOTE_USER@$IP"
+                    ${pkgs.rsync}/bin/rsync -avz nixos "$REMOTE_USER@$IP:/etc"
+                    if [ -n "$SUDO" ]; then
+                    echo "** sudo password for $REMOTE_USER@$IP will be required..."
+                    fi
+                    ssh -t "$REMOTE_USER@$IP" "$SUDO" nixos-rebuild switch
               ''
               )
               (pkgs.writeShellScriptBin "dev-watch" ''
-                #SCRIPT="${pkgs.terraform}/bin/terraform apply -auto-approve -target=null_resource.nixos_rebuild"
                 while true; do
-                  ${pkgs.fd}/bin/fd nixos | \
-                    ${pkgs.entr}/bin/entr -dc push-and-rebuild
+                ${pkgs.fd}/bin/fd nixos | \
+                ${pkgs.entr}/bin/entr -dc push-and-rebuild
                 done
               ''
               )
             ];
           };
-        }));
+        })
+    // {
+      nixosConfigurations.default =
+        inputs.nixpkgs.lib.nixosSystem
+          {
+            inherit specialArgs;
+            system = "x86_64-linux";
+            modules = [
+              { nixpkgs = nixpkgsConfig; }
+              ./nixos/configuration.nix
+            ];
+          };
+    });
 }
