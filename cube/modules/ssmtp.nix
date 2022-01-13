@@ -28,7 +28,7 @@
       hostName = "${config.smtp.host}:${toString config.smtp.port}";
       useTLS = true;
       root = " root.${config.hostname}@${config.domain}";
-      authPassFile = config.sops.secrets.ssmtpPass.path;
+      authPassFile = config.age.secrets.ssmtpPass.path;
     };
   };
 }

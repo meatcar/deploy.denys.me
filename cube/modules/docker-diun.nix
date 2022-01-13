@@ -42,7 +42,7 @@ in
           "/var/run/docker.sock:/var/run/docker.sock"
           "${config.persistPath}/diun:/data"
           "${configFile}:/diun.yml"
-          "${config.sops.secrets.ssmtpPass.path}:/smtppass"
+          "${config.age.secrets.ssmtpPass.path}:/smtppass"
         ];
         environment = {
           TZ = config.time.timeZone;

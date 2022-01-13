@@ -63,12 +63,12 @@
       in
       {
         root = {
-          passwordFile = config.sops.secrets.hashedPassword.path;
           openssh.authorizedKeys.keys = fetchLines config.sshKeysUrl;
+          passwordFile = config.age.secrets.hashedPassword.path;
         };
         meatcar = {
           isNormalUser = true;
-          passwordFile = config.sops.secrets.hashedPassword.path;
+          passwordFile = config.age.secrets.hashedPassword.path;
           extraGroups = [ "wheel" "docker" config.storageGroup ];
           openssh.authorizedKeys.keys = fetchLines config.sshKeysUrl;
         };
