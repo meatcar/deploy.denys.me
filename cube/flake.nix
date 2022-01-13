@@ -5,6 +5,11 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.nixpkgs.follows = "nixpkgs";
+
+    wsdd = {
+      url = "github:christgau/wsdd";
+      flake = false;
+    };
   };
   outputs = { self, ... }@inputs:
     (inputs.flake-utils.lib.eachDefaultSystem
