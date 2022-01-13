@@ -7,7 +7,6 @@ resource "digitalocean_droplet" "www" {
   name               = var.hostname
   region             = "tor1"
   size               = "s-1vcpu-1gb"
-  private_networking = false
 
   ssh_keys = [ var.ssh_fingerprint ]
 }
