@@ -19,7 +19,7 @@
             buildInputs = with pkgs; [
               packer
               nixos-generators
-              (terraform_0_15.withPlugins (p: [
+              (terraform_1.withPlugins (p: [
                 p.local
                 p.external
                 p.null
