@@ -3,6 +3,8 @@
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    agenix.url = "github:ryantm/agenix";
+    agenix.inputs.nixpkgs.follows = "nixpkgs";
   };
   outputs = { self, ... }@inputs:
     let
@@ -73,6 +75,14 @@
             system = "x86_64-linux";
             modules = [
               { nixpkgs = nixpkgsConfig; }
+              inputs.agenix.nixosModules.age
+              {
+                age.secrets = {
+                  wg-priv-key.file = ./secrets/wg-priv-key.age;
+                  restic-password.file = ./secrets/restic-password.age;
+                  restic-env.file = ./secrets/restic-env.age;
+                };
+              }
               ./nixos/configuration.nix
             ];
           };

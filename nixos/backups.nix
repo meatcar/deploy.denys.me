@@ -1,9 +1,9 @@
-{ ... }:
+{ config, ... }:
 {
   services.restic.backups.persist = {
-    repository = builtins.readFile "/var/secrets/restic_repository";
-    passwordFile = "/var/secrets/restic_password";
-    s3CredentialsFile = "/var/secrets/restic_environment";
+    # repository set in secrets.nix
+    passwordFile = config.age.secrets.restic-password.path;
+    environmentFile = config.age.secrets.restic-env.path;
     paths = [ "/persist" ];
     pruneOpts = [
       "--keep-daily 7"

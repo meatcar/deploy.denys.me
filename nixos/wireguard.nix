@@ -1,24 +1,29 @@
-{ config, lib, ... }:
+{ config, pkgs, lib, ... }:
 {
-  boot.extraModulePackages = with config.boot.kernelPackages; [ wireguard ];
-  networking.wireguard.interfaces = {
-    wg0 = {
-      ips = [ "10.100.0.1/24" ];
-      listenPort = 51820;
-      privateKeyFile = "/var/secrets/wg_server_private_key";
-      peers = import ./wg-clients.nix;
-    };
-  };
-
   networking.nat.enable = true;
   networking.nat.externalInterface = "ens3";
-  networking.nat.internalInterfaces = [ "wg0" ];
+  networking.nat.internalInterfaces = [ "wg1" ];
   networking.firewall = {
-    allowedUDPPorts = [ 51820 ];
+    allowedTCPPorts = [ 53 ];
+    allowedUDPPorts = [ 53 51821 ];
+  };
 
-    # This allows the wireguard server to route your traffic to the internet and hence be like a VPN
-    extraCommands = ''
-      iptables -t nat -A POSTROUTING -s 10.100.0.0/24 -o ens3 -j MASQUERADE
+  networking.wireguard.enable = true;
+  networking.wireguard.interfaces.wg1 = {
+    ips = [ "10.100.0.1/24" ];
+    listenPort = 51821;
+    privateKeyFile = config.age.secrets.wg-priv-key.path;
+    peers = import ./wg-clients.nix;
+
+    postSetup = ''
+      ${pkgs.iptables}/bin/iptables -A FORWARD -i wg1 -j ACCEPT
+      ${pkgs.iptables}/bin/iptables -t nat -A POSTROUTING -s 10.100.0.0/24 -o eth0 -j MASQUERADE
+    '';
+
+    # This undoes the above command
+    postShutdown = ''
+      ${pkgs.iptables}/bin/iptables -D FORWARD -i wg1 -j ACCEPT
+      ${pkgs.iptables}/bin/iptables -t nat -D POSTROUTING -s 10.100.0.0/24 -o eth0 -j MASQUERADE
     '';
   };
 }
