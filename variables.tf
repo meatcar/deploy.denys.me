@@ -31,19 +31,6 @@ variable "wg_nodes" {
   default     = ["server", "laptop", "phone", "cube.denys.me"]
 }
 
-variable "restic_repository" {
-  description = "Restic repository url"
-}
-variable "restic_password" {
-  description = "Restic repository password"
-}
-variable "restic_key_id" {
-  description = "Key ID for Restic repository"
-}
-variable "restic_secret" {
-  description = "Secret Access Key for Restic repository "
-}
-
 variable "nix_znc_password" {
   description = "ZNC User's password for misc plugins"
 }

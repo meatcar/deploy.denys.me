@@ -28,27 +28,20 @@ locals {
   wg_clients = slice(local.wg_peers, 1, length(local.wg_peers))
 }
 
-resource "null_resource" "provision_wg_keys" {
-  triggers = {
-    droplet_id = digitalocean_droplet.www.id
-    wg_ips     = join(",", local.wg_peers.*.ip)
-    wg_pub_ks  = join(",", local.wg_peers.*.public_key)
-  }
+resource "local_file" "generate_wg_nixos_config" {
+  # triggers = {
+  #   droplet_id = digitalocean_droplet.www.id
+  #   wg_ips     = join(",", local.wg_peers.*.ip)
+  #   wg_pub_ks  = join(",", local.wg_peers.*.public_key)
+  # }
 
-  connection {
-    host    = digitalocean_droplet.www.ipv4_address
-    user    = "root"
-    type    = "ssh"
-    timeout = "2m"
-    agent   = "true"
-  }
-
-  provisioner "file" {
-    content = templatefile(
-      "${path.module}/templates/wg-clients.nix.tmpl",
-    { clients = local.wg_clients })
-    destination = "/etc/nixos/wg-clients.nix"
-  }
+  filename = "nixos/wg-clients.nix"
+  file_permission = "0640"
+  content = templatefile(
+    "${path.module}/templates/wg-clients.nix.tmpl",
+    {
+      clients = local.wg_clients
+  })
 }
 
 resource "local_file" "wg_client_config" {
