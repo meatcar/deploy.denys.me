@@ -88,12 +88,19 @@
     };
   };
 
+  security.sudo.wheelNeedsPassword = false;
   nixpkgs.config.allowUnfree = true;
   nix.gc = {
     automatic = true;
     options = "--delete-older-than 1w";
   };
-  nix.package = pkgs.nixFlakes;
+  nix = {
+    package = pkgs.nixFlakes;
+    extraOptions = ''
+      experimental-features = nix-command flakes
+    '';
+  };
+  nix.trustedUsers = [ "root" "@wheel" ];
   system.autoUpgrade = {
     enable = false;
     flake = "github:meatcar/cube.denys.me";
