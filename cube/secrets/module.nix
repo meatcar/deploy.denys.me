@@ -6,5 +6,6 @@
     transmissionPass.file = ./transmission-pass.age;
     hashedPassword.file = ./hashed-password.age;
     cloudflareKey.file = ./cloudflare-key.age;
+    wgPrivateKey.file = ./wg-private-key.age;
   };
 }

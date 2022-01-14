@@ -5,6 +5,7 @@
     ./secrets.nix
     ./hardware-configuration.nix
     ./modules/system.nix
+    ./modules/wireguard.nix
     ./modules/ssmtp.nix
     ./modules/smartd.nix
     ./modules/dynamicdns.nix
