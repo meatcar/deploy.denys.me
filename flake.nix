@@ -6,6 +6,7 @@
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.nixpkgs.follows = "nixpkgs";
   };
+
   outputs = { self, ... }@inputs:
     let
       nixpkgsConfig = {
@@ -17,6 +18,28 @@
       (system:
         let
           pkgs = import inputs.nixpkgs (nixpkgsConfig // { inherit system; });
+          nix = pkgs.nixFlakes;
+          scripts = [
+            (pkgs.writeShellScriptBin "push-and-rebuild" ''
+              IP=$(${pkgs.terraform}/bin/terraform output --raw ip)
+              REMOTE_USER=meatcar
+              HOST=$REMOTE_USER@$IP
+              # echo "Pushing to $HOST"
+              # ${pkgs.rsync}/bin/rsync -avz nixos "$HOST:/etc"
+              if [ -n "$SUDO" ]; then
+                echo "** sudo password for $HOST will be required..."
+              fi
+              nixos-rebuild switch --target-host $HOST --flake .#default --use-remote-sudo --impure --build-host $HOST --use-substitutes
+            ''
+            )
+            (pkgs.writeShellScriptBin "dev-watch" ''
+              while true; do
+              ${pkgs.fd}/bin/fd nixos | \
+              ${pkgs.entr}/bin/entr -dc push-and-rebuild
+              done
+            ''
+            )
+          ];
         in
         {
           devShell = pkgs.mkShell rec {
@@ -24,11 +47,15 @@
             NIX_PATH = builtins.concatStringsSep ":" [
               "nixpkgs=${inputs.nixpkgs}"
             ];
-            buildInputs = with pkgs; [
+            shellHook = ''
+              export NIX_SSHOPTS=-t
+            '';
+            buildInputs = with pkgs; scripts ++ [
+              inputs.agenix.defaultPackage.${system}
               packer
-              nixos-generators
-              nixos-rebuild
-              (terraform_1.withPlugins (p: [
+              nix
+              (pkgs.nixos-rebuild.override { inherit nix; })
+              (terraform.withPlugins (p: [
                 p.local
                 p.external
                 p.null
@@ -39,31 +66,6 @@
               ]))
               wireguard
               jq
-              (pkgs.writeShellScriptBin "push-and-rebuild" ''
-                IP=$(${pkgs.terraform}/bin/terraform output ip)
-                REMOTE_USER=
-                  SUDO=
-                    if ssh root@$IP >/dev/null 2>&1; then
-                    REMOTE_USER=root
-                    else
-                    REMOTE_USER=meatcar
-                    SUDO=sudo
-                    fi
-                    echo "Pushing to $REMOTE_USER@$IP"
-                    ${pkgs.rsync}/bin/rsync -avz nixos "$REMOTE_USER@$IP:/etc"
-                    if [ -n "$SUDO" ]; then
-                    echo "** sudo password for $REMOTE_USER@$IP will be required..."
-                    fi
-                    ssh -t "$REMOTE_USER@$IP" "$SUDO" nixos-rebuild switch
-              ''
-              )
-              (pkgs.writeShellScriptBin "dev-watch" ''
-                while true; do
-                ${pkgs.fd}/bin/fd nixos | \
-                ${pkgs.entr}/bin/entr -dc push-and-rebuild
-                done
-              ''
-              )
             ];
           };
         })

@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ config, pkgs, lib, ... }:
 {
   swapDevices = [
     {
@@ -7,13 +7,26 @@
     }
   ];
 
-  system.autoUpgrade.enable = true;
-  system.autoUpgrade.channel = "https://nixos.org/channels/nixos-20.03";
+  security.sudo.wheelNeedsPassword = false;
+  nix.trustedUsers = [ "root" "@wheel" ];
   nix.gc = {
     automatic = true;
     options = "--delete-older-than 1w";
   };
   nix.autoOptimiseStore = true;
+  nix = {
+    package = pkgs.nixFlakes;
+    extraOptions = ''
+      experimental-features = nix-command flakes
+    '';
+  };
+
+  system.autoUpgrade = {
+    enable = false;
+    flake = "github:meatcar/deploy.denys.me#default";
+    flags = [ "--update-input" "nixpkgs" ];
+  };
+
 
   services.sshd.enable = true;
   programs.mosh.enable = true;
