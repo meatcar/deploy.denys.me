@@ -1,7 +1,15 @@
 { config, modulesPath, pkgs, lib, ... }:
 let
-  fetchLines = url:
-    lib.pipe url [ builtins.fetchurl lib.fileContents (lib.splitString "\n") ];
+  sshKeys = lib.pipe
+    {
+      url = "https://github.com/${config.mine.githubKeyUser}.keys";
+      sha256 = "sha256:1g214y4ibdnxavsbrhds1hwxz30lff808nh2kzw3wxwkb8f1z1yd";
+    }
+    [
+      builtins.fetchurl
+      builtins.readFile
+      (lib.splitString "\n")
+    ];
 in
 {
   imports = [
@@ -57,16 +65,14 @@ in
     environment.systemPackages =
       [ pkgs.mosh pkgs.byobu pkgs.tmux pkgs.direnv pkgs.vim pkgs.git ];
 
-    users.users.root.openssh.authorizedKeys.keys =
-      fetchLines "https://github.com/${config.mine.githubKeyUser}.keys";
+    users.users.root.openssh.authorizedKeys.keys = sshKeys;
 
     users.users.meatcar = {
       isNormalUser = true;
       extraGroups = [ "wheel" "docker" "nginx" ];
       hashedPassword =
         "!";
-      openssh.authorizedKeys.keys =
-        fetchLines "https://github.com/${config.mine.githubKeyUser}.keys";
+      openssh.authorizedKeys.keys = sshKeys;
     };
   };
 }
