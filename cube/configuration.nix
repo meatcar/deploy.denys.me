@@ -8,7 +8,6 @@
     ./modules/wireguard.nix
     ./modules/ssmtp.nix
     ./modules/smartd.nix
-    ./modules/dynamicdns.nix
     ./modules/nginx.nix
     ./modules/acme.nix
     ./modules/samba.nix

@@ -31,9 +31,6 @@
               (pkgs.nixos-rebuild.override { inherit nix; })
               inputs.agenix.defaultPackage.${system}
             ];
-            shellHook = ''
-              export NIX_SSHOPTS=-t
-            '';
           };
         }))
     // {
