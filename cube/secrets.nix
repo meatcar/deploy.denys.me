@@ -1,10 +1,11 @@
 { ... }:
+let
+  inherit (builtins) getEnv;
+in
 {
-  cloudflare.email = "denys.pavlov@gmail.com";
   smtp = {
-    user = "denys@fastmail.com";
-    host = "smtp.fastmail.com";
-    port = 565;
+    user = getEnv "SMTP_USER";
+    host = getEnv "SMTP_HOST";
   };
-  notificationEmail = "x9wvk41qnk@pomail.net";
+  notificationEmail = getEnv "NOTIFICATION_EMAIL";
 }

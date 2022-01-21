@@ -13,6 +13,7 @@
       port = lib.mkOption {
         type = lib.types.port;
         description = "SMTP Port";
+        default = 565;
       };
       pass = lib.mkOption {
         type = lib.types.str;
