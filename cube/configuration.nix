@@ -23,6 +23,7 @@
     ./modules/docker-jackett.nix
     ./modules/docker-bazarr.nix
     ./modules/docker-calibre-web.nix
+    ./modules/docker-readarr.nix
     ./modules/docker-organizr.nix
     ./modules/docker-scrutiny.nix
   ];
