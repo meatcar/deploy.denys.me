@@ -21,6 +21,7 @@
     ./modules/docker-ombi.nix
     ./modules/docker-transmission.nix
     ./modules/docker-jackett.nix
+    ./modules/docker-bazarr.nix
     ./modules/docker-calibre-web.nix
     ./modules/docker-organizr.nix
     ./modules/docker-scrutiny.nix
