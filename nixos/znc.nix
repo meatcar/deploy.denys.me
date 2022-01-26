@@ -164,6 +164,7 @@ in
         virtualHosts."${cfg.domain}" = {
           enableACME = true;
           forceSSL = true;
+          listen = [{ addr = "127.0.0.1"; port = config.mine.internalSslPort; ssl = true; }];
           locations."/" = {
             proxyPass = "http://${upstream}";
             extraConfig = ''
@@ -173,7 +174,7 @@ in
         };
         # virualHosts doesn't generate streams. Let's do it by hand.
         # Streaming is nescessary because znc does both HTTP _and_ IRC.
-        appendStreamConfig = ''
+        streamConfig = ''
           upstream znc-irc {
             server ${upstream};
           }
