@@ -15,5 +15,3 @@
 # End of https://www.gitignore.io/api/terraform
 .env
 output/
-nixos/secrets.nix
-nixos/wg-clients.nix
