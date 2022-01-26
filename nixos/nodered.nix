@@ -38,6 +38,7 @@ in
       virtualHosts."${cfg.domain}" = {
         enableACME = true;
         forceSSL = true;
+        listen = [{ addr = "127.0.0.1"; port = config.mine.internalSslPort; ssl = true; }];
         locations."/" = {
           proxyPass = "http://localhost:${toString cfg.port}";
           proxyWebsockets = true;
