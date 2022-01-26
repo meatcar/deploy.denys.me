@@ -22,11 +22,17 @@ in
 
       streamConfig = ''
         map $ssl_preread_server_name $name {
+          cube.${config.mine.domain} cube;
+          ~.+.cube.${config.mine.domain} cube;
           default https_default;
         }
 
         upstream https_default {
           server localhost:${toString port};
+        }
+
+        upstream cube {
+          server 10.100.0.4:443;
         }
 
         server {
@@ -60,8 +66,13 @@ in
           extraConfig = "index index.html;";
         };
 
+        "cube.${config.mine.domain}" = {
+          # http only, mostly for acme/letsencrypt challenges
+          serverAliases = [ "*.cube.${config.mine.domain}" ];
+          locations."/".proxyPass = "http://10.100.0.4";
         };
       };
+
     };
   };
 }
