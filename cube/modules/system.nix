@@ -45,7 +45,6 @@
     command-not-found.enable = true;
   };
 
-  services.eternal-terminal.enable = true;
   networking.firewall.allowedTCPPorts = [ config.services.eternal-terminal.port ];
 
   ids.uids.${config.storageUser} = 997;
@@ -80,7 +79,7 @@
           isSystemUser = true;
           uid = config.ids.uids.${config.storageUser};
           group = config.storageGroup;
-          shell = pkgs.nologin;
+          shell = pkgs.shadow;
         };
       };
     groups.${config.storageGroup} = {
@@ -90,17 +89,21 @@
 
   security.sudo.wheelNeedsPassword = false;
   nixpkgs.config.allowUnfree = true;
-  nix.gc = {
-    automatic = true;
-    options = "--delete-older-than 1w";
-  };
+
   nix = {
+    gc = {
+      automatic = true;
+      options = "--delete-older-than 1w";
+    };
+
     package = pkgs.nixFlakes;
     extraOptions = ''
       experimental-features = nix-command flakes
     '';
+
+    settings.trusted-users = [ "root" "@wheel" ];
   };
-  nix.trustedUsers = [ "root" "@wheel" ];
+
   system.autoUpgrade = {
     enable = false;
     flake = "github:meatcar/cube.denys.me";
@@ -112,6 +115,6 @@
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "20.03"; # Did you read the comment?
+  system.stateVersion = "21.11"; # Did you read the comment?
 
 }
