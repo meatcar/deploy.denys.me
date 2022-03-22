@@ -20,7 +20,6 @@ in
     services.plex = {
       enable = true;
       openFirewall = true;
-      managePlugins = true;
       extraPlugins = [ (renamePath inputs.plex-subzero "Sub-Zero.bundle") ];
     };
 
