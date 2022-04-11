@@ -18,6 +18,11 @@ variable "cloudflare_domain" {
   description = "Cloudflare Domain to set DNS on"
 }
 
+variable "parked_domains" {
+  type = list(string)
+  description = "Parked domains, not in use"
+}
+
 variable "hostname" {
   description = "The hostname we want to serve"
 }
