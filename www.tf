@@ -37,7 +37,7 @@ resource "null_resource" "nixos_set_channel" {
   }
 }
 
-resource "null_resource" "nixos_rebuild" {
+resource "null_resource" "nixos_push" {
   depends_on = [
     null_resource.nixos_set_channel
   ]
@@ -60,20 +60,5 @@ resource "null_resource" "nixos_rebuild" {
     destination = "/etc/nixos"
   }
 
-  provisioner "file" {
-    content = templatefile(
-      "${path.module}/templates/secrets.nix",
-      {
-        password         = var.nix_znc_password,
-        nickservPassword = var.nix_znc_nickservpassword
-        hash             = var.nix_znc_hash,
-        salt             = var.nix_znc_salt
-      }
-    )
-    destination = "/etc/nixos/secrets.nix"
-  }
-
-  provisioner "remote-exec" {
-    inline = ["nixos-rebuild switch"]
-  }
+  # TODO: run nixos-rebuild switch --target-host locally
 }
