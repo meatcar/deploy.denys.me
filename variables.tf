@@ -14,10 +14,6 @@ variable "cloudflare_token" {
   description = "Cloudflare token (https://dash.cloudflare.com/profile/api-tokens)"
 }
 
-variable "cloudflare_zone_id" {
-  description = "Cloudflare Zone ID (dashboard, overview page, in the right hand side navigation)"
-}
-
 variable "cloudflare_domain" {
   description = "Cloudflare Domain to set DNS on"
 }
