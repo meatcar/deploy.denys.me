@@ -64,6 +64,7 @@
                 p.digitalocean
                 p.cloudflare
               ]))
+              awscli
               wireguard
               jq
             ];
