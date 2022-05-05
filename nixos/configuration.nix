@@ -3,7 +3,7 @@ let
   sshKeys = lib.pipe
     {
       url = "https://github.com/${config.mine.githubKeyUser}.keys";
-      sha256 = "sha256:1x78xvdspizpgqlvhdz9g6a105zmfm7bmnxldw5mxffpr2hbm1an";
+      sha256 = "sha256:1gpzvwdgf0yxvl8m0kwvsqhfnpa67j3nqgmjcbinlxsmxl6p83i5";
     }
     [
       builtins.fetchurl
