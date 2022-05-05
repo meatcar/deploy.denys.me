@@ -43,11 +43,6 @@ in
       '';
 
       virtualHosts = {
-        default = {
-          default = true;
-          extraConfig = "return 444;";
-        };
-
         ${config.mine.domain} = {
           enableACME = true;
           forceSSL = true;
