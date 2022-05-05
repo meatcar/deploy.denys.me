@@ -65,7 +65,7 @@
                 p.cloudflare
               ]))
               awscli
-              wireguard
+              wireguard-tools
               jq
             ];
           };
