@@ -23,7 +23,7 @@ resource "null_resource" "nixos_set_channel" {
   provisioner "remote-exec" {
     inline = [
       "nix-channel --remove nixos",
-      "nix-channel --add https://nixos.org/channels/nixos-21.11 nixos",
+      "nix-channel --add https://nixos.org/channels/nixos-22.05 nixos",
       "nix-channel --update"
     ]
   }
@@ -35,30 +35,4 @@ resource "null_resource" "nixos_set_channel" {
     ]
     on_failure = continue
   }
-}
-
-resource "null_resource" "nixos_push" {
-  depends_on = [
-    null_resource.nixos_set_channel
-  ]
-
-  triggers = {
-    droplet_id           = digitalocean_droplet.www.id
-    hashes               = join(" ", [for f in fileset(path.module, "nixos/*") : filesha256("${path.module}/${f}")])
-  }
-
-  connection {
-    host    = digitalocean_droplet.www.ipv4_address
-    user    = "meatcar"
-    type    = "ssh"
-    timeout = "2m"
-    agent   = "true"
-  }
-
-  provisioner "file" {
-    source      = "${path.module}/nixos/"
-    destination = "/etc/nixos"
-  }
-
-  # TODO: run nixos-rebuild switch --target-host locally
 }

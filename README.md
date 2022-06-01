@@ -34,7 +34,7 @@ If you've never run this before, you need to create some AWS resources to store 
 
 ```sh
 # make sure you have aws credentials in ~/.aws
-cd tf-modules/terraform-state
+cd terraform/tf-modules/terraform-state
 terraform init
 terraform apply
 ```
@@ -43,6 +43,7 @@ Now, you can run the rest of the deployment.
 ```sh
 cp .env.example .env
 $EDITOR .env # see variables.tf for advice on how to get certain vars
+cd terraform
 terraform init
 terraform apply
 ```
