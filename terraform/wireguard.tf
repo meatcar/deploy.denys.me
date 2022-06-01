@@ -29,7 +29,7 @@ locals {
 }
 
 resource "local_file" "generate_wg_nixos_config" {
-  filename = "nixos/wg-clients.nix"
+  filename = "../nixos/wg-clients.nix"
   file_permission = "0640"
   content = templatefile(
     "${path.module}/templates/wg-clients.nix.tmpl",
