@@ -42,7 +42,7 @@
           ];
         in
         {
-          devShell = pkgs.mkShell rec {
+          devShells.default = pkgs.mkShell rec {
             name = "deploy.denys.me";
             NIX_PATH = builtins.concatStringsSep ":" [
               "nixpkgs=${inputs.nixpkgs}"
