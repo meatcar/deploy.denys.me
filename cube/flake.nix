@@ -21,15 +21,22 @@
       (system:
         let
           pkgs = import inputs.nixpkgs { inherit system; };
-          nix = pkgs.nixFlakes;
+          deploy = pkgs.writeScriptBin "deploy" ''
+            env NIX_SSHOPTS='-J ssh.to.denys.me' \
+              nixos-rebuild "$@" \
+                --flake .#cube \
+                --target-host 10.100.0.4 --build-host 10.100.0.4 \
+                --use-substitutes --use-remote-sudo
+          '';
         in
         {
-          devShell = pkgs.mkShell rec {
+          devShells.default = pkgs.mkShell rec {
             name = "cube-denys-me";
-            buildInputs = [
-              nix
-              (pkgs.nixos-rebuild.override { inherit nix; })
+            buildInputs = with pkgs; [
+              nixFlakes
+              (pkgs.nixos-rebuild.override { nix = nixFlakes; })
               inputs.agenix.defaultPackage.${system}
+              deploy
             ];
           };
         }))

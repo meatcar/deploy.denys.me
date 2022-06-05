@@ -22,14 +22,16 @@
     };
   };
   config = {
-    services.ssmtp = {
+    programs.msmtp = {
       enable = true;
-      domain = config.domain;
-      authUser = config.smtp.user;
-      hostName = "${config.smtp.host}:${toString config.smtp.port}";
-      useTLS = true;
-      root = " root.${config.hostname}@${config.domain}";
-      authPassFile = config.age.secrets.ssmtpPass.path;
+      accounts.default = {
+        inherit (config) domain;
+        inherit (config.smtp) user host port;
+        auth = true;
+        tls = true;
+        passwordeval = "cat ${config.age.secrets.ssmtpPass.path}";
+        from = "%U.${config.hostname}@${config.domain}";
+      };
     };
   };
 }
