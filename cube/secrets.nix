@@ -1,11 +1,5 @@
-{ ... }:
-let
-  inherit (builtins) getEnv;
-in
 {
-  smtp = {
-    user = getEnv "SMTP_USER";
-    host = getEnv "SMTP_HOST";
-  };
-  notificationEmail = getEnv "NOTIFICATION_EMAIL";
+  smtp.user = "denys@fastmail.com";
+  smtp.host = "smtp.fastmail.com";
+  notificationEmail = "x9wvk41qnk@pomail.net";
 }
