@@ -26,8 +26,8 @@ in
               watchByDefault: true
           notif:
             mail:
-              host: smtp.fastmail.com
-              port: 565
+              host: ${config.smtp.host}
+              port: ${config.smtp.port}
               ssl: true
               localName: ${config.fqdn}
               username: ${config.smtp.user}

@@ -48,7 +48,8 @@
           { inherit inputs; };
         modules = [
           inputs.agenix.nixosModules.age
-          ./secrets/module.nix
+          ./secrets/module.nix # agenix encrypted sensitive secrets
+          ./modules/secrets.nix # less sensitive secrets that shouldn't be in git history
           ./configuration.nix
         ];
       };
