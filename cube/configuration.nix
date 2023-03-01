@@ -25,6 +25,9 @@
     ./modules/docker-readarr.nix
     ./modules/docker-organizr.nix
     ./modules/docker-scrutiny.nix
+    ./modules/docker-postgresql.nix
+    ./modules/docker-redis.nix
+    ./modules/docker-nextcloud.nix
   ];
 
   config = {
