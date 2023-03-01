@@ -12,4 +12,8 @@ in
   "hashed-password.age" = { inherit publicKeys; };
   "cloudflare-key.age" = { inherit publicKeys; };
   "wg-private-key.age" = { inherit publicKeys; };
+  "postgres-pass.age" = { inherit publicKeys; };
+  "redis-conf.age" = { inherit publicKeys; };
+  "redis-pass.age" = { inherit publicKeys; };
+  "nextcloudPgPass.age" = { inherit publicKeys; };
 }
