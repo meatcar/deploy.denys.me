@@ -29,7 +29,7 @@
         inherit (config.smtp) user host port;
         auth = true;
         tls = true;
-        passwordeval = "cat ${config.age.secrets.ssmtpPass.path}";
+        passwordeval = "${pkgs.coreutils}/bin/cat ${config.age.secrets.ssmtpPass.path}";
         from = "%U.${config.hostname}@${config.domain}";
       };
     };
