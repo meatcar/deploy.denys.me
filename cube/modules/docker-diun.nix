@@ -27,7 +27,7 @@ in
           notif:
             mail:
               host: ${config.smtp.host}
-              port: ${config.smtp.port}
+              port: ${toString config.smtp.port}
               ssl: true
               localName: ${config.fqdn}
               username: ${config.smtp.user}
