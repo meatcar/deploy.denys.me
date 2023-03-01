@@ -48,7 +48,10 @@ let cfg = config.age; in
         })
         cfg.secrets);
     age.secrets = {
-      ssmtpPass.file = ./ssmtp-pass.age;
+      ssmtpPass = {
+        file = ./ssmtp-pass.age;
+        mode = "0444";
+      };
       transmissionUser.file = ./transmission-user.age;
       transmissionPass.file = ./transmission-pass.age;
       hashedPassword.file = ./hashed-password.age;
