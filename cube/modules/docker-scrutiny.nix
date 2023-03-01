@@ -16,33 +16,27 @@ in
 
   config = {
     virtualisation.oci-containers.containers.scrutiny = {
-      image = "ghcr.io/linuxserver/scrutiny";
+      image = "ghcr.io/analogj/scrutiny:master-omnibus";
       ports = [ "${port}:8080" ];
       volumes = [
-        "${config.persistPath}/scrutiny:/config"
+        "${config.persistPath}/scrutiny/config:/opt/scrutiny/config"
+        "${config.persistPath}/scrutiny/influxdb2:/opt/scrutiny/influxdb"
         "/run/dev:/run/dev:ro"
       ];
       environment = {
         PUID = toString config.ids.uids.${config.storageUser};
         PGID = toString config.ids.gids.${config.storageGroup};
-        DOCKER_MODS = "linuxserver/scrutiny:calibre";
-        SCRUTINY_API_ENDPOINT = "http://localhost:8080";
-        SCRUTINY_WEB = "true";
-        SCRUTINY_COLLECTOR = "true";
       };
       extraOptions = [
-        "--device"
-        "/dev/sda:/dev/sda"
-        "--device"
-        "/dev/sdb:/dev/sdb"
-        "--device"
-        "/dev/sdc:/dev/sdc"
-        "--device"
-        "/dev/sdd:/dev/sdd"
-        "--device"
-        "/dev/sde:/dev/sde"
-        "--device"
-        "/dev/sdf:/dev/sdf"
+        "--device=/dev/sda"
+        "--device=/dev/sdb"
+        "--device=/dev/sdc"
+        "--device=/dev/sdd"
+        "--device=/dev/sde"
+        "--device=/dev/sdf"
+        "--device=/dev/sdg"
+        "--device=/dev/sdh"
+        "--device=/dev/sdi"
         "--cap-add=SYS_RAWIO"
         "--cap-add=SYS_ADMIN" # for nvme drives
       ];
