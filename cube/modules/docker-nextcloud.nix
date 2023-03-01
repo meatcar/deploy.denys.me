@@ -13,6 +13,16 @@ in
         description = "nextcloud port to listen to locally";
         default = 8888;
       };
+      fqdn = lib.mkOption {
+        type = lib.types.str;
+        description = "nextcloud domain to listen to";
+        default = config.fqdn;
+      };
+      trusted-domains = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        description = "nextcloud trusted domains";
+        default = [ cfg.fqdn ];
+      };
     };
   };
 
@@ -108,6 +118,12 @@ in
       '';
     };
 
+    services.nextcloud.trusted-domains = [
+      "nextcloud.${config.fqdn}"
+      "cloud.${cfg.fqdn}"
+      "nextcloud.${cfg.fqdn}"
+    ];
+
     virtualisation.oci-containers.containers.nextcloud = {
       image = "nextcloud:24";
       dependsOn = [ "postgres" "redis" ];
@@ -119,7 +135,7 @@ in
         "${config.age.secrets.nextcloudPgPass.path}:${config.age.secrets.nextcloudPgPass.path}"
       ];
       environment = {
-        NEXTCLOUD_TRUSTED_DOMAINS = "nextcloud.${config.fqdn}";
+        NEXTCLOUD_TRUSTED_DOMAINS = toString cfg.trusted-domains;
         POSTGRES_HOST = "postgres:${toString config.services.postgresql.port}";
         POSTGRES_DB = config.services.nextcloud.config.dbname;
         POSTGRES_USER = config.services.nextcloud.config.dbuser;
@@ -185,13 +201,14 @@ in
           locations."~ ^/(?:build|tests|config|lib|3rdparty|templates|data)(?:$|/)".return = "404";
           locations."~ ^/(?:\\.|autotest|occ|issue|indie|db_|console)".return = "404";
         };
-        fqdn = "huddle.win";
       in
+      lib.pipe cfg.trusted-domains [
+        (builtins.map (s: { name = s; value = base-config; }))
+        builtins.listToAttrs
+      ] //
       {
-        "nextcloud.${config.fqdn}" = base-config;
-        "cloud.${fqdn}" = base-config;
-        "nextcloud.${fqdn}" = base-config;
-        "${fqdn}" = {
+        # home page
+        "${cfg.fqdn}" = {
           enableACME = true;
           forceSSL = true;
           locations."/" = {
@@ -202,7 +219,7 @@ in
                   <html lang="en-US">
                     <head>
                       <meta charset="utf-8">
-                      <title>${fqdn}</title>
+                      <title>${cfg.fqdn}</title>
                       <meta name="viewport" content="width=device-width, initial-scale=1">
                       <style>
                       html { font-size: 16px; }
@@ -238,10 +255,10 @@ in
                     </head>
                     <body>
                       <section>
-                        <h1>🤗 ${fqdn} 🦄</h1>
+                        <h1>🤗 ${cfg.fqdn} 🦄</h1>
                         <p>Huddle Cloud Puddle</p>
                         <div>
-                          <a href="https://cloud.${fqdn}/" > ☁️  Cloud </a>
+                          <a href="https://cloud.${cfg.fqdn}/" > ☁️  Cloud </a>
                   </div>
                   </section>
                 <section class=dev>
