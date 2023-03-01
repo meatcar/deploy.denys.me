@@ -22,11 +22,10 @@
         let
           pkgs = import inputs.nixpkgs { inherit system; };
           deploy = pkgs.writeScriptBin "deploy" ''
-            env NIX_SSHOPTS='-J ssh.to.denys.me' \
-              nixos-rebuild "$@" \
-                --flake .#cube \
-                --target-host 10.100.0.4 --build-host 10.100.0.4 \
-                --use-substitutes --use-remote-sudo
+            nixos-rebuild "$@" \
+              --flake .#cube \
+              --target-host 10.100.0.4 --build-host 10.100.0.4 \
+              --use-substitutes --use-remote-sudo
           '';
         in
         {
@@ -35,7 +34,7 @@
             buildInputs = with pkgs; [
               nixFlakes
               (pkgs.nixos-rebuild.override { nix = nixFlakes; })
-              inputs.agenix.defaultPackage.${system}
+              inputs.agenix.packages.${system}.default
               deploy
             ];
           };
@@ -47,9 +46,9 @@
         specialArgs =
           { inherit inputs; };
         modules = [
-          inputs.agenix.nixosModules.age
+          inputs.agenix.nixosModules.default
           ./secrets/module.nix # agenix encrypted sensitive secrets
-          ./modules/secrets.nix # less sensitive secrets that shouldn't be in git history
+          ./modules/unencrypted-secrets.nix # less sensitive secrets that shouldn't be in git history
           ./configuration.nix
         ];
       };
