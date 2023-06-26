@@ -24,6 +24,8 @@ in
         map $ssl_preread_server_name $name {
           cube.${config.mine.domain} cube;
           ~.+.cube.${config.mine.domain} cube;
+          huddle.win cube;
+          ~.+.huddle.win cube;
           default https_default;
         }
 
@@ -64,6 +66,11 @@ in
         "cube.${config.mine.domain}" = {
           # http only, mostly for acme/letsencrypt challenges
           serverAliases = [ "*.cube.${config.mine.domain}" ];
+          locations."/".proxyPass = "http://10.100.0.4";
+        };
+        "huddle.win" = {
+          # http only, mostly for acme/letsencrypt challenges
+          serverAliases = [ "*.huddle.win" ];
           locations."/".proxyPass = "http://10.100.0.4";
         };
       };
