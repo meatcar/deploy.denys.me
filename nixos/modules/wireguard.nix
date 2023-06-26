@@ -13,7 +13,7 @@
     ips = [ "10.100.0.1/24" ];
     listenPort = 51821;
     privateKeyFile = config.age.secrets.wg-priv-key.path;
-    peers = import ./wg-clients.nix;
+    peers = import ../generated/wg-clients.nix;
 
     postSetup = ''
       ${pkgs.iptables}/bin/iptables -A FORWARD -i wg1 -j ACCEPT
