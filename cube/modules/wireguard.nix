@@ -10,7 +10,7 @@
     listenPort = 51821;
     peers = [{
       allowedIPs = [ "10.100.0.0/24" ];
-      endpoint = "denys.me:51821";
+      endpoint = "${config.wireguardServer}:51821";
       publicKey = "IGy2mhROyewfr5wFs8cMt4cZP3U+o8mGMC4L+Xmn2Dw=";
       persistentKeepalive = 25;
     }];
