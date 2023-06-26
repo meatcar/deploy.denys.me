@@ -112,10 +112,18 @@ resource "cloudflare_record" "parked-DKIM3-CNAME" {
 }
 
 resource "cloudflare_record" "parked-DMARC" {
-  for_each = toset( var.parked_domains )
-
+  # some parked domains have a custom dmarc set.
+  for_each = setsubtract(var.parked_domains, ["huddle.win"])
   zone_id = cloudflare_zone.parked[each.key].id
   type = "TXT"
   name = "_dmarc"
   value = "v=DMARC1;p=reject;sp=reject;adkim=s;aspf=s;fo=1;rua=mailto:dmarc@${each.key}"
+}
+
+resource "cloudflare_record" "huddle-win-DMARC" {
+  zone_id = cloudflare_zone.parked["huddle.win"].id
+  type = "TXT"
+  name = "_dmarc"
+  value = "v=DMARC1; p=none; pct=100; rua=mailto:re+olvgs5ajiab@dmarc.postmarkapp.com; sp=none; aspf=r;"
+
 }
