@@ -3,8 +3,13 @@
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixos-hardware.url = "github:nixos/nixos-hardware";
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.nixpkgs.follows = "nixpkgs";
+    nixos-generators = {
+      url = "github:nix-community/nixos-generators";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = { self, ... }@inputs:
@@ -33,6 +38,7 @@
         {
           devShells.default = pkgs.mkShell rec {
             name = "deploy.denys.me";
+            BASE_NIX_VERSION = self.nixosConfigurations.image.config.system.stateVersion;
             buildInputs = scripts ++ (with pkgs; [
               inputs.agenix.defaultPackage.${system}
 
@@ -48,27 +54,57 @@
               awscli
               wireguard-tools
               jq
+
+              packer
+              nixos-generators
             ]);
           };
         }) // {
-      nixosConfigurations.vps = inputs.nixpkgs.lib.nixosSystem {
-        inherit specialArgs;
-        system = "x86_64-linux";
-        modules = [
-          {
-            nixpkgs = nixpkgsConfig;
-            system.stateVersion = "22.05";
-          }
-          inputs.agenix.nixosModules.age
-          {
-            age.secrets = {
-              wg-priv-key.file = ./secrets/wg-priv-key.age;
-              restic-password.file = ./secrets/restic-password.age;
-              restic-env.file = ./secrets/restic-env.age;
-            };
-          }
-          ./nixos/configuration.nix
-        ];
+      nixosConfigurations = {
+        image = inputs.nixpkgs.lib.nixosSystem {
+          inherit specialArgs;
+          system = "x86_64-linux";
+          modules = [
+            ./nixos/modules/base.nix
+            ./nixos/modules/digitalocean.nix
+            {
+              system.stateVersion = "22.11";
+              mine.githubKeyUser = "meatcar";
+              mine.username = "meatcar";
+            }
+          ];
+        };
+        vps = inputs.nixpkgs.lib.nixosSystem {
+          inherit specialArgs;
+          system = "x86_64-linux";
+          modules = [
+            {
+              nixpkgs = nixpkgsConfig;
+              system.stateVersion = "22.05";
+            }
+            inputs.agenix.nixosModules.age
+            {
+              age.secrets = {
+                wg-priv-key.file = ./secrets/wg-priv-key.age;
+                restic-password.file = ./secrets/restic-password.age;
+                restic-env.file = ./secrets/restic-env.age;
+              };
+            }
+            ./nixos/systems/vps.nix
+          ];
+        };
+        rpi = inputs.nixpkgs.lib.nixosSystem {
+          inherit specialArgs;
+          system = "aarch64-linux";
+          modules = [
+            {
+              nixpkgs = nixpkgsConfig;
+              system.stateVersion = "22.05";
+            }
+            inputs.nixos-hardware.nixosModules.raspberry-pi-4
+            ./nixos/systems/rpi.nix
+          ];
+        };
       };
     };
 }

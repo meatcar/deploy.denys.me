@@ -15,3 +15,5 @@
 # End of https://www.gitignore.io/api/terraform
 .env
 output/
+
+nixos/generated/*
