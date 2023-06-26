@@ -29,7 +29,7 @@ variable "hostname" {
 
 variable "wg_nodes" {
   description = "A list of descriptive wireguard node names"
-  default     = ["server", "laptop", "phone", "cube.denys.me"]
+  default     = ["server", "laptop", "phone", "cube.denys.me", "steamdeck"]
 }
 
 variable "nix_znc_password" {
