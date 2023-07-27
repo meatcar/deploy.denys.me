@@ -10,13 +10,13 @@
     ./modules/nginx.nix
     ./modules/acme.nix
     ./modules/samba.nix
-    ./modules/plex.nix
-    ./modules/tautulli.nix
-    ./modules/sonarr.nix
-    ./modules/radarr.nix
     ./modules/docker.nix
     ./modules/docker-diun.nix
     ./modules/docker-wireguard.nix
+    ./modules/docker-plex.nix
+    ./modules/docker-tautulli.nix
+    ./modules/docker-sonarr.nix
+    ./modules/docker-radarr.nix
     ./modules/docker-ombi.nix
     ./modules/docker-transmission.nix
     ./modules/docker-jackett.nix
