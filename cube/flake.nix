@@ -10,11 +10,6 @@
       url = "github:christgau/wsdd";
       flake = false;
     };
-
-    plex-subzero = {
-      url = "github:pannal/Sub-Zero.bundle";
-      flake = false;
-    };
   };
   outputs = { self, ... }@inputs:
     (inputs.flake-utils.lib.eachDefaultSystem
