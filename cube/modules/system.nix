@@ -56,7 +56,7 @@
         sshKeys = lib.pipe
           {
             url = config.sshKeysUrl;
-            sha256 = "sha256:1n455by6vyiq382b1clr82k9230bkfwhs4wdvkfc9jy9jw6f4cs6";
+            sha256 = "sha256:04wcfmyzdmd10706j4274f0jh1bghzjh1lxaj9k7acsh6pnh2yyq";
           }
           [
             builtins.fetchurl
