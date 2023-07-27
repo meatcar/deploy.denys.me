@@ -17,9 +17,14 @@
         let
           pkgs = import inputs.nixpkgs { inherit system; };
           deploy = pkgs.writeScriptBin "deploy" ''
+            ADDR=10.100.0.4
+            if ! ${pkgs.iputils}/bin/ping -c1 -W1 "$ADDR"; then
+              echo "$0: no wireguard connection" >&2
+              exit 1
+            fi
             nixos-rebuild "$@" \
               --flake .#cube \
-              --target-host 10.100.0.4 --build-host 10.100.0.4 \
+              --target-host "$ADDR" --build-host "$ADDR" \
               --use-substitutes --use-remote-sudo
           '';
         in
