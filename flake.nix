@@ -59,6 +59,7 @@
               awscli
               wireguard-tools
               jq
+              flyctl
 
               packer
               nixos-generators
