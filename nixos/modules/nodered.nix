@@ -58,13 +58,6 @@ in
       ];
     };
 
-    virtualisation.oci-containers.containers.browserless = {
-      image = "browserless/chrome";
-      extraOptions = [
-        "--network=nodered"
-      ];
-    };
-
     services.nginx = {
       virtualHosts."${cfg.domain}" = {
         enableACME = true;
