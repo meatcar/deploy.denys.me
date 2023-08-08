@@ -10,6 +10,11 @@
       url = "github:nix-community/nixos-generators";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    website = {
+      url = "github:meatcar/denys.me";
+      flake = false;
+    };
   };
 
   outputs = { self, ... }@inputs:
@@ -40,7 +45,7 @@
             name = "deploy.denys.me";
             BASE_NIX_VERSION = self.nixosConfigurations.image.config.system.stateVersion;
             buildInputs = scripts ++ (with pkgs; [
-              inputs.agenix.defaultPackage.${system}
+              inputs.agenix.packages.${system}.default
 
               (terraform.withPlugins (p: [
                 p.local
@@ -82,7 +87,7 @@
               nixpkgs = nixpkgsConfig;
               system.stateVersion = "22.05";
             }
-            inputs.agenix.nixosModules.age
+            inputs.agenix.nixosModules.default
             {
               age.secrets = {
                 wg-priv-key.file = ./secrets/wg-priv-key.age;
@@ -91,7 +96,7 @@
                 restic-repo.file = ./secrets/restic-repo.age;
               };
             }
-            ./nixos/systems/vps.nix
+            ./nixos/systems/vps/vps.nix
           ];
         };
         rpi = inputs.nixpkgs.lib.nixosSystem {

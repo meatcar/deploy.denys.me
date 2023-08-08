@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, specialArgs, ... }:
 let
   cfg = config.services.nginx;
   port = config.mine.internalSslPort;
@@ -55,11 +55,7 @@ in
             { addr = "0.0.0.0"; port = 80; }
             { addr = "127.0.0.1"; inherit port; ssl = true; }
           ];
-          root = builtins.fetchGit {
-            url = "https://github.com/meatcar/denys.me";
-            ref = "master";
-            rev = "dffcfe2441651193161901a4b340abb81a8d93a5";
-          };
+          root = specialArgs.inputs.website;
           extraConfig = "index index.html;";
         };
 

@@ -54,7 +54,7 @@
       extraGroups = [ "wheel" "docker" "nginx" ];
       hashedPassword =
         "!";
-      openssh.authorizedKeys.keys = users.users.root.openssh.authorizedKeys.keys;
+      openssh.authorizedKeys.keys = config.users.users.root.openssh.authorizedKeys.keys;
     };
   };
 }
