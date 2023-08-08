@@ -12,5 +12,4 @@ in
       networks.freenode.nickservPassword = getEnv "TF_VAR_nix_znc_salt";
     };
   };
-  services.restic.backups.persist.repository = getEnv "TF_VAR_nix_restic_repo";
 }
