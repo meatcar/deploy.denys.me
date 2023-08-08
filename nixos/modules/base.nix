@@ -3,7 +3,7 @@ let
   sshKeys = lib.pipe
     {
       url = "https://github.com/${config.mine.githubKeyUser}.keys";
-      sha256 = "sha256:0km1b077qlp8rjh8mi5fpgmm34hxvzarrm290q01h1sxz6x9a52h";
+      sha256 = "sha256:04wcfmyzdmd10706j4274f0jh1bghzjh1lxaj9k7acsh6pnh2yyq";
     } [
     builtins.fetchurl
     builtins.readFile
@@ -33,16 +33,17 @@ in
     };
 
     nix = {
-      trustedUsers = [ "root" "@wheel" ];
 
       settings = {
         experimental-features = [ "nix-command" "flakes" ];
         auto-optimise-store = true;
+        trusted-users = [ "root" "@wheel" ];
       };
 
       optimise.automatic = true;
       gc = {
         automatic = true;
+        dates = "daily";
         options = "--delete-older-than 1w";
       };
     };
