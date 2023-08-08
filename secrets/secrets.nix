@@ -9,4 +9,5 @@ in
   "wg-priv-key.age" = { inherit publicKeys; };
   "restic-password.age" = { inherit publicKeys; };
   "restic-env.age" = { inherit publicKeys; };
+  "restic-repo.age" = { inherit publicKeys; };
 }
