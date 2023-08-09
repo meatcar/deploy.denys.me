@@ -19,8 +19,10 @@ in
       "d ${config.storagePath}/plex 0755 - - - -"
     ];
 
+    networking.firewall.allowedTCPPorts = [ cfg.port ];
+
     virtualisation.oci-containers.containers.plex = {
-      image = "lscr.io/linuxserver/plex";
+      image = "plexinc/pms-docker";
       ports = [ "${port}:32400" ];
       volumes = [
         "${config.persistPath}/plex:/config"
@@ -28,7 +30,6 @@ in
       ];
       extraOptions = [
         "--network=host"
-        "--device=/dev/dri:/dev/dri"
       ];
       environment = {
         PUID = toString config.ids.uids.${config.storageUser};
