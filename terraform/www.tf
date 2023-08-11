@@ -1,9 +1,9 @@
 data "digitalocean_image" "nixos" {
-  name = "nixos-19.09"
+  name = "nixos-22.11"
 }
 
 resource "digitalocean_droplet" "www" {
-  image              = data.digitalocean_image.nixos.id
+  image              = "56524328" #data.digitalocean_image.nixos.id
   name               = var.hostname
   region             = "tor1"
   size               = "s-1vcpu-1gb"
