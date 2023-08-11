@@ -157,7 +157,8 @@
         "nixos-generators": "nixos-generators",
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs",
-        "website": "website"
+        "website": "website",
+        "wsdd": "wsdd"
       }
     },
     "systems": {
@@ -188,6 +189,22 @@
       "original": {
         "owner": "meatcar",
         "repo": "denys.me",
+        "type": "github"
+      }
+    },
+    "wsdd": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1691328812,
+        "narHash": "sha256-V0+x8aEs5sjIQJsYDSSzRa/RnxIbaJOFifLAEtGCSx0=",
+        "owner": "christgau",
+        "repo": "wsdd",
+        "rev": "55fe3e61cf6287e53cf29ce7c0472256e1342919",
+        "type": "github"
+      },
+      "original": {
+        "owner": "christgau",
+        "repo": "wsdd",
         "type": "github"
       }
     }
