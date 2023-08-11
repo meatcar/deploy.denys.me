@@ -6,7 +6,7 @@ resource "digitalocean_droplet" "www" {
   image              = data.digitalocean_image.nixos.id
   name               = var.hostname
   region             = "tor1"
-  size               = "s-1vcpu-1gb"
+  size               = "s-2vcpu-4gb"
 
   ssh_keys = [ var.ssh_fingerprint ]
 }
