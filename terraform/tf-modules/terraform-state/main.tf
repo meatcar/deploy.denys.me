@@ -6,16 +6,20 @@ provider "aws" {
 resource "aws_s3_bucket" "terraform-state-storage-s3" {
   bucket = "terraform-state-denys-me"
 
-  versioning {
-    enabled = true
-  }
-
   lifecycle {
     prevent_destroy = true
   }
 
   tags = {
     Name = "S3 Remote Terraform State Store for denys.me"
+  }
+}
+
+resource "aws_s3_bucket_versioning" "terraform-state-storage-s3-versioning" {
+  bucket = aws_s3_bucket.terraform-state-storage-s3.id
+
+  versioning_configuration {
+    status = "Enabled"
   }
 }
 
