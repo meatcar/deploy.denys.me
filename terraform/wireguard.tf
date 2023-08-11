@@ -29,7 +29,7 @@ locals {
 }
 
 resource "local_file" "generate_wg_nixos_config" {
-  filename = "../nixos/wg-clients.nix"
+  filename = "../nixos/generated/wg-clients.nix"
   file_permission = "0640"
   content = templatefile(
     "${path.module}/templates/wg-clients.nix.tmpl",
@@ -38,12 +38,12 @@ resource "local_file" "generate_wg_nixos_config" {
   })
 }
 
-resource "local_file" "wg_client_config" {
+resource "local_sensitive_file" "wg_client_config" {
   for_each = local.wg_clients
 
   filename        = "${path.module}/output/wg-${local.wg_clients[each.key].name}.conf"
   file_permission = "0640"
-  sensitive_content = templatefile(
+  content = templatefile(
     "${path.module}/templates/wireguard-client.conf",
     {
       server = local.wg_server

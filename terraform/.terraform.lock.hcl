@@ -2,50 +2,50 @@
 # Manual edits may be lost in future updates.
 
 provider "registry.terraform.io/cloudflare/cloudflare" {
-  version = "3.6.0"
+  version = "4.11.0"
   hashes = [
-    "h1:oD8HfcPbWt9sgUyxgkk1tigxw06oZsJMBSlZi1cgWvk=",
+    "h1:GqZJlcjm6p/og024DiZUVRhSOgXitqL+3IM/s9wZEKw=",
   ]
 }
 
 provider "registry.terraform.io/digitalocean/digitalocean" {
-  version = "2.16.0"
+  version = "2.29.0"
   hashes = [
-    "h1:gPm6Y2HdfaeVqDuzGmrpy/hExxodOGdwsbMK5TqAuOI=",
+    "h1:2tYsGwKOXdwxCCW/cfW2kRMP+p7FltMDLB+JIBjVfaM=",
   ]
 }
 
 provider "registry.terraform.io/hashicorp/aws" {
-  version = "3.71.0"
+  version = "5.11.0"
   hashes = [
-    "h1:t7ofCAi79yo+is9S9kHeQGP39d8pxYuTMwo2zdlaoeE=",
+    "h1:knH0p2G6y3dB5j3zGvymGjCfDbRDVRxJox+M6BWff1k=",
   ]
 }
 
 provider "registry.terraform.io/hashicorp/external" {
-  version = "2.2.0"
+  version = "2.3.1"
   hashes = [
-    "h1:O/hAnPOuH5ka6b/VAjHIF4Jpf9MtzA7n0hypYASV2Jc=",
+    "h1:2vKW24KJ+HKkIoAINww3tTN28WEk/gYf7dW8hcX+E3U=",
   ]
 }
 
 provider "registry.terraform.io/hashicorp/local" {
-  version = "2.1.0"
+  version = "2.4.0"
   hashes = [
-    "h1:GCtGGaDBZ0RJvBZBFyUK0IdlE+2PBgL6/vYCPV+DhDs=",
+    "h1:OW7mlo8XzMUZXE8HLzqqL1Awb/pGmJP8VUyRsK4gsa0=",
   ]
 }
 
 provider "registry.terraform.io/hashicorp/null" {
-  version = "3.1.0"
+  version = "3.2.1"
   hashes = [
-    "h1:gTHMCcNv8OJJ+XGbLlCgVhPIV7CCSInplH0Ofnl3V+A=",
+    "h1:pk265zMurTYQ+qO8rKt/gxTJXPo2afSBax6Hcd5D+AM=",
   ]
 }
 
 provider "registry.terraform.io/hashicorp/random" {
-  version = "3.1.0"
+  version = "3.5.1"
   hashes = [
-    "h1:768++PPN32HcOUfqe7nyDv/cX845Ubq+NmyFihnfcG4=",
+    "h1:AR32lufWqOlC545d5BVvITeZthi5Ydq8c8CGfAaQw0w=",
   ]
 }
