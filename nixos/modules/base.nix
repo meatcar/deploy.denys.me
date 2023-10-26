@@ -25,12 +25,15 @@ in
   config = {
     security.sudo.wheelNeedsPassword = false;
 
-    services.sshd.enable = true;
+    services.openssh.enable = true;
     programs.mosh.enable = true;
     networking.firewall.allowedTCPPorts = [ 22 ];
     users.users = {
       root.openssh.authorizedKeys.keys = sshKeys;
     };
+
+    environment.systemPackages =
+      with pkgs; [ mosh byobu tmux direnv neovim git ];
 
     nix = {
 
@@ -53,5 +56,10 @@ in
       flake = "github:meatcar/deploy.denys.me#default";
       flags = [ "--update-input" "nixpkgs" ];
     };
+
+    services.earlyoom.enable = true;
+    services.earlyoom.killHook = pkgs.writeShellScript "earlyoom-kill-hook" ''
+      echo "Process $EARLYOOM_NAME ($EARLYOOM_PID) was killed" >> /var/log/earlyoom.log
+    '';
   };
 }

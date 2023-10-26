@@ -36,6 +36,9 @@
               FLAKE="$1"; shift 1
               REMOTE_HOST=
               case "$FLAKE" in
+                chunkymonkey)
+                  REMOTE_HOST=chunkymonkey.fish-hydra.ts.net
+                  ;;
                 vps)
                   REMOTE_HOST=$(cd terraform && ${pkgs.terraform}/bin/terraform output --raw ip)
                   ;;
@@ -47,10 +50,10 @@
                   exit 1
               esac
 
-              if ! ${pkgs.iputils}/bin/ping -c1 -W1 "$REMOTE_HOST"; then
-                echo "$0: no connection to $REMOTE_HOST" >&2
-                exit 1
-              fi
+              # if ! ${pkgs.iputils}/bin/ping -c1 -W1 "$REMOTE_HOST"; then
+              #   echo "$0: no connection to $REMOTE_HOST" >&2
+              #   exit 1
+              # fi
 
               cmd=$(echo nixos-rebuild "$@" \
                 --flake .#"$FLAKE" \
@@ -66,7 +69,7 @@
         {
           devShells.default = pkgs.mkShell rec {
             name = "deploy.denys.me";
-            BASE_NIX_VERSION = self.nixosConfigurations.image.config.system.stateVersion;
+            BASE_NIX_VERSION = self.nixosConfigurations.doImage.config.system.stateVersion;
             buildInputs = scripts ++ (with pkgs; [
               inputs.agenix.packages.${system}.default
 
@@ -83,6 +86,7 @@
               wireguard-tools
               jq
               flyctl
+              oci-cli
 
               packer
               nixos-generators
@@ -90,7 +94,7 @@
           };
         }) // {
       nixosConfigurations = {
-        image = inputs.nixpkgs.lib.nixosSystem {
+        doImage = inputs.nixpkgs.lib.nixosSystem {
           inherit specialArgs;
           system = "x86_64-linux";
           modules = [
@@ -101,6 +105,17 @@
               mine.githubKeyUser = "meatcar";
               mine.username = "meatcar";
             }
+          ];
+        };
+        chunkymonkey = inputs.nixpkgs.lib.nixosSystem {
+          inherit specialArgs;
+          system = "aarch64-linux";
+          modules = [
+            {
+              nixpkgs = nixpkgsConfig;
+              system.stateVersion = "23.11";
+            }
+            ./nixos/systems/chunkymonkey/configuration.nix
           ];
         };
         vps = inputs.nixpkgs.lib.nixosSystem {
@@ -120,7 +135,7 @@
                 restic-repo.file = ./secrets/restic-repo.age;
               };
             }
-            ./nixos/systems/vps/vps.nix
+            ./nixos/systems/vps/configuration.nix
           ];
         };
         rpi = inputs.nixpkgs.lib.nixosSystem {
