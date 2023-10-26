@@ -8,6 +8,7 @@
     ../../modules/docker-fix.nix
     ../../modules/backups.nix
     ../../modules/wireguard.nix
+    ../../modules/tailscale.nix
     ../../modules/acme.nix
     ../../modules/nginx.nix
     ../../modules/mumble.nix
@@ -46,10 +47,7 @@
 
     time.timeZone = "America/Toronto";
 
-    environment.systemPackages =
-      [ pkgs.mosh pkgs.byobu pkgs.tmux pkgs.direnv pkgs.vim pkgs.git ];
-
-    users.users.meatcar = {
+    users.users."${config.mine.username}" = {
       isNormalUser = true;
       extraGroups = [ "wheel" "docker" "nginx" ];
       hashedPassword =
