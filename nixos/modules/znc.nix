@@ -15,7 +15,7 @@ in
       };
       domain = mkOption {
         type = types.str;
-        default = "znc.${config.mine.domain}";
+        default = "znc.${config.networking.domain}";
         description = "ZNC domain";
       };
       users = mkOption {
