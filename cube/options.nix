@@ -5,22 +5,9 @@
       inherit (lib) mkOption types;
     in
     {
-      domain = mkOption {
-        type = types.str;
-        description = "the base domain name of server";
-      };
-      hostname = mkOption {
-        type = types.str;
-        description = "the hostname of the server";
-      };
       sshKeysUrl = mkOption {
         type = types.str;
         description = "the URL of the ssh keys to authorize";
-      };
-      fqdn = mkOption {
-        type = types.str;
-        default = "${config.hostname}.${config.domain}";
-        description = "the Fully Qualified Domain Name of the server";
       };
       persistPath = mkOption {
         type = types.path;

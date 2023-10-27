@@ -31,7 +31,7 @@ in
       };
     };
 
-    services.nginx.virtualHosts."organizr.${config.fqdn}" = {
+    services.nginx.virtualHosts."organizr.${config.networking.fqdn}" = {
       enableACME = true;
       forceSSL = true;
       locations."/".proxyPass = "http://127.0.0.1:${port}";

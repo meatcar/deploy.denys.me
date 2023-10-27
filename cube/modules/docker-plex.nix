@@ -39,7 +39,7 @@ in
 
     services.nginx = {
       clientMaxBodySize = "100M";
-      virtualHosts."plex.${config.fqdn}" = {
+      virtualHosts."plex.${config.networking.fqdn}" = {
         enableACME = true;
         forceSSL = true;
         locations."/" = {

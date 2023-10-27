@@ -16,7 +16,7 @@ in
       fqdn = lib.mkOption {
         type = lib.types.str;
         description = "nextcloud domain to listen to";
-        default = config.fqdn;
+        default = config.networking.fqdn;
       };
       trusted-domains = lib.mkOption {
         type = lib.types.listOf lib.types.str;
@@ -119,7 +119,7 @@ in
     };
 
     services.nextcloud.trusted-domains = [
-      "nextcloud.${config.fqdn}"
+      "nextcloud.${config.networking.fqdn}"
       "cloud.${cfg.fqdn}"
       "nextcloud.${cfg.fqdn}"
     ];

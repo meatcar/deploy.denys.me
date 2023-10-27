@@ -38,7 +38,7 @@ in
     virtualisation.oci-containers.containers.wireguard.ports = [
       "${toString cfg.port}:9091"
     ];
-    services.nginx.virtualHosts."transmission.${config.fqdn}" = {
+    services.nginx.virtualHosts."transmission.${config.networking.fqdn}" = {
       enableACME = true;
       forceSSL = true;
       locations."/".proxyPass = "http://127.0.0.1:${toString cfg.port}";

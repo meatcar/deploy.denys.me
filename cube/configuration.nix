@@ -31,8 +31,8 @@
   ];
 
   config = {
-    domain = "denys.me";
-    hostname = "cube";
+    networking.domain = "denys.me";
+    networking.hostName = "cube";
     sshKeysUrl = "https://github.com/meatcar.keys";
     storagePath = "/data";
     persistPath = "/persist";
