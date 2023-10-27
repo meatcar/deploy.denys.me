@@ -5,7 +5,7 @@ let
     <html lang="en-US">
       <head>
         <meta charset="utf-8">
-        <title>${config.fqdn}</title>
+        <title>${config.networking.fqdn}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
         html { font-size: 16px; }
@@ -40,30 +40,30 @@ let
       </head>
       <body>
         <section>
-          <h1>🕋 ${config.fqdn}</h1>
+          <h1>🕋 ${config.networking.fqdn}</h1>
           <div>
-            <a href="https://plex.${config.fqdn}/">🍿 Watch</a>
+            <a href="https://plex.${config.networking.fqdn}/">🍿 Watch</a>
           </div>
           <div>
-            <a href="https://ombi.${config.fqdn}/">🙏 Request</a>
+            <a href="https://ombi.${config.networking.fqdn}/">🙏 Request</a>
           </div>
         </section>
         <section class=dev>
           <h2>⚙ dev</h1>
           <span>
-            <a href="https://tautulli.${config.fqdn}/">📊 tautulli</a>
+            <a href="https://tautulli.${config.networking.fqdn}/">📊 tautulli</a>
           </span>
           <span>
-            <a href="https://jackett.${config.fqdn}/">🧥 jackett</a>
+            <a href="https://jackett.${config.networking.fqdn}/">🧥 jackett</a>
           </span>
           <span>
-            <a href="https://sonarr.${config.fqdn}/">📺 sonarr</a>
+            <a href="https://sonarr.${config.networking.fqdn}/">📺 sonarr</a>
           </span>
           <span>
-            <a href="https://radarr.${config.fqdn}/">🎬 radarr</a>
+            <a href="https://radarr.${config.networking.fqdn}/">🎬 radarr</a>
           </span>
           <span>
-            <a href="https://transmission.${config.fqdn}/">🧨 transmit</a>
+            <a href="https://transmission.${config.networking.fqdn}/">🧨 transmit</a>
           </span>
         </section>
       </body>
@@ -77,7 +77,7 @@ in
     recommendedOptimisation = true;
     recommendedProxySettings = true;
     recommendedTlsSettings = true;
-    virtualHosts."${config.fqdn}" = {
+    virtualHosts."${config.networking.fqdn}" = {
       enableACME = true;
       forceSSL = true;
       default = true;

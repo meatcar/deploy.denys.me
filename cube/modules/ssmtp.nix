@@ -30,7 +30,10 @@
         auth = true;
         tls = true;
         passwordeval = "${pkgs.coreutils}/bin/cat ${config.age.secrets.ssmtpPass.path}";
-        from = "%U.${config.hostname}@${config.domain}";
+        from = "%U.${config.networking.hostName}@${config.networking.domain}";
+        aliases = pkgs.writeTextFile "msmtp-aliases" ''
+          root: root-${config.networking.hostName}@${config.networking.domain}
+        '';
       };
     };
   };

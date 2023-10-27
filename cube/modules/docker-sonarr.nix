@@ -33,7 +33,7 @@ in
       };
     };
 
-    services.nginx.virtualHosts."sonarr.${config.fqdn}" = {
+    services.nginx.virtualHosts."sonarr.${config.networking.fqdn}" = {
       enableACME = true;
       forceSSL = true;
       locations."/".proxyPass = "http://127.0.0.1:${port}";

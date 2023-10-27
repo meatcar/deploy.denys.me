@@ -29,7 +29,7 @@ in
               host: ${config.smtp.host}
               port: ${toString config.smtp.port}
               ssl: true
-              localName: ${config.fqdn}
+              localName: ${config.networking.fqdn}
               username: ${config.smtp.user}
               passwordFile: /smtppass
               from: diun.cube@denys.me

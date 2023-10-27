@@ -35,7 +35,7 @@ in
       "${toString cfg.port}:9117"
     ];
 
-    services.nginx.virtualHosts."jackett.${config.fqdn}" = {
+    services.nginx.virtualHosts."jackett.${config.networking.fqdn}" = {
       enableACME = true;
       forceSSL = true;
       locations."/".proxyPass = "http://127.0.0.1:${toString cfg.port}";

@@ -23,15 +23,15 @@
       protocol = "cloudflare";
       username = config.cloudflare.email;
       passwordFile = config.age.secrets.cloudflareKey.path;
-      domains = [ config.fqdn ];
-      zone = config.domain;
+      domains = [ config.networking.fqdn ];
+      zone = config.netorking.domain;
     };
 
     services.cfdyndns = {
       enable = true;
       email = config.cloudflare.email;
       apikeyFile = config.age.secrets.cloudflareKey.path;
-      records = [ config.fqdn ];
+      records = [ config.networking.fqdn ];
     };
   };
 }

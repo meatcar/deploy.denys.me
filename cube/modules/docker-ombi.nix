@@ -19,7 +19,7 @@ in
       extraOptions = [ "--network=host" ];
     };
 
-    services.nginx.virtualHosts."ombi.${config.fqdn}" = {
+    services.nginx.virtualHosts."ombi.${config.networking.fqdn}" = {
       enableACME = true;
       forceSSL = true;
       locations."/".proxyPass = "http://127.0.0.1:${port}";

@@ -33,7 +33,7 @@ in
       };
     };
 
-    services.nginx.virtualHosts."radarr.${config.fqdn}" = {
+    services.nginx.virtualHosts."radarr.${config.networking.fqdn}" = {
       enableACME = true;
       forceSSL = true;
       locations."/".proxyPass = "http://127.0.0.1:${port}";

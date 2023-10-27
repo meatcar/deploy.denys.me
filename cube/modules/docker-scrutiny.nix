@@ -42,7 +42,7 @@ in
       ];
     };
 
-    services.nginx.virtualHosts."scrutiny.${config.fqdn}" = {
+    services.nginx.virtualHosts."scrutiny.${config.networking.fqdn}" = {
       enableACME = true;
       forceSSL = true;
       locations."/".proxyPass = "http://127.0.0.1:${port}";
