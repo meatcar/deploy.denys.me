@@ -11,14 +11,13 @@
       ../../modules/base.nix
       ../../modules/tailscale.nix
       ../../modules/docker.nix
+      ../../modules/zfs.nix
     ];
 
   mine = {
     username = "meatcar";
     githubKeyUser = "meatcar";
   };
-
-  boot.supportedFilesystems = [ "zfs" ];
 
   networking.hostName = "chunkymonkey";
   networking.hostId = "9f0d1484";
