@@ -14,7 +14,7 @@ in
 
     domain = mkOption {
       type = types.str;
-      default = "nodered.${config.mine.domain}";
+      default = "nodered.${config.networking.domain}";
       description = "Node-RED domain";
     };
   };

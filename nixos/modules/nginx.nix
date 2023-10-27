@@ -22,8 +22,8 @@ in
 
       streamConfig = ''
         map $ssl_preread_server_name $name {
-          cube.${config.mine.domain} cube;
-          ~.+.cube.${config.mine.domain} cube;
+          cube.${config.networking.domain} cube;
+          ~.+.cube.${config.networking.domain} cube;
           huddle.win cube;
           ~.+.huddle.win cube;
           default https_default;
@@ -45,11 +45,11 @@ in
       '';
 
       virtualHosts = {
-        ${config.mine.domain} = {
+        ${config.networking.domain} = {
           enableACME = true;
           forceSSL = true;
           serverAliases = [
-            "www.${config.mine.domain}"
+            "www.${config.networking.domain}"
           ];
           listen = [
             { addr = "0.0.0.0"; port = 80; }
@@ -59,9 +59,9 @@ in
           extraConfig = "index index.html;";
         };
 
-        "cube.${config.mine.domain}" = {
+        "cube.${config.networking.domain}" = {
           # http only, mostly for acme/letsencrypt challenges
-          serverAliases = [ "*.cube.${config.mine.domain}" ];
+          serverAliases = [ "*.cube.${config.networking.domain}" ];
           locations."/".proxyPass = "http://10.100.0.4";
         };
         "huddle.win" = {

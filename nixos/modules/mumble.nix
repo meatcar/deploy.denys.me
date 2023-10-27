@@ -7,9 +7,9 @@
   services.murmur = {
     enable = true;
     welcometext = ''
-      <br />Welcome to <i>mumble.${config.mine.domain}</i>!
+      <br />Welcome to <i>mumble.${config.networking.domain}</i>!
       <br />Be nice, and enjoy your stay! :) :) :D
-      <br /><h3>NOTICE</h3> This server has moved to <u>mumble.${config.mine.domain}</u>.
+      <br /><h3>NOTICE</h3> This server has moved to <u>mumble.${config.networking.domain}</u>.
       <br />Please let your friends know :)
     '';
   };
