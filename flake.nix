@@ -155,10 +155,13 @@
           specialArgs =
             { inherit inputs; };
           modules = [
+            {
+              system.stateVersion = "22.11";
+              nixpkgs = nixpkgsConfig;
+            }
             inputs.agenix.nixosModules.default
-            ./cube/secrets/module.nix # agenix encrypted sensitive secrets
-            ./cube/modules/unencrypted-secrets.nix # less sensitive secrets that shouldn't be in git history
-            ./cube/configuration.nix
+            ./nixos/systems/cube/secrets/module.nix # agenix encrypted sensitive secrets
+            ./nixos/systems/cube/configuration.nix
           ];
         };
       };

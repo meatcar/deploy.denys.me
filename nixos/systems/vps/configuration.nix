@@ -16,43 +16,38 @@
     ../../modules/nodered.nix
   ];
 
-  options.mine = {
-    domain = lib.mkOption {
-      type = lib.types.str;
-      description = "The base domain to serve";
-    };
-  };
-
-  config = {
-    mine = {
-      domain = "denys.me";
-      username = "meatcar";
-      githubKeyUser = "meatcar";
-      znc = {
-        enable = true;
-        users = {
-          meatcar = {
-            extraConfig = {
-              Admin = true;
-              RealName = "Denys Pavlov";
-            };
-            networks = {
-              freenode = { extraConfig = { Server = "chat.freenode.net +7000"; }; };
-            };
+  mine = {
+    username = "meatcar";
+    githubKeyUser = "meatcar";
+    znc = {
+      enable = true;
+      users = {
+        meatcar = {
+          extraConfig = {
+            Admin = true;
+            RealName = "Denys Pavlov";
+          };
+          networks = {
+            freenode = { extraConfig = { Server = "chat.freenode.net +7000"; }; };
           };
         };
       };
-      nodered.enable = true;
     };
+    nodered.enable = true;
+  };
 
-    time.timeZone = "America/Toronto";
+  networking = {
+    domain = "denys.me";
+    hostName = "to";
+  };
 
-    users.users."${config.mine.username}" = {
-      isNormalUser = true;
-      extraGroups = [ "wheel" "docker" "nginx" ];
-      hashedPassword =
-        "$6$TW7fMuG2cMYbWDC$p0t7uFxePu/U.Lp8MUp0tgoJZh.EL7MkC3SG5jsNCIXkh2S.LA8wxnUEZpG4Mnvk/C3WOMKz35YXCC0XDkZWm/";
-      openssh.authorizedKeys.keys = config.users.users.root.openssh.authorizedKeys.keys;
-    };
+  time.timeZone = "America/Toronto";
+
+  users.users."${config.mine.username}" = {
+    isNormalUser = true;
+    extraGroups = [ "wheel" "docker" "nginx" ];
+    hashedPassword =
+      "$6$TW7fMuG2cMYbWDC$p0t7uFxePu/U.Lp8MUp0tgoJZh.EL7MkC3SG5jsNCIXkh2S.LA8wxnUEZpG4Mnvk/C3WOMKz35YXCC0XDkZWm/";
+    openssh.authorizedKeys.keys = config.users.users.root.openssh.authorizedKeys.keys;
   };
 }
