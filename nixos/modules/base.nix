@@ -27,13 +27,13 @@ in
 
     services.openssh.enable = true;
     programs.mosh.enable = true;
-    networking.firewall.allowedTCPPorts = [ 22 ];
+    programs.command-not-found.enable = true;
     users.users = {
       root.openssh.authorizedKeys.keys = sshKeys;
     };
 
     environment.systemPackages =
-      with pkgs; [ mosh byobu tmux direnv neovim git ];
+      with pkgs; [ byobu tmux direnv neovim git htop curl wget ];
 
     nix = {
 
