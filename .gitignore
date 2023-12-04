@@ -16,6 +16,4 @@
 .env
 output/
 
-nixos/generated/*
-
 result
