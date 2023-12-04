@@ -50,10 +50,10 @@
                   exit 1
               esac
 
-              # if ! ${pkgs.iputils}/bin/ping -c1 -W1 "$REMOTE_HOST"; then
-              #   echo "$0: no connection to $REMOTE_HOST" >&2
-              #   exit 1
-              # fi
+              if ! ssh -o ConnectTimeout=5 "$REMOTE_HOST" exit; then
+                echo "$0: no connection to $REMOTE_HOST" >&2
+                exit 1
+              fi
 
               cmd=$(echo nixos-rebuild "$@" \
                 --flake .#"$FLAKE" \
