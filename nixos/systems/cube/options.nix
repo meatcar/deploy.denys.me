@@ -29,10 +29,6 @@
           description = "The group of users that have R/W access to the storagePath";
           default = "storage";
         };
-        wireguardServer = mkOption {
-          type = types.str;
-          description = "The WireGuard server URL/IP";
-        };
       };
     };
 }
