@@ -7,7 +7,7 @@
     ../../modules/base.nix
     ../../modules/wireguard-client.nix
     ../../modules/smtp.nix
-    ./modules/smartd.nix
+    ../../modules/smartd.nix
     ./modules/nginx.nix
     ../../modules/acme.nix
     ./modules/samba.nix
