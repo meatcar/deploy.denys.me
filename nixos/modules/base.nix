@@ -20,6 +20,11 @@ in
       type = lib.types.str;
       description = "The default user";
     };
+    persistPath = lib.mkOption {
+      type = lib.types.path;
+      description = "Mountpoint of main persisted system storeage";
+      default = "/persist";
+    };
   };
 
   config = {

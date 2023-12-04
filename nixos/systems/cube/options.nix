@@ -6,10 +6,6 @@
     in
     {
       mine = {
-        persistPath = mkOption {
-          type = types.path;
-          description = "Mountpoint of main persisted system storeage";
-        };
         notificationEmail = mkOption {
           type = types.str;
           description = "An email address to send system notifications to";
