@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+{ pkgs, ... }:
 {
   environment.systemPackages = [ pkgs.smartmontools ];
   services.smartd = {
@@ -7,10 +7,7 @@
     notifications = {
       test = true;
       wall.enable = false;
-      mail = {
-        enable = true;
-        recipient = config.mine.notificationEmail;
-      };
+      mail.enable = true;
     };
   };
 }
