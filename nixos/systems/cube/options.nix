@@ -13,7 +13,7 @@
         notificationEmail = mkOption {
           type = types.str;
           description = "An email address to send system notifications to";
-          default = "${config.networking.hostName}-notifications@${config.networking.domain}";
+          default = "root";
         };
         storagePath = mkOption {
           type = types.path;
