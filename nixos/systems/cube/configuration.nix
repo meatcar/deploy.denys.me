@@ -11,7 +11,7 @@
     ./modules/nginx.nix
     ../../modules/acme.nix
     ./modules/samba.nix
-    ./modules/docker.nix
+    ../../modules/docker.nix
     # ./modules/docker-diun.nix
     # ./modules/docker-wireguard.nix
     # ./modules/docker-plex.nix

@@ -5,7 +5,6 @@
     ../../modules/base.nix
     ../../modules/digitalocean.nix
     ../../modules/docker.nix
-    ../../modules/docker-fix.nix
     ../../modules/backups.nix
     ../../modules/wireguard-server.nix
     ../../modules/tailscale.nix
