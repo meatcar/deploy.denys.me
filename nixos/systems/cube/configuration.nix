@@ -1,7 +1,6 @@
 { config, pkgs, ... }:
 {
   imports = [
-    ./options.nix
     ./secrets.nix
     ./hardware-configuration.nix
     ../../modules/base.nix
@@ -10,7 +9,7 @@
     ../../modules/smartd.nix
     ./modules/nginx.nix
     ../../modules/acme.nix
-    ./modules/samba.nix
+    ../../modules/samba.nix
     ../../modules/docker.nix
     # ./modules/docker-diun.nix
     # ./modules/docker-wireguard.nix
