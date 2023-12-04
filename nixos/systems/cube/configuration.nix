@@ -35,6 +35,7 @@
     networking.domain = "denys.me";
     networking.hostName = "cube";
     mine = {
+      username = "meatcar";
       githubKeyUser = "meatcar";
       storagePath = "/data";
       persistPath = "/persist";
