@@ -20,10 +20,30 @@ in
       type = lib.types.str;
       description = "The default user";
     };
+    notificationEmail = lib.mkOption {
+      type = lib.types.str;
+      description = "An email address to send system notifications to";
+      default = "root";
+    };
     persistPath = lib.mkOption {
       type = lib.types.path;
       description = "Mountpoint of main persisted system storeage";
       default = "/persist";
+    };
+    storagePath = lib.mkOption {
+      type = lib.types.path;
+      description = "Mountpoint of main storage array";
+      default = "/data";
+    };
+    storageUser = lib.mkOption {
+      type = lib.types.str;
+      description = "The main user that have R/W access to the storagePath";
+      default = "storage";
+    };
+    storageGroup = lib.mkOption {
+      type = lib.types.str;
+      description = "The group of users that have R/W access to the storagePath";
+      default = "storage";
     };
   };
 
