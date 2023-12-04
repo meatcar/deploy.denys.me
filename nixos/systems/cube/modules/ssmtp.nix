@@ -16,10 +16,6 @@
           description = "SMTP Port";
           default = 565;
         };
-        pass = lib.mkOption {
-          type = lib.types.str;
-          description = "SMTP Password";
-        };
       };
     };
   };
