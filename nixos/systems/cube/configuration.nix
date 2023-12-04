@@ -1,11 +1,11 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, ... }:
 {
   imports = [
     ./options.nix
     ./secrets.nix
     ./hardware-configuration.nix
     ../../modules/base.nix
-    ./modules/wireguard.nix
+    ../../modules/wireguard-client.nix
     ./modules/ssmtp.nix
     ./modules/smartd.nix
     ./modules/nginx.nix
@@ -39,6 +39,8 @@
       githubKeyUser = "meatcar";
       storagePath = "/data";
       persistPath = "/persist";
+      networking.wireguard.serverPort = 51821;
+      networking.wireguard.ipIndex = 4;
     };
 
     # Use the systemd-boot EFI boot loader.

@@ -7,7 +7,8 @@ in
     smtp.user = getEnv "SMTP_USER";
     smtp.host = getEnv "SMTP_HOST";
     # services.nextcloud.fqdn = getEnv "NEXTCLOUD_FQDN";
-    wireguardServer = getEnv "WIREGUARD_SERVER";
+    networking.wireguard.serverName = getEnv "WIREGUARD_SERVER";
+    networking.wireguard.serverPublicKey = getEnv "WIREGUARD_SERVER_KEY";
     notificationEmail = getEnv "NOTIFICATION_EMAIL";
   };
 }

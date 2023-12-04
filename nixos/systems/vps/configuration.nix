@@ -7,7 +7,7 @@
     ../../modules/docker.nix
     ../../modules/docker-fix.nix
     ../../modules/backups.nix
-    ../../modules/wireguard.nix
+    ../../modules/wireguard-server.nix
     ../../modules/tailscale.nix
     ../../modules/acme.nix
     ../../modules/nginx.nix
@@ -19,6 +19,7 @@
   mine = {
     username = "meatcar";
     githubKeyUser = "meatcar";
+    networking.wireguard.serverPort = 51821;
     znc = {
       enable = true;
       users = {
@@ -39,6 +40,7 @@
   networking = {
     domain = "denys.me";
     hostName = "to";
+    nat.externalInterface = "ens3";
   };
 
   time.timeZone = "America/Toronto";
