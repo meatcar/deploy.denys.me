@@ -35,6 +35,7 @@
             (pkgs.writeShellScriptBin "deploy" ''
               FLAKE="$1"; shift 1
               REMOTE_HOST=
+              REMOTE_OPTS= # opts to pass to nixos-rebuild
               case "$FLAKE" in
                 chunkymonkey)
                   REMOTE_HOST=chunkymonkey.fish-hydra.ts.net
@@ -43,7 +44,8 @@
                   REMOTE_HOST=$(cd terraform && ${pkgs.terraform}/bin/terraform output --raw ip)
                   ;;
                 cube)
-                  REMOTE_HOST=10.100.0.4
+                  REMOTE_HOST=cube.fish-hydra.ts.net
+                  REMOTE_OPTS=--impure
                   ;;
                 *)
                   echo no such remote host "$FLAKE" >&2
@@ -60,7 +62,7 @@
                 --target-host "$REMOTE_HOST" \
                 --build-host "$REMOTE_HOST" \
                 --use-remote-sudo \
-                --use-substitutes)
+                --use-substitutes $REMOTE_OPTS)
               echo "$cmd"
               $cmd
             '')
