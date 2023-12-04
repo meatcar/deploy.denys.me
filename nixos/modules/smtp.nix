@@ -1,4 +1,7 @@
 { config, pkgs, lib, ... }:
+let
+  cfg = config.mine.smtp;
+in
 {
   options = {
     mine = {
@@ -16,6 +19,10 @@
           description = "SMTP Port";
           default = 565;
         };
+        passwordFile = lib.mkOption {
+          type = lib.types.path;
+          description = "The path to a file that contains the password";
+        };
       };
     };
   };
@@ -24,10 +31,10 @@
       enable = true;
       accounts.default = {
         inherit (config.networking) domain;
-        inherit (config.mine.smtp) user host port;
+        inherit (cfg) user host port;
         auth = true;
         tls = true;
-        passwordeval = "${pkgs.coreutils}/bin/cat ${config.age.secrets.ssmtpPass.path}";
+        passwordeval = "${pkgs.coreutils}/bin/cat ${cfg.passwordFile}";
         from = "%U.${config.networking.hostName}@${config.networking.domain}";
         aliases = pkgs.writeText "msmtp-aliases" ''
           root: root-${config.networking.hostName}@${config.networking.domain}
