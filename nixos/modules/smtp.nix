@@ -34,6 +34,7 @@ in
         inherit (cfg) user host port;
         auth = true;
         tls = true;
+        tls_starttls = false;
         passwordeval = "${pkgs.coreutils}/bin/cat ${cfg.passwordFile}";
         from = "%U.${config.networking.hostName}@${config.networking.domain}";
         aliases = pkgs.writeText "msmtp-aliases" ''
