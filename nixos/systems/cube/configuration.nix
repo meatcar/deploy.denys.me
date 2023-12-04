@@ -6,7 +6,7 @@
     ./hardware-configuration.nix
     ../../modules/base.nix
     ../../modules/wireguard-client.nix
-    ./modules/ssmtp.nix
+    ../../modules/smtp.nix
     ./modules/smartd.nix
     ./modules/nginx.nix
     ../../modules/acme.nix
@@ -41,6 +41,7 @@
       persistPath = "/persist";
       networking.wireguard.serverPort = 51821;
       networking.wireguard.ipIndex = 4;
+      smtp.passwordFile = "${config.age.secrets.ssmtpPass.path}";
     };
 
     # Use the systemd-boot EFI boot loader.
