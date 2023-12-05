@@ -28,11 +28,13 @@
     # ./modules/docker-redis.nix
     # ./modules/docker-nextcloud.nix
     ./modules/nginx.nix
+    ../../modules/zfs.nix
   ];
 
   config = {
     networking.domain = "denys.me";
     networking.hostName = "cube";
+    networking.hostId = "611b4046";
     mine = {
       username = "meatcar";
       githubKeyUser = "meatcar";
@@ -42,6 +44,7 @@
       networking.wireguard.ipIndex = 4;
       smtp.passwordFile = "${config.age.secrets.ssmtpPass.path}";
     };
+
 
     # Use the systemd-boot EFI boot loader.
     boot.loader.systemd-boot.enable = true;
