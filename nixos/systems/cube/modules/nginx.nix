@@ -71,20 +71,14 @@ let
   '';
 in
 {
-  services.nginx = {
-    enable = true;
-    recommendedGzipSettings = true;
-    recommendedOptimisation = true;
-    recommendedProxySettings = true;
-    recommendedTlsSettings = true;
-    virtualHosts."${config.networking.fqdn}" = {
-      enableACME = true;
-      forceSSL = true;
-      default = true;
-      locations."/" = {
-        root = wwwDir;
-        index = "index.html";
-      };
+  imports = [ ../../../modules/nginx.nix ];
+  services.nginx.virtualHosts."${config.networking.fqdn}" = {
+    enableACME = true;
+    forceSSL = true;
+    default = true;
+    locations."/" = {
+      root = wwwDir;
+      index = "index.html";
     };
   };
 }
