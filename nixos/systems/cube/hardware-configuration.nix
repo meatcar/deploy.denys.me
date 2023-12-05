@@ -72,6 +72,10 @@
       device = "/dev/disk/by-uuid/4C2C-8603";
       fsType = "vfat";
     };
+    "/boot-backup" = {
+      device = "/dev/disk/by-uuid/4C72-6855";
+      fsType = "vfat";
+    };
 
     "${config.mine.storagePath}" = {
       device = "/dev/disk/by-uuid/9fbbc081-5aec-4553-95dd-cf33f5727c28";
