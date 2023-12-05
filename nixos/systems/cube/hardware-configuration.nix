@@ -100,6 +100,10 @@
       device = "zpool/video";
       fsType = "zfs";
     };
+    "${config.mine.storagePath}/System/transmission" = {
+      device = "zpool/torrent";
+      fsType = "zfs";
+    };
   };
 
   swapDevices = [ ];
