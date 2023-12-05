@@ -99,8 +99,8 @@
         { device = "/dev/disk/by-id/ata-KINGSTON_SA400S37120G_50026B7782881240"; }
         { device = "/dev/disk/by-id/ata-WDC_WD20EZRX-00D8PB0_WD-WCC4M2FCXZSZ"; }
         { device = "/dev/disk/by-id/ata-WDC_WD20EZRX-00D8PB0_WD-WCC4N2RF5DJT"; }
-        { device = "/dev/disk/by-id/ata-ST2000DM001-9YN164_S1E0A734"; }
-        { device = "/dev/disk/by-id/ata-ST2000DM001-9YN164_S1F0BYQJ"; }
+        { device = "/dev/disk/by-id/ata-ST4000VN008-2DR166_ZDHBDGH8"; }
+        { device = "/dev/disk/by-id/ata-ST4000VN008-2DR166_ZDHBBJW4"; }
       ];
     };
   };
