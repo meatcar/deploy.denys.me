@@ -7,7 +7,6 @@
     ../../modules/wireguard-client.nix
     ../../modules/smtp.nix
     ../../modules/smartd.nix
-    ./modules/nginx.nix
     ../../modules/acme.nix
     ../../modules/samba.nix
     ../../modules/docker.nix
@@ -28,6 +27,7 @@
     # ./modules/docker-postgresql.nix
     # ./modules/docker-redis.nix
     # ./modules/docker-nextcloud.nix
+    ./modules/nginx.nix
   ];
 
   config = {
@@ -58,8 +58,6 @@
         useDHCP = true;
       };
       nameservers = [ "1.1.1.1" "8.8.8.8" ];
-
-      firewall.allowedTCPPorts = [ 80 443 ]; # TODO: move into relevant module
     };
 
     services.tailscale.enable = true;

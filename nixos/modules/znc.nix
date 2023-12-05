@@ -1,5 +1,7 @@
 { config, pkgs, lib, ... }:
-let cfg = config.mine.znc;
+let
+  cfg = config.mine.znc;
+  internalPort = 6697;
 in
 {
   options.mine.znc =
@@ -148,49 +150,40 @@ in
           Listener.l = {
             AllowIRC = true;
             AllowWeb = true;
-            Port = 6697;
+            Port = internalPort;
             SSL = false;
           };
           User = lib.mapAttrs makeUser cfg.users;
         };
       };
 
-    services.nginx =
-      let
-        upstream =
-          "localhost:${toString config.services.znc.config.Listener.l.Port}";
-      in
-      {
-        virtualHosts."${cfg.domain}" = {
-          enableACME = true;
-          forceSSL = true;
-          listen = [
-            { addr = "0.0.0.0"; port = 80; }
-            { addr = "127.0.0.1"; port = config.mine.internalSslPort; ssl = true; }
-          ];
-          locations."/" = {
-            proxyPass = "http://${upstream}";
-            extraConfig = ''
-              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            '';
-          };
+    services.nginx = {
+      virtualHosts."${cfg.domain}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations."/" = {
+          proxyPass = "http://localhost:${toString internalPort}";
+          extraConfig = ''
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          '';
         };
-        # virualHosts doesn't generate streams. Let's do it by hand.
-        # Streaming is nescessary because znc does both HTTP _and_ IRC.
-        streamConfig = ''
-          upstream znc-irc {
-            server ${upstream};
-          }
-          server {
-            listen ${toString cfg.port} ssl;
-            listen [::]:${toString cfg.port} ssl;
-            ssl_certificate /var/lib/acme/${cfg.domain}/fullchain.pem;
-            ssl_certificate_key /var/lib/acme/${cfg.domain}/key.pem;
-            ssl_trusted_certificate /var/lib/acme/${cfg.domain}/full.pem;
-            proxy_pass znc-irc;
-          }
-        '';
       };
+      # virualHosts doesn't generate streams. Let's do it by hand.
+      # Streaming is nescessary because znc does both HTTP _and_ IRC.
+      streamConfig = ''
+        upstream znc-irc {
+          server localhost:${toString internalPort};
+        }
+        server {
+          listen ${toString cfg.port} ssl;
+          listen [::]:${toString cfg.port} ssl;
+          ssl_certificate /var/lib/acme/${cfg.domain}/fullchain.pem;
+          ssl_certificate_key /var/lib/acme/${cfg.domain}/key.pem;
+          ssl_trusted_certificate /var/lib/acme/${cfg.domain}/full.pem;
+          proxy_pass znc-irc;
+        }
+      '';
+    };
     networking.firewall.allowedTCPPorts = [ cfg.port ];
   };
 }

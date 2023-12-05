@@ -9,10 +9,10 @@
     ../../modules/wireguard-server.nix
     ../../modules/tailscale.nix
     ../../modules/acme.nix
-    ../../modules/nginx.nix
     ../../modules/mumble.nix
     ../../modules/znc.nix
     ../../modules/nodered.nix
+    ./modules/nginx.nix
   ];
 
   mine = {
