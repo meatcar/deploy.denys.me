@@ -49,7 +49,6 @@
     boot.tmp.useTmpfs = true;
 
     environment.systemPackages = with pkgs; [ pciutils usbutils ];
-    environment.extraOutputsToInstall = [ "doc" "info" "devdoc" ]; # TODO: WHY?
 
     networking = {
       useDHCP = false;
