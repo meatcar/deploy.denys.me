@@ -45,6 +45,11 @@
 
     # Use the systemd-boot EFI boot loader.
     boot.loader.systemd-boot.enable = true;
+    boot.loader.systemd-boot.extraInstallCommands = ''
+      # backup boot
+      find /boot-backup -mindepth 1 -delete
+      cp -r /boot/* /boot-backup
+    '';
     boot.loader.efi.canTouchEfiVariables = true;
     boot.tmp.useTmpfs = true;
 
