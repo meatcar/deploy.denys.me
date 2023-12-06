@@ -23,13 +23,14 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    networking.firewall.allowedTCPPorts = [ 443 ];
     services.nginx =
       let
         defaultSSLListenPort = config.services.nginx.defaultSSLListenPort;
         upstreams = lib.pipe cfg.proxies [
           (lib.concatMapAttrs (name: opts:
             { ${name} = opts.host; } //
-            (lib.optionalAttrs opts.subdomain { "~.+.${name}" = opts.host; })
+            (lib.optionalAttrs opts.subdomains { "~.+.${name}" = opts.host; })
           ))
           (lib.mapAttrsToList (name: host: "${name} ${host}:443;"))
           lib.concatLines
@@ -50,9 +51,9 @@ in
           }
         '';
         virtualHosts = builtins.mapAttrs
-          (_: opts: {
+          (name: opts: {
             locations."/".proxyPass = "http://${opts.host}";
-            serverAliases = lib.mkIf opts.subdomains [ "*.${opts.host}" ];
+            serverAliases = lib.mkIf opts.subdomains [ "*.${name}" ];
           })
           cfg.proxies;
       };
