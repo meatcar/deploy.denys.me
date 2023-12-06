@@ -16,6 +16,7 @@ in
     ];
     virtualisation.oci-containers.containers.diun =
       let
+        email = "${config.networking.hostName}@${config.networking.domain}";
         configFile = pkgs.writeText "duin-config.yml" ''
           watch:
             workers: 10
@@ -26,14 +27,14 @@ in
               watchByDefault: true
           notif:
             mail:
-              host: ${config.smtp.host}
-              port: ${toString config.smtp.port}
+              host: ${config.mine.smtp.host}
+              port: ${toString config.mine.smtp.port}
               ssl: true
               localName: ${config.networking.fqdn}
-              username: ${config.smtp.user}
+              username: ${config.mine.smtp.user}
               passwordFile: /smtppass
-              from: diun.cube@denys.me
-              to: admin.cube@denys.me
+              from: diun.${email}
+              to: admin.${email}
         '';
       in
       {

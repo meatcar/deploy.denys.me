@@ -10,8 +10,9 @@
     ../../modules/acme.nix
     ../../modules/samba.nix
     ../../modules/docker.nix
-    # ./modules/docker-diun.nix
+    ./modules/docker-diun.nix
     ./modules/docker-wireguard.nix
+    ./modules/docker-organizr.nix
     # ./modules/docker-plex.nix
     # ./modules/docker-tautulli.nix
     # ./modules/docker-sonarr.nix
@@ -22,8 +23,7 @@
     # ./modules/docker-bazarr.nix
     # ./modules/docker-calibre-web.nix
     # ./modules/docker-readarr.nix
-    # ./modules/docker-organizr.nix
-    # ./modules/docker-scrutiny.nix
+    ./modules/docker-scrutiny.nix
     # ./modules/docker-postgresql.nix
     # ./modules/docker-redis.nix
     # ./modules/docker-nextcloud.nix

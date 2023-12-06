@@ -35,8 +35,6 @@ in
         "--device=/dev/sde"
         "--device=/dev/sdf"
         "--device=/dev/sdg"
-        "--device=/dev/sdh"
-        "--device=/dev/sdi"
         "--cap-add=SYS_RAWIO"
         "--cap-add=SYS_ADMIN" # for nvme drives
       ];
