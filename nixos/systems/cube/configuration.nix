@@ -11,7 +11,7 @@
     ../../modules/samba.nix
     ../../modules/docker.nix
     # ./modules/docker-diun.nix
-    # ./modules/docker-wireguard.nix
+    ./modules/docker-wireguard.nix
     # ./modules/docker-plex.nix
     # ./modules/docker-tautulli.nix
     # ./modules/docker-sonarr.nix
@@ -35,6 +35,7 @@
     networking.domain = "denys.me";
     networking.hostName = "cube";
     networking.hostId = "611b4046";
+    time.timeZone = "America/Toronto";
     mine = {
       username = "meatcar";
       githubKeyUser = "meatcar";
