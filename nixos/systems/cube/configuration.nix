@@ -4,6 +4,7 @@
     ./secrets.nix
     ./hardware-configuration.nix
     ../../modules/base.nix
+    ../../modules/zfs.nix
     ../../modules/wireguard-client.nix
     ../../modules/smtp.nix
     ../../modules/smartd.nix
@@ -18,7 +19,7 @@
     # ./modules/docker-sonarr.nix
     # ./modules/docker-radarr.nix
     # ./modules/docker-ombi.nix
-    # ./modules/docker-transmission.nix
+    ./modules/docker-transmission.nix
     # ./modules/docker-jackett.nix
     # ./modules/docker-bazarr.nix
     # ./modules/docker-calibre-web.nix
@@ -28,7 +29,6 @@
     # ./modules/docker-redis.nix
     # ./modules/docker-nextcloud.nix
     ./modules/nginx.nix
-    ../../modules/zfs.nix
   ];
 
   config = {
