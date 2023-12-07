@@ -2,7 +2,7 @@
   description = "changeme";
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
-    nixpkgs.url = "github:nixos/nixpkgs/23.05";
+    nixpkgs.url = "github:nixos/nixpkgs/23.11";
     nixos-hardware.url = "github:nixos/nixos-hardware";
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.nixpkgs.follows = "nixpkgs";
@@ -103,7 +103,7 @@
             ./nixos/modules/base.nix
             ./nixos/modules/digitalocean.nix
             {
-              system.stateVersion = "22.11";
+              system.stateVersion = "23.11";
               mine.githubKeyUser = "meatcar";
               mine.username = "meatcar";
             }
@@ -126,7 +126,7 @@
           modules = [
             {
               nixpkgs = nixpkgsConfig;
-              system.stateVersion = "22.05";
+              system.stateVersion = "23.11";
             }
             inputs.agenix.nixosModules.default
             {
@@ -146,7 +146,7 @@
           modules = [
             {
               nixpkgs = nixpkgsConfig;
-              system.stateVersion = "22.05";
+              system.stateVersion = "23.11";
             }
             inputs.nixos-hardware.nixosModules.raspberry-pi-4
             ./nixos/systems/rpi.nix
@@ -158,7 +158,7 @@
             { inherit inputs; };
           modules = [
             {
-              system.stateVersion = "22.11";
+              system.stateVersion = "23.11";
               nixpkgs = nixpkgsConfig;
             }
             inputs.agenix.nixosModules.default
