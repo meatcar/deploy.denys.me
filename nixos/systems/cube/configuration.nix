@@ -51,8 +51,8 @@
     boot.loader.systemd-boot.enable = true;
     boot.loader.systemd-boot.extraInstallCommands = ''
       # backup boot
-      find /boot-backup -mindepth 1 -delete
-      cp -r /boot/* /boot-backup
+      ${pkgs.findutils}/bin/find /boot-backup -mindepth 1 -delete
+      ${pkgs.coreutils}/bin/cp -r /boot/* /boot-backup
     '';
     boot.loader.efi.canTouchEfiVariables = true;
     boot.tmp.useTmpfs = true;
@@ -77,11 +77,11 @@
       users =
         {
           root = {
-            passwordFile = config.age.secrets.hashedPassword.path;
+            hashedPasswordFile = config.age.secrets.hashedPassword.path;
           };
           meatcar = {
             isNormalUser = true;
-            passwordFile = config.age.secrets.hashedPassword.path;
+            hashedPasswordFile = config.age.secrets.hashedPassword.path;
             extraGroups = [ "wheel" "docker" config.mine.storageGroup ];
             openssh.authorizedKeys.keys = config.users.users.root.openssh.authorizedKeys.keys;
           };
