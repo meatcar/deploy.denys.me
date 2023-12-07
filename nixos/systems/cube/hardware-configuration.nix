@@ -1,4 +1,4 @@
-{ config, lib, inputs, ... }: {
+{ config, lib, inputs, pkgs, ... }: {
   imports =
     [
       "${inputs.nixpkgs}/nixos/modules/installer/scan/not-detected.nix"
@@ -125,6 +125,26 @@
       ];
     };
   };
+
+  # enable standby for all rotating drives
+  systemd.services.hd-idle =
+    let
+      hds = [
+        "/dev/disk/by-id/ata-WDC_WD20EZRX-00D8PB0_WD-WCC4M2FCXZSZ"
+        "/dev/disk/by-id/ata-WDC_WD20EZRX-00D8PB0_WD-WCC4N2RF5DJT"
+        "/dev/disk/by-id/ata-ST4000VN008-2DR166_ZDHBDGH8"
+        "/dev/disk/by-id/ata-ST4000VN008-2DR166_ZDHBBJW4"
+      ];
+    in
+    {
+      description = "External HD spin down daemon";
+      wantedBy = [ "multi-user.target" ];
+      serviceConfig = {
+        # Type = "forking";
+        ExecStart = "${pkgs.hd-idle}/bin/hd-idle -d -c ata -p 3 -i 0 "
+          + (lib.concatMapStringsSep " " (hd: "-a ${hd} -i 600") hds);
+      };
+    };
 
   nix.settings.max-jobs = lib.mkDefault 4;
 }
