@@ -38,7 +38,7 @@ in
         passwordeval = "${pkgs.coreutils}/bin/cat ${cfg.passwordFile}";
         from = "%U.${config.networking.hostName}@${config.networking.domain}";
         aliases = pkgs.writeText "msmtp-aliases" ''
-          root: root-${config.networking.hostName}@${config.networking.domain}
+          root: root.${config.networking.hostName}@${config.networking.domain}
         '';
       };
     };

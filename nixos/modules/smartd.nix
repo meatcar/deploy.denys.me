@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 {
   environment.systemPackages = [ pkgs.smartmontools ];
   services.smartd = {
@@ -8,6 +8,7 @@
       test = true;
       wall.enable = false;
       mail.enable = true;
+      mail.sender = "smartd.${config.networking.hostName}@${config.networking.domain}";
     };
   };
 }
