@@ -5,6 +5,7 @@
   ];
   services.nginx = {
     enable = true;
+    tailscaleAuth.enable = true;
     recommendedGzipSettings = true;
     recommendedOptimisation = true;
     recommendedProxySettings = true;
