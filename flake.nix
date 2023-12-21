@@ -36,16 +36,20 @@
               FLAKE="$1"; shift 1
               REMOTE_HOST=
               REMOTE_OPTS= # opts to pass to nixos-rebuild
+              BUILD_HOST=
               case "$FLAKE" in
                 chunkymonkey)
                   REMOTE_HOST=chunkymonkey.fish-hydra.ts.net
+                  BUILD_HOST="$REMOTE_HOST"
                   ;;
                 vps)
                   REMOTE_HOST=$(cd terraform && ${pkgs.terraform}/bin/terraform output --raw ip)
+                  BUILD_HOST="$REMOTE_HOST"
                   ;;
                 cube)
                   REMOTE_HOST=cube.fish-hydra.ts.net
                   REMOTE_OPTS=--impure
+                  BUILD_HOST="$REMOTE_HOST"
                   ;;
                 *)
                   echo no such remote host "$FLAKE" >&2
@@ -60,7 +64,7 @@
               cmd=$(echo nixos-rebuild "$@" \
                 --flake .#"$FLAKE" \
                 --target-host "$REMOTE_HOST" \
-                --build-host "$REMOTE_HOST" \
+                --build-host "$BUILD_HOST" \
                 --use-remote-sudo \
                 --use-substitutes $REMOTE_OPTS)
               echo "$cmd"
