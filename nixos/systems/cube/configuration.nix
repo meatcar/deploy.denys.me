@@ -6,6 +6,7 @@
     ../../modules/base.nix
     ../../modules/zfs.nix
     ../../modules/wireguard-client.nix
+    ../../modules/tailscale-exit-node.nix
     ../../modules/smtp.nix
     ../../modules/smartd.nix
     ../../modules/acme.nix
@@ -67,8 +68,6 @@
       };
       nameservers = [ "1.1.1.1" "8.8.8.8" ];
     };
-
-    services.tailscale.enable = true;
 
     ids.uids.${config.mine.storageUser} = 997;
     ids.gids.${config.mine.storageUser} = 998;
