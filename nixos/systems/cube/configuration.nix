@@ -15,14 +15,14 @@
     ./modules/docker-diun.nix
     ./modules/docker-wireguard.nix
     ./modules/docker-organizr.nix
-    # ./modules/docker-plex.nix
-    # ./modules/docker-tautulli.nix
-    # ./modules/docker-sonarr.nix
-    # ./modules/docker-radarr.nix
-    # ./modules/docker-ombi.nix
     ./modules/docker-transmission.nix
-    # ./modules/docker-jackett.nix
-    # ./modules/docker-bazarr.nix
+    ./modules/docker-jackett.nix
+    ./modules/docker-plex.nix
+    ./modules/docker-tautulli.nix
+    ./modules/docker-ombi.nix
+    ./modules/docker-sonarr.nix
+    ./modules/docker-radarr.nix
+    ./modules/docker-bazarr.nix
     # ./modules/docker-calibre-web.nix
     # ./modules/docker-readarr.nix
     ./modules/docker-scrutiny.nix
