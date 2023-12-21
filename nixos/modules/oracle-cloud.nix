@@ -5,7 +5,7 @@
   boot.kernelParams = [
     "net.ifnames=0"
 
-    # From nixos/modules/virtualisation/oci-common.nix
+    # From https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/virtualisation/oci-common.nix
     "nvme.shutdown_timeout=10"
     "nvme_core.shutdown_timeout=10"
     "libiscsi.debug_libiscsi_eh=1"
