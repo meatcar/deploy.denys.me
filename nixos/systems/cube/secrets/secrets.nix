@@ -16,5 +16,6 @@ in
   "redis-conf.age" = { inherit publicKeys; };
   "redis-pass.age" = { inherit publicKeys; };
   "nextcloudPgPass.age" = { inherit publicKeys; };
+  "freshrssPgPass.age" = {inherit publicKeys;};
   "transitDashboardEnv.age" = {inherit publicKeys;};
 }
