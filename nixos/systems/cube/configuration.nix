@@ -29,6 +29,7 @@
     # ./modules/docker-postgresql.nix
     # ./modules/docker-redis.nix
     # ./modules/docker-nextcloud.nix
+    ./modules/docker-transit-dashboard.nix
     ./modules/nginx.nix
   ];
 

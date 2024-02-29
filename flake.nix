@@ -20,6 +20,8 @@
       url = "github:meatcar/denys.me";
       flake = false;
     };
+
+    transit-dashboard.url = "git+ssh://git@github.com/meatcar/transit-dashboard";
   };
 
   outputs = { self, ... }@inputs:
