@@ -23,19 +23,29 @@ in
 
     virtualisation.oci-containers.containers.plex = {
       image = "plexinc/pms-docker";
-      ports = [ "${port}:32400" ];
+      hostname = config.networking.fqdn;
+      ports = [
+        "${port}:32400/tcp"
+        "8324:8324/tcp"
+        "32469:32469/tcp"
+        "1900:1900/udp"
+        "32410:32410/udp"
+        "32412:32412/udp"
+        "32413:32413/udp"
+        "32414:32414/udp"
+      ];
       volumes = [
         "${config.mine.persistPath}/plex:/config"
-        "/data:/data"
         "/data/Multimedia:/data/Multimedia"
       ];
       extraOptions = [
-        "--network=host"
+        # "--network=host"
         "--device=/dev/dri:/dev/dri" # for transcoding
       ];
       environment = {
         PUID = toString config.ids.uids.${config.mine.storageUser};
         PGID = toString config.ids.gids.${config.mine.storageGroup};
+        ADVERTISE_IP = "https://plex.${config.networking.fqdn}:443/";
       };
     };
 
