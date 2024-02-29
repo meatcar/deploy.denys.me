@@ -26,9 +26,10 @@
     # ./modules/docker-calibre-web.nix
     # ./modules/docker-readarr.nix
     ./modules/docker-scrutiny.nix
-    # ./modules/docker-postgresql.nix
+    ./modules/docker-postgresql.nix
     # ./modules/docker-redis.nix
     # ./modules/docker-nextcloud.nix
+    ./modules/docker-freshrss.nix
     ./modules/docker-transit-dashboard.nix
     ./modules/nginx.nix
   ];
