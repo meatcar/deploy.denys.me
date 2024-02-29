@@ -1,6 +1,6 @@
 { config, pkgs, ... }:
 {
-  environment.systemPackages = [ pkgs.smartmontools ];
+  environment.systemPackages = [ pkgs.smartmontools pkgs.hdparm pkgs.hd-idle ];
   services.smartd = {
     enable = true;
     defaults.monitored = "-a -n standby,24 -o on -s (S/../.././02|L/../../7/04) -d removable";
