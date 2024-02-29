@@ -69,6 +69,7 @@ let cfg = config.age; in
       nextcloudPgPass = {
         file = ./nextcloudPgPass.age;
       };
+      transitDashboardEnv.file = ./transitDashboardEnv.age;
     };
   };
 }
