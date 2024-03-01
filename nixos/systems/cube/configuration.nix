@@ -1,5 +1,8 @@
-{ config, pkgs, ... }:
 {
+  config,
+  pkgs,
+  ...
+}: {
   imports = [
     ./secrets.nix
     ./hardware-configuration.nix
@@ -49,7 +52,6 @@
       smtp.passwordFile = "${config.age.secrets.ssmtpPass.path}";
     };
 
-
     # Use the systemd-boot EFI boot loader.
     boot.loader.systemd-boot.enable = true;
     boot.loader.systemd-boot.extraInstallCommands = ''
@@ -60,7 +62,7 @@
     boot.loader.efi.canTouchEfiVariables = true;
     boot.tmp.useTmpfs = true;
 
-    environment.systemPackages = with pkgs; [ pciutils usbutils ];
+    environment.systemPackages = with pkgs; [pciutils usbutils];
 
     networking = {
       useDHCP = false;
@@ -68,31 +70,30 @@
       interfaces.enp3s0 = {
         useDHCP = true;
       };
-      nameservers = [ "1.1.1.1" "8.8.8.8" ];
+      nameservers = ["1.1.1.1" "8.8.8.8"];
     };
 
     ids.uids.${config.mine.storageUser} = 997;
     ids.gids.${config.mine.storageUser} = 998;
     users = {
       mutableUsers = false;
-      users =
-        {
-          root = {
-            hashedPasswordFile = config.age.secrets.hashedPassword.path;
-          };
-          meatcar = {
-            isNormalUser = true;
-            hashedPasswordFile = config.age.secrets.hashedPassword.path;
-            extraGroups = [ "wheel" "docker" config.mine.storageGroup ];
-            openssh.authorizedKeys.keys = config.users.users.root.openssh.authorizedKeys.keys;
-          };
-          ${config.mine.storageUser} = {
-            isSystemUser = true;
-            uid = config.ids.uids.${config.mine.storageUser};
-            group = config.mine.storageGroup;
-            shell = pkgs.shadow;
-          };
+      users = {
+        root = {
+          hashedPasswordFile = config.age.secrets.hashedPassword.path;
         };
+        meatcar = {
+          isNormalUser = true;
+          hashedPasswordFile = config.age.secrets.hashedPassword.path;
+          extraGroups = ["wheel" "docker" config.mine.storageGroup];
+          openssh.authorizedKeys.keys = config.users.users.root.openssh.authorizedKeys.keys;
+        };
+        ${config.mine.storageUser} = {
+          isSystemUser = true;
+          uid = config.ids.uids.${config.mine.storageUser};
+          group = config.mine.storageGroup;
+          shell = pkgs.shadow;
+        };
+      };
       groups.${config.mine.storageGroup} = {
         gid = config.ids.gids.${config.mine.storageGroup};
       };

@@ -1,9 +1,12 @@
-{ config, pkgs, lib, ... }:
-let
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}: let
   cfg = config.services.plex;
   port = toString cfg.port;
-in
-{
+in {
   options = {
     services.plex = {
       port = lib.mkOption {
@@ -19,7 +22,7 @@ in
       "d ${config.mine.storagePath}/plex 0755 - - - -"
     ];
 
-    networking.firewall.allowedTCPPorts = [ cfg.port ];
+    networking.firewall.allowedTCPPorts = [cfg.port];
 
     virtualisation.oci-containers.containers.plex = {
       image = "plexinc/pms-docker";
