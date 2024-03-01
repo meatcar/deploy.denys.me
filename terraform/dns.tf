@@ -23,6 +23,14 @@ resource "cloudflare_record" "CNAME-www-wildcard" {
   proxied = false
 }
 
+resource "cloudflare_record" "TXT-bsky" {
+  zone_id = cloudflare_zone.main.id
+  type    = "TXT"
+  name    = "_atproto."
+  value   = "did=did:plc:t4ilp6pghizmrfhgsiw65md4"
+  proxied = false
+}
+
 ## Parked Domains
 
 data "cloudflare_zone" "parked" {
