@@ -1,6 +1,17 @@
-{ config, pkgs, ... }: {
-  boot.kernelPackages = config.boot.zfs.package.latestCompatibleLinuxPackages;
-  boot.supportedFilesystems = [ "zfs" ];
+{
+  config,
+  pkgs,
+  ...
+}: {
+  boot.zfs.removeLinuxDRM = pkgs.hostPlatform.isAarch64;
+  boot.kernelPackages =
+    (pkgs.zfs.override {
+      removeLinuxDRM = pkgs.hostPlatform.isAarch64;
+    })
+    .latestCompatibleLinuxPackages;
+
+  boot.supportedFilesystems = ["zfs"];
+
   services.zfs.autoScrub.enable = true;
   services.zfs.trim.enable = true;
 
@@ -15,7 +26,7 @@
     enableMail = true;
     settings = {
       ZED_DEBUG_LOG = "/tmp/zed.debug.log";
-      ZED_EMAIL_ADDR = [ "root" ];
+      ZED_EMAIL_ADDR = ["root"];
       ZED_EMAIL_PROG = "${pkgs.msmtp}/bin/msmtp";
       ZED_EMAIL_OPTS = "-f 'zed.${config.networking.hostName}@${config.networking.domain}' @ADDRESS@";
 
