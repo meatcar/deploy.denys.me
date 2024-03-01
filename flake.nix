@@ -24,83 +24,83 @@
     transit-dashboard.url = "git+ssh://git@github.com/meatcar/transit-dashboard";
   };
 
-  outputs = { self, ... }@inputs:
-    let
-      nixpkgsConfig = { config = { allowUnfree = true; }; };
-      specialArgs = { inherit inputs; };
-    in
+  outputs = {self, ...} @ inputs: let
+    nixpkgsConfig = {config = {allowUnfree = true;};};
+    specialArgs = {inherit inputs;};
+  in
     inputs.flake-utils.lib.eachDefaultSystem
-      (system:
-        let
-          pkgs = import inputs.nixpkgs (nixpkgsConfig // { inherit system; });
-          scripts = [
-            (pkgs.writeShellScriptBin "deploy" ''
-              FLAKE="$1"; shift 1
-              REMOTE_HOST=
-              REMOTE_OPTS= # opts to pass to nixos-rebuild
-              BUILD_HOST=
-              case "$FLAKE" in
-                chunkymonkey)
-                  REMOTE_HOST=chunkymonkey.fish-hydra.ts.net
-                  BUILD_HOST="$REMOTE_HOST"
-                  ;;
-                vps)
-                  REMOTE_HOST=$(cd terraform && ${pkgs.terraform}/bin/terraform output --raw ip)
-                  BUILD_HOST="$REMOTE_HOST"
-                  ;;
-                cube)
-                  REMOTE_HOST=cube.fish-hydra.ts.net
-                  REMOTE_OPTS=--impure
-                  BUILD_HOST="$REMOTE_HOST"
-                  ;;
-                *)
-                  echo no such remote host "$FLAKE" >&2
-                  exit 1
-              esac
+    (system: let
+      pkgs = import inputs.nixpkgs (nixpkgsConfig // {inherit system;});
+      scripts = [
+        (pkgs.writeShellScriptBin "deploy" ''
+          FLAKE="$1"; shift 1
+          REMOTE_HOST=
+          REMOTE_OPTS= # opts to pass to nixos-rebuild
+          BUILD_HOST=
+          case "$FLAKE" in
+            chunkymonkey)
+              REMOTE_HOST=chunkymonkey.fish-hydra.ts.net
+              BUILD_HOST="$REMOTE_HOST"
+              ;;
+            vps)
+              REMOTE_HOST=$(cd terraform && ${pkgs.terraform}/bin/terraform output --raw ip)
+              BUILD_HOST="$REMOTE_HOST"
+              ;;
+            cube)
+              REMOTE_HOST=cube.fish-hydra.ts.net
+              REMOTE_OPTS=--impure
+              BUILD_HOST="$REMOTE_HOST"
+              ;;
+            *)
+              echo no such remote host "$FLAKE" >&2
+              exit 1
+          esac
 
-              if ! ssh -o ConnectTimeout=5 "$REMOTE_HOST" exit; then
-                echo "$0: no connection to $REMOTE_HOST" >&2
-                exit 1
-              fi
+          if ! ssh -o ConnectTimeout=5 "$REMOTE_HOST" exit; then
+            echo "$0: no connection to $REMOTE_HOST" >&2
+            exit 1
+          fi
 
-              cmd=$(echo nixos-rebuild "$@" \
-                --flake .#"$FLAKE" \
-                --target-host "$REMOTE_HOST" \
-                --build-host "$BUILD_HOST" \
-                --use-remote-sudo \
-                --use-substitutes $REMOTE_OPTS)
-              echo "$cmd"
-              $cmd
-            '')
-          ];
-        in
-        {
-          devShells.default = pkgs.mkShell rec {
-            name = "deploy.denys.me";
-            BASE_NIX_VERSION = self.nixosConfigurations.doImage.config.system.stateVersion;
-            buildInputs = scripts ++ (with pkgs; [
-              inputs.agenix.packages.${system}.default
+          cmd=$(echo nixos-rebuild "$@" \
+            --flake .#"$FLAKE" \
+            --target-host "$REMOTE_HOST" \
+            --build-host "$BUILD_HOST" \
+            --use-remote-sudo \
+            --use-substitutes $REMOTE_OPTS)
+          echo "$cmd"
+          $cmd
+        '')
+      ];
+    in {
+      devShells.default = pkgs.mkShell rec {
+        name = "deploy.denys.me";
+        BASE_NIX_VERSION = self.nixosConfigurations.doImage.config.system.stateVersion;
+        buildInputs =
+          scripts
+          ++ (with pkgs; [
+            inputs.agenix.packages.${system}.default
 
-              (terraform.withPlugins (p: [
-                p.local
-                p.external
-                p.null
-                p.random
-                p.aws
-                p.digitalocean
-                p.cloudflare
-              ]))
-              awscli
-              wireguard-tools
-              jq
-              flyctl
-              oci-cli
+            (terraform.withPlugins (p: [
+              p.local
+              p.external
+              p.null
+              p.random
+              p.aws
+              p.digitalocean
+              p.cloudflare
+            ]))
+            awscli
+            wireguard-tools
+            jq
+            flyctl
+            oci-cli
 
-              packer
-              nixos-generators
-            ]);
-          };
-        }) // {
+            packer
+            nixos-generators
+          ]);
+      };
+    })
+    // {
       nixosConfigurations = {
         doImage = inputs.nixpkgs.lib.nixosSystem {
           inherit specialArgs;
@@ -160,8 +160,7 @@
         };
         cube = inputs.nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
-          specialArgs =
-            { inherit inputs; };
+          specialArgs = {inherit inputs;};
           modules = [
             {
               system.stateVersion = "23.11";

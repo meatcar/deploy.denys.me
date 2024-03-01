@@ -1,9 +1,13 @@
-{ config, lib, ... }:
-let cfg = config.age; in
 {
+  config,
+  lib,
+  ...
+}: let
+  cfg = config.age;
+in {
   options.age.secrets = lib.mkOption {
     type = with lib.types;
-      attrsOf (submodule ({ config, ... }: {
+      attrsOf (submodule ({config, ...}: {
         options = {
           action = lib.mkOption {
             type = nullOr string;
@@ -20,19 +24,24 @@ let cfg = config.age; in
         };
 
         config = {
-          action = lib.mkIf (config.service != null)
+          action =
+            lib.mkIf (config.service != null)
             (lib.mkOverride 980 "systemctl restart ${config.service}.service");
         };
       }));
   };
 
   config = {
-    systemd = lib.mkMerge
+    systemd =
+      lib.mkMerge
       (lib.mapAttrsToList
-        (name: { action, path, ... }: {
-
+        (name: {
+          action,
+          path,
+          ...
+        }: {
           paths."${name}-watcher" = {
-            wantedBy = [ "multi-user.target" ];
+            wantedBy = ["multi-user.target"];
             pathConfig = {
               PathModified = path;
             };
@@ -44,7 +53,6 @@ let cfg = config.age; in
               ExecStart = action;
             };
           };
-
         })
         cfg.secrets);
     age.secrets = {
@@ -63,12 +71,9 @@ let cfg = config.age; in
         owner = config.mine.storageUser;
         group = config.mine.storageGroup;
       };
-      postgresPass = {
-        file = ./postgres-pass.age;
-      };
-      nextcloudPgPass = {
-        file = ./nextcloudPgPass.age;
-      };
+      postgresPass.file = ./postgres-pass.age;
+      nextcloudPgPass.file = ./nextcloudPgPass.age;
+      freshrssPgPass.file = ./freshrssPgPass.age;
       transitDashboardEnv.file = ./transitDashboardEnv.age;
     };
   };
