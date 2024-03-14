@@ -1,5 +1,10 @@
-{ config, modulesPath, pkgs, lib, ... }:
 {
+  config,
+  modulesPath,
+  pkgs,
+  lib,
+  ...
+}: {
   imports = [
     ./secrets.nix # provided by terraform
     ./agenix.nix
@@ -29,7 +34,7 @@
             RealName = "Denys Pavlov";
           };
           networks = {
-            freenode = { extraConfig = { Server = "chat.freenode.net +7000"; }; };
+            freenode = {extraConfig = {Server = "chat.freenode.net +7000";};};
           };
         };
       };
@@ -47,7 +52,7 @@
 
   users.users."${config.mine.username}" = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "docker" "nginx" ];
+    extraGroups = ["wheel" "docker" "nginx"];
     hashedPasswordFile = config.age.secrets.hashedPassword.path;
     openssh.authorizedKeys.keys = config.users.users.root.openssh.authorizedKeys.keys;
   };

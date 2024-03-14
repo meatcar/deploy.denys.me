@@ -1,9 +1,12 @@
-{ config, pkgs, lib, ... }:
-let
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}: let
   cfg = config.services.bazarr;
   port = toString cfg.port;
-in
-{
+in {
   options = {
     services.bazarr = {
       port = lib.mkOption {
@@ -21,13 +24,13 @@ in
 
     virtualisation.oci-containers.containers.bazarr = {
       image = "ghcr.io/linuxserver/bazarr";
-      ports = [ "${port}:6767" ];
+      ports = ["${port}:6767"];
       volumes = [
         "${config.mine.persistPath}/bazarr:/config"
         "/data/Multimedia/Videos/Movies:/movies"
         "/data/Multimedia/Videos/TV Shows:/tv"
       ];
-      extraOptions = [ "--network=host" ];
+      extraOptions = ["--network=host"];
       environment = {
         PUID = toString config.ids.uids.${config.mine.storageUser};
         PGID = toString config.ids.gids.${config.mine.storageGroup};

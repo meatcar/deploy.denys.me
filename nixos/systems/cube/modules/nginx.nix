@@ -1,5 +1,8 @@
-{ config, pkgs, ... }:
-let
+{
+  config,
+  pkgs,
+  ...
+}: let
   wwwDir = pkgs.writeTextDir "index.html" ''
     <!DOCTYPE html>
     <html lang="en-US">
@@ -69,9 +72,8 @@ let
       </body>
     </html>
   '';
-in
-{
-  imports = [ ../../../modules/nginx.nix ];
+in {
+  imports = [../../../modules/nginx.nix];
   services.nginx.virtualHosts."${config.networking.fqdn}" = {
     enableACME = true;
     forceSSL = true;

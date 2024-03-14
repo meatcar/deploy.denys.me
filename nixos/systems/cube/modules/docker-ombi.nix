@@ -1,14 +1,17 @@
-{ config, pkgs, lib, ... }:
-let
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}: let
   cfg = config.services.ombi;
   port = toString cfg.port;
-in
-{
+in {
   config = {
     services.ombi.port = 3579;
     virtualisation.oci-containers.containers.ombi = {
       image = "ghcr.io/linuxserver/ombi";
-      ports = [ "${port}:3579" ];
+      ports = ["${port}:3579"];
       volumes = [
         "${config.mine.persistPath}/ombi:/config"
       ];
@@ -16,7 +19,7 @@ in
         PUID = toString config.ids.uids.${config.mine.storageUser};
         PGID = toString config.ids.gids.${config.mine.storageGroup};
       };
-      extraOptions = [ "--network=host" ];
+      extraOptions = ["--network=host"];
     };
 
     services.nginx.virtualHosts."ombi.${config.networking.fqdn}" = {

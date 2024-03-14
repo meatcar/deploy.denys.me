@@ -1,8 +1,11 @@
-{ config, pkgs, lib, ... }:
-let
-  cfg = config.mine.nodered;
-in
 {
+  config,
+  pkgs,
+  lib,
+  ...
+}: let
+  cfg = config.mine.nodered;
+in {
   options.mine.nodered = with lib; {
     enable = mkEnableOption "Node-RED config";
 
@@ -26,28 +29,26 @@ in
 
     systemd.services.init-docker-network-nodered = {
       description = "Create the docker network nodered for nodered.";
-      after = [ "network.target" ];
-      wantedBy = [ "multi-user.target" ];
+      after = ["network.target"];
+      wantedBy = ["multi-user.target"];
 
       serviceConfig.Type = "oneshot";
-      script =
-        let
-          docker = "${config.virtualisation.docker.package}/bin/docker";
-          network = "nodered";
-        in
-        ''
-          check=$(${docker} network ls | grep "${network}" || true)
-          if [ -z "$check" ]; then
-            ${docker} network create "${network}"
-          else
-            echo "docker network '${network}' already exists"
-          fi
-        '';
+      script = let
+        docker = "${config.virtualisation.docker.package}/bin/docker";
+        network = "nodered";
+      in ''
+        check=$(${docker} network ls | grep "${network}" || true)
+        if [ -z "$check" ]; then
+          ${docker} network create "${network}"
+        else
+          echo "docker network '${network}' already exists"
+        fi
+      '';
     };
 
     virtualisation.oci-containers.containers.nodered = {
       image = "nodered/node-red";
-      ports = [ "1880:${toString cfg.port}" ];
+      ports = ["1880:${toString cfg.port}"];
       volumes = [
         "/persist/nodered:/data"
         "/var/run/docker.sock:/var/run/docker.sock"
