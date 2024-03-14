@@ -1,5 +1,9 @@
-{ config, pkgs, inputs, ... }:
 {
+  config,
+  pkgs,
+  inputs,
+  ...
+}: {
   services.samba = {
     enable = true;
     extraConfig = ''
@@ -21,26 +25,24 @@
     };
   };
 
-  systemd.services.samba-wsdd =
-    let
-      wsdd = inputs.wsdd;
-    in
-    {
-      enable = true;
-      description = "Web Service Discovery Daemon";
-      documentation = [ "https://github.com/christgau/wsdd" ];
-      after = [
-        "network-online.target"
-        "samba-smbd.service"
-      ];
-      wantedBy = [ "multi-user.target" ];
-      serviceConfig = {
-        ExecStart = "${pkgs.python3}/bin/python3 ${wsdd}/src/wsdd.py --shortlog";
-        User = config.mine.storageUser;
-        Group = config.mine.storageGroup;
-      };
+  systemd.services.samba-wsdd = let
+    wsdd = inputs.wsdd;
+  in {
+    enable = true;
+    description = "Web Service Discovery Daemon";
+    documentation = ["https://github.com/christgau/wsdd"];
+    after = [
+      "network-online.target"
+      "samba-smbd.service"
+    ];
+    wantedBy = ["multi-user.target"];
+    serviceConfig = {
+      ExecStart = "${pkgs.python3}/bin/python3 ${wsdd}/src/wsdd.py --shortlog";
+      User = config.mine.storageUser;
+      Group = config.mine.storageGroup;
     };
+  };
 
-  networking.firewall.allowedTCPPorts = [ 445 139 ] ++ [ 3702 5357 ];
-  networking.firewall.allowedUDPPorts = [ 137 138 ];
+  networking.firewall.allowedTCPPorts = [445 139] ++ [3702 5357];
+  networking.firewall.allowedUDPPorts = [137 138];
 }

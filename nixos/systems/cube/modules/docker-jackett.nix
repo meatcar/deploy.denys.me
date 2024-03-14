@@ -1,8 +1,11 @@
-{ config, pkgs, lib, ... }:
-let
-  cfg = config.services.jackett;
-in
 {
+  config,
+  pkgs,
+  lib,
+  ...
+}: let
+  cfg = config.services.jackett;
+in {
   options = {
     services.jackett = {
       port = lib.mkOption {
@@ -16,7 +19,7 @@ in
   config = {
     virtualisation.oci-containers.containers.jackett = {
       image = "ghcr.io/linuxserver/jackett";
-      dependsOn = [ "wireguard" ];
+      dependsOn = ["wireguard"];
       volumes = [
         "${config.mine.persistPath}/jackett:/config"
       ];

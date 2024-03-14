@@ -1,9 +1,12 @@
-{ config, pkgs, lib, ... }:
-let
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}: let
   cfg = config.services.scrutiny;
   port = toString cfg.port;
-in
-{
+in {
   options = {
     services.scrutiny = {
       port = lib.mkOption {
@@ -17,7 +20,7 @@ in
   config = {
     virtualisation.oci-containers.containers.scrutiny = {
       image = "ghcr.io/analogj/scrutiny:master-omnibus";
-      ports = [ "${port}:8080" ];
+      ports = ["${port}:8080"];
       volumes = [
         "${config.mine.persistPath}/scrutiny/config:/opt/scrutiny/config"
         "${config.mine.persistPath}/scrutiny/influxdb2:/opt/scrutiny/influxdb"

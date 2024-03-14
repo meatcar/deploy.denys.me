@@ -1,16 +1,20 @@
-{ config, pkgs, lib, ... }:
-let
-  sshKeys = lib.pipe
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}: let
+  sshKeys =
+    lib.pipe
     {
       url = "https://github.com/${config.mine.githubKeyUser}.keys";
       sha256 = "sha256:04wcfmyzdmd10706j4274f0jh1bghzjh1lxaj9k7acsh6pnh2yyq";
     } [
-    builtins.fetchurl
-    builtins.readFile
-    (lib.splitString "\n")
-  ];
-in
-{
+      builtins.fetchurl
+      builtins.readFile
+      (lib.splitString "\n")
+    ];
+in {
   options.mine = {
     githubKeyUser = lib.mkOption {
       type = lib.types.str;
@@ -57,8 +61,6 @@ in
       root.openssh.authorizedKeys.keys = sshKeys;
     };
 
-    environment.systemPackages =
-      with pkgs; [ byobu tmux direnv neovim git htop curl wget ];
     ids.uids.${config.mine.storageUser} = 997;
     ids.gids.${config.mine.storageUser} = 998;
     users.groups.${config.mine.storageGroup} = {
@@ -71,12 +73,13 @@ in
       shell = pkgs.shadow;
     };
 
-    nix = {
+    environment.systemPackages = with pkgs; [byobu tmux direnv neovim git htop curl wget];
 
+    nix = {
       settings = {
-        experimental-features = [ "nix-command" "flakes" ];
+        experimental-features = ["nix-command" "flakes"];
         auto-optimise-store = true;
-        trusted-users = [ "root" "@wheel" ];
+        trusted-users = ["root" "@wheel"];
       };
 
       optimise.automatic = true;
@@ -90,7 +93,7 @@ in
     system.autoUpgrade = {
       enable = false;
       flake = "github:meatcar/deploy.denys.me#default";
-      flags = [ "--update-input" "nixpkgs" ];
+      flags = ["--update-input" "nixpkgs"];
     };
 
     services.earlyoom.enable = true;

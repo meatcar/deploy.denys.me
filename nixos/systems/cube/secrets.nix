@@ -1,8 +1,6 @@
-{ config, ... }:
-let
+{config, ...}: let
   inherit (builtins) getEnv;
-in
-{
+in {
   config.mine = {
     smtp.user = getEnv "SMTP_USER";
     smtp.host = getEnv "SMTP_HOST";

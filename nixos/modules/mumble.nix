@@ -1,4 +1,8 @@
-{ config, pkgs, ... }: {
+{
+  config,
+  pkgs,
+  ...
+}: {
   systemd.tmpfiles.rules = [
     "d /persist/murmur 0700 murmur nogroup -"
     "L /var/lib/murmur - - - - /persist/murmur"
@@ -13,8 +17,8 @@
       <br />Please let your friends know :)
     '';
   };
-  networking.firewall.allowedTCPPorts = [ 64738 ];
-  networking.firewall.allowedUDPPorts = [ 64738 ];
+  networking.firewall.allowedTCPPorts = [64738];
+  networking.firewall.allowedUDPPorts = [64738];
 
   virtualisation.oci-containers.containers.mumbledj = {
     image = "reikion/mumbledj";

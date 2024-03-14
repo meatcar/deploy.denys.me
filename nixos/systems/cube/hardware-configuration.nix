@@ -1,14 +1,19 @@
-{ config, lib, inputs, pkgs, ... }: {
-  imports =
-    [
-      "${inputs.nixpkgs}/nixos/modules/installer/scan/not-detected.nix"
-    ];
+{
+  config,
+  lib,
+  inputs,
+  pkgs,
+  ...
+}: {
+  imports = [
+    "${inputs.nixpkgs}/nixos/modules/installer/scan/not-detected.nix"
+  ];
 
   hardware.cpu.intel.updateMicrocode = true;
 
   boot = {
-    kernelModules = [ "kvm-intel" ];
-    extraModulePackages = [ ];
+    kernelModules = ["kvm-intel"];
+    extraModulePackages = [];
     initrd = {
       availableKernelModules = [
         "ehci_pci"
@@ -20,35 +25,33 @@
         "aesni_intel"
         "cryptd"
       ];
-      kernelModules = [ ];
-      supportedFilesystems = [ "btrfs" ];
+      kernelModules = [];
+      supportedFilesystems = ["btrfs"];
       luks = {
         reusePassphrases = true;
-        devices =
-          let
-            defaults = {
-              fallbackToPassword = true;
-              keyFile = "/dev/disk/by-id/usb-SanDisk_Ultra_Fit_4C530000070430202130-0:0";
-              keyFileSize = 8192;
+        devices = let
+          defaults = {
+            fallbackToPassword = true;
+            keyFile = "/dev/disk/by-id/usb-SanDisk_Ultra_Fit_4C530000070430202130-0:0";
+            keyFileSize = 8192;
+          };
+          devices = {
+            "king120ga" = {
+              device = "/dev/disk/by-id/ata-KINGSTON_SA400S37120G_50026B7782881240-part2";
+              allowDiscards = true;
             };
-            devices = {
-              "king120ga" = {
-                device = "/dev/disk/by-id/ata-KINGSTON_SA400S37120G_50026B7782881240-part2";
-                allowDiscards = true;
-              };
-              "king120gb" = {
-                device = "/dev/disk/by-id/ata-KINGSTON_SA400S37120G_50026B778284DC58-part2";
-                allowDiscards = true;
-              };
-              "zdev1" = { device = "/dev/disk/by-id/ata-ST4000VN008-2DR166_ZDHBBJW4"; };
-              "zdev2" = { device = "/dev/disk/by-id/ata-ST4000VN008-2DR166_ZDHBDGH8"; };
-              "zdev3" = { device = "/dev/disk/by-id/ata-WDC_WD20EZRX-00D8PB0_WD-WCC4M2FCXZSZ"; };
-              "zdev4" = { device = "/dev/disk/by-id/ata-WDC_WD20EZRX-00D8PB0_WD-WCC4N2RF5DJT"; };
+            "king120gb" = {
+              device = "/dev/disk/by-id/ata-KINGSTON_SA400S37120G_50026B778284DC58-part2";
+              allowDiscards = true;
             };
-          in
+            "zdev1" = {device = "/dev/disk/by-id/ata-ST4000VN008-2DR166_ZDHBBJW4";};
+            "zdev2" = {device = "/dev/disk/by-id/ata-ST4000VN008-2DR166_ZDHBDGH8";};
+            "zdev3" = {device = "/dev/disk/by-id/ata-WDC_WD20EZRX-00D8PB0_WD-WCC4M2FCXZSZ";};
+            "zdev4" = {device = "/dev/disk/by-id/ata-WDC_WD20EZRX-00D8PB0_WD-WCC4N2RF5DJT";};
+          };
+        in
           lib.mapAttrs (name: opts: defaults // opts) devices;
       };
-
     };
   };
 
@@ -56,31 +59,31 @@
     "/" = {
       device = "/dev/mapper/king120ga";
       fsType = "btrfs";
-      options = [ "subvol=@root" "ssd" "compress=zstd" ];
+      options = ["subvol=@root" "ssd" "compress=zstd"];
     };
 
     "/.snapshots" = {
       device = "/dev/mapper/king120ga";
       fsType = "btrfs";
-      options = [ "subvol=@snapshots" "ssd" "compress=zstd" ];
+      options = ["subvol=@snapshots" "ssd" "compress=zstd"];
     };
 
     "/nix" = {
       device = "/dev/mapper/king120ga";
       fsType = "btrfs";
-      options = [ "subvol=@nix" "ssd" "compress=zstd" ];
+      options = ["subvol=@nix" "ssd" "compress=zstd"];
     };
 
     "/home" = {
       device = "/dev/mapper/king120ga";
       fsType = "btrfs";
-      options = [ "subvol=@home" "ssd" "compress=zstd" ];
+      options = ["subvol=@home" "ssd" "compress=zstd"];
     };
 
     "${config.mine.persistPath}" = {
       device = "/dev/mapper/king120ga";
       fsType = "btrfs";
-      options = [ "subvol=@persist" "ssd" "compress=zstd" ];
+      options = ["subvol=@persist" "ssd" "compress=zstd"];
     };
 
     "/boot" = {
@@ -106,45 +109,44 @@
     };
   };
 
-  swapDevices = [ ];
+  swapDevices = [];
 
   services = {
     fstrim.enable = true;
     btrfs.autoScrub = {
       enable = true;
-      fileSystems = [ "/" "${config.mine.storagePath}" ];
+      fileSystems = ["/" "${config.mine.storagePath}"];
     };
     smartd = {
       devices = [
-        { device = "/dev/disk/by-id/ata-KINGSTON_SA400S37120G_50026B778284DC58"; }
-        { device = "/dev/disk/by-id/ata-KINGSTON_SA400S37120G_50026B7782881240"; }
-        { device = "/dev/disk/by-id/ata-WDC_WD20EZRX-00D8PB0_WD-WCC4M2FCXZSZ"; }
-        { device = "/dev/disk/by-id/ata-WDC_WD20EZRX-00D8PB0_WD-WCC4N2RF5DJT"; }
-        { device = "/dev/disk/by-id/ata-ST4000VN008-2DR166_ZDHBDGH8"; }
-        { device = "/dev/disk/by-id/ata-ST4000VN008-2DR166_ZDHBBJW4"; }
+        {device = "/dev/disk/by-id/ata-KINGSTON_SA400S37120G_50026B778284DC58";}
+        {device = "/dev/disk/by-id/ata-KINGSTON_SA400S37120G_50026B7782881240";}
+        {device = "/dev/disk/by-id/ata-WDC_WD20EZRX-00D8PB0_WD-WCC4M2FCXZSZ";}
+        {device = "/dev/disk/by-id/ata-WDC_WD20EZRX-00D8PB0_WD-WCC4N2RF5DJT";}
+        {device = "/dev/disk/by-id/ata-ST4000VN008-2DR166_ZDHBDGH8";}
+        {device = "/dev/disk/by-id/ata-ST4000VN008-2DR166_ZDHBBJW4";}
       ];
     };
   };
 
   # enable standby for all rotating drives
-  systemd.services.hd-idle =
-    let
-      hds = [
-        "/dev/disk/by-id/ata-WDC_WD20EZRX-00D8PB0_WD-WCC4M2FCXZSZ"
-        "/dev/disk/by-id/ata-WDC_WD20EZRX-00D8PB0_WD-WCC4N2RF5DJT"
-        "/dev/disk/by-id/ata-ST4000VN008-2DR166_ZDHBDGH8"
-        "/dev/disk/by-id/ata-ST4000VN008-2DR166_ZDHBBJW4"
-      ];
-    in
-    {
-      description = "External HD spin down daemon";
-      wantedBy = [ "multi-user.target" ];
-      serviceConfig = {
-        # Type = "forking";
-        ExecStart = "${pkgs.hd-idle}/bin/hd-idle -d -c ata -p 3 -i 0 "
-          + (lib.concatMapStringsSep " " (hd: "-a ${hd} -i 600") hds);
-      };
+  systemd.services.hd-idle = let
+    hds = [
+      "/dev/disk/by-id/ata-WDC_WD20EZRX-00D8PB0_WD-WCC4M2FCXZSZ"
+      "/dev/disk/by-id/ata-WDC_WD20EZRX-00D8PB0_WD-WCC4N2RF5DJT"
+      "/dev/disk/by-id/ata-ST4000VN008-2DR166_ZDHBDGH8"
+      "/dev/disk/by-id/ata-ST4000VN008-2DR166_ZDHBBJW4"
+    ];
+  in {
+    description = "External HD spin down daemon";
+    wantedBy = ["multi-user.target"];
+    serviceConfig = {
+      # Type = "forking";
+      ExecStart =
+        "${pkgs.hd-idle}/bin/hd-idle -d -c ata -p 3 -i 0 "
+        + (lib.concatMapStringsSep " " (hd: "-a ${hd} -i 600") hds);
     };
+  };
 
   nix.settings.max-jobs = lib.mkDefault 4;
 }

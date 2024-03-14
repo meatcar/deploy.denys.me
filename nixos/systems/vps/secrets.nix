@@ -1,8 +1,6 @@
-{ ... }:
-let
+{...}: let
   inherit (builtins) getEnv;
-in
-{
+in {
   mine = {
     znc.users.meatcar = {
       password = getEnv "TF_VAR_nix_znc_password";

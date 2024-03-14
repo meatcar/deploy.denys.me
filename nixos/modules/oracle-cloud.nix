@@ -1,5 +1,9 @@
-{ config, pkgs, lib, ... }:
 {
+  config,
+  pkgs,
+  lib,
+  ...
+}: {
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelParams = [
@@ -21,6 +25,6 @@
     "console=ttyAMA0,115200"
   ];
 
-  networking.timeServers = [ "169.254.169.254" ];
+  networking.timeServers = ["169.254.169.254"];
   networking.useNetworkd = true;
 }

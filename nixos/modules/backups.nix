@@ -1,11 +1,10 @@
-{ config, ... }:
-{
+{config, ...}: {
   services.restic.backups.persist = {
     # repository set in secrets.nix
     passwordFile = config.age.secrets.restic-password.path;
     environmentFile = config.age.secrets.restic-env.path;
     repositoryFile = config.age.secrets.restic-repo.path;
-    paths = [ "/persist" ];
+    paths = ["/persist"];
     pruneOpts = [
       "--keep-daily 7"
       "--keep-weekly 5"

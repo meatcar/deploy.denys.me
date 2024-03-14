@@ -1,8 +1,11 @@
-{ config, pkgs, lib, ... }:
-let
-  cfg = config.services.docker-transmission;
-in
 {
+  config,
+  pkgs,
+  lib,
+  ...
+}: let
+  cfg = config.services.docker-transmission;
+in {
   options = {
     services.docker-transmission.port = lib.mkOption {
       type = lib.types.int;
@@ -17,7 +20,7 @@ in
     ];
     virtualisation.oci-containers.containers.transmission = {
       image = "ghcr.io/linuxserver/transmission";
-      dependsOn = [ "wireguard" ];
+      dependsOn = ["wireguard"];
       volumes = [
         "${config.mine.persistPath}/transmission:/config"
         "${config.mine.storagePath}/System/transmission:${config.mine.storagePath}/System/transmission"

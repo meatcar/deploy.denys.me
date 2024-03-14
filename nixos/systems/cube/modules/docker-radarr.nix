@@ -1,9 +1,12 @@
-{ config, pkgs, lib, ... }:
-let
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}: let
   cfg = config.services.radarr;
   port = toString cfg.port;
-in
-{
+in {
   options = {
     services.radarr = {
       port = lib.mkOption {
@@ -21,12 +24,12 @@ in
 
     virtualisation.oci-containers.containers.radarr = {
       image = "lscr.io/linuxserver/radarr";
-      ports = [ "${port}:7878" ];
+      ports = ["${port}:7878"];
       volumes = [
         "${config.mine.persistPath}/radarr:/config"
         "/data:/data"
       ];
-      extraOptions = [ "--network=host" ];
+      extraOptions = ["--network=host"];
       environment = {
         PUID = toString config.ids.uids.${config.mine.storageUser};
         PGID = toString config.ids.gids.${config.mine.storageGroup};

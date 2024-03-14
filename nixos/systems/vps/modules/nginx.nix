@@ -1,8 +1,12 @@
-{ config, lib, pkgs, specialArgs, ... }:
-let
-  domain = config.networking.domain;
-in
 {
+  config,
+  lib,
+  pkgs,
+  specialArgs,
+  ...
+}: let
+  domain = config.networking.domain;
+in {
   imports = [
     ../../../modules/nginx.nix
     ../../../modules/nginx-sni-proxy.nix
@@ -11,8 +15,8 @@ in
   mine.nginx-sni-proxy = {
     enable = true;
     proxies = {
-      "cube.${domain}" = { host = "10.100.0.4"; };
-      "huddle.win" = { host = "10.100.0.4"; };
+      "cube.${domain}" = {host = "10.100.0.4";};
+      "huddle.win" = {host = "10.100.0.4";};
     };
   };
 

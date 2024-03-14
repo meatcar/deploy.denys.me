@@ -1,6 +1,9 @@
-{ config, lib, pkgs, ... }:
-
 {
+  config,
+  lib,
+  pkgs,
+  ...
+}: {
   security.acme = {
     acceptTerms = true;
     defaults.email = "acme.${config.networking.domain}@denys.me";
