@@ -5,6 +5,7 @@
 }: {
   imports = [
     ./secrets.nix
+    ./agenix.nix
     ./hardware-configuration.nix
     ../../modules/base.nix
     ../../modules/zfs.nix
