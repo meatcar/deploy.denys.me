@@ -3,13 +3,6 @@
   pkgs,
   ...
 }: {
-  boot.zfs.removeLinuxDRM = pkgs.hostPlatform.isAarch64;
-  boot.kernelPackages =
-    (pkgs.zfs.override {
-      removeLinuxDRM = pkgs.hostPlatform.isAarch64;
-    })
-    .latestCompatibleLinuxPackages;
-
   boot.supportedFilesystems = ["zfs"];
 
   services.zfs.autoScrub.enable = true;
