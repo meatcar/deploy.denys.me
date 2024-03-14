@@ -59,6 +59,17 @@ in
 
     environment.systemPackages =
       with pkgs; [ byobu tmux direnv neovim git htop curl wget ];
+    ids.uids.${config.mine.storageUser} = 997;
+    ids.gids.${config.mine.storageUser} = 998;
+    users.groups.${config.mine.storageGroup} = {
+      gid = config.ids.gids.${config.mine.storageGroup};
+    };
+    users.users.${config.mine.storageUser} = {
+      isSystemUser = true;
+      uid = config.ids.uids.${config.mine.storageUser};
+      group = config.mine.storageGroup;
+      shell = pkgs.shadow;
+    };
 
     nix = {
 
