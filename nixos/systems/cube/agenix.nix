@@ -57,24 +57,24 @@ in {
         cfg.secrets);
     age.secrets = {
       ssmtpPass = {
-        file = ./ssmtp-pass.age;
+        file = ../../../secrets/ssmtp-pass.age;
         mode = "0444";
       };
-      transmissionUser.file = ./transmission-user.age;
-      transmissionPass.file = ./transmission-pass.age;
-      hashedPassword.file = ./hashed-password.age;
-      cloudflareKey.file = ./cloudflare-key.age;
-      wgPrivateKey.file = ./wg-private-key.age;
-      redisConf.file = ./redis-conf.age;
+      transmissionUser.file = ../../../transmission-user.age;
+      transmissionPass.file = ../../../transmission-pass.age;
+      hashedPassword.file = ../../../hashed-password.age;
+      cloudflareKey.file = ../../../cloudflare-key.age;
+      wgPrivateKey.file = ../../../wg-cube-private-key.age;
+      redisConf.file = ../../../redis-conf.age;
       redisPass = {
-        file = ./redis-pass.age;
+        file = ../../../redis-pass.age;
         owner = config.mine.storageUser;
         group = config.mine.storageGroup;
       };
-      postgresPass.file = ./postgres-pass.age;
-      nextcloudPgPass.file = ./nextcloudPgPass.age;
-      freshrssPgPass.file = ./freshrssPgPass.age;
-      transitDashboardEnv.file = ./transitDashboardEnv.age;
+      postgresPass.file = ../../../postgres-pass.age;
+      nextcloudPgPass.file = ../../../nextcloudPgPass.age;
+      freshrssPgPass.file = ../../../freshrssPgPass.age;
+      transitDashboardEnv.file = ../../../transitDashboardEnv.age;
     };
   };
 }

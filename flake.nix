@@ -123,6 +123,7 @@
               nixpkgs = nixpkgsConfig;
               system.stateVersion = "23.11";
             }
+            inputs.agenix.nixosModules.default
             ./nixos/systems/chunkymonkey/configuration.nix
           ];
         };
@@ -135,14 +136,6 @@
               system.stateVersion = "23.11";
             }
             inputs.agenix.nixosModules.default
-            {
-              age.secrets = {
-                wg-priv-key.file = ./secrets/wg-priv-key.age;
-                restic-password.file = ./secrets/restic-password.age;
-                restic-env.file = ./secrets/restic-env.age;
-                restic-repo.file = ./secrets/restic-repo.age;
-              };
-            }
             ./nixos/systems/vps/configuration.nix
           ];
         };
@@ -167,7 +160,6 @@
               nixpkgs = nixpkgsConfig;
             }
             inputs.agenix.nixosModules.default
-            ./nixos/systems/cube/secrets/module.nix # agenix encrypted sensitive secrets
             ./nixos/systems/cube/configuration.nix
           ];
         };

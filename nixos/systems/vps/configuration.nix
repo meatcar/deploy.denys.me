@@ -2,6 +2,7 @@
 {
   imports = [
     ./secrets.nix # provided by terraform
+    ./agenix.nix
     ../../modules/base.nix
     ../../modules/digitalocean.nix
     ../../modules/docker.nix
@@ -47,8 +48,7 @@
   users.users."${config.mine.username}" = {
     isNormalUser = true;
     extraGroups = [ "wheel" "docker" "nginx" ];
-    hashedPassword =
-      "!";
+    hashedPasswordFile = config.age.secrets.hashedPassword.path;
     openssh.authorizedKeys.keys = config.users.users.root.openssh.authorizedKeys.keys;
   };
 }
