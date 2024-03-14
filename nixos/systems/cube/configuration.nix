@@ -34,7 +34,6 @@
     # ./modules/docker-redis.nix
     # ./modules/docker-nextcloud.nix
     ./modules/docker-freshrss.nix
-    ./modules/docker-transit-dashboard.nix
     ./modules/nginx.nix
   ];
 
@@ -74,8 +73,6 @@
       nameservers = ["1.1.1.1" "8.8.8.8"];
     };
 
-    ids.uids.${config.mine.storageUser} = 997;
-    ids.gids.${config.mine.storageUser} = 998;
     users = {
       mutableUsers = false;
       users = {
@@ -88,15 +85,6 @@
           extraGroups = ["wheel" "docker" config.mine.storageGroup];
           openssh.authorizedKeys.keys = config.users.users.root.openssh.authorizedKeys.keys;
         };
-        ${config.mine.storageUser} = {
-          isSystemUser = true;
-          uid = config.ids.uids.${config.mine.storageUser};
-          group = config.mine.storageGroup;
-          shell = pkgs.shadow;
-        };
-      };
-      groups.${config.mine.storageGroup} = {
-        gid = config.ids.gids.${config.mine.storageGroup};
       };
     };
   };

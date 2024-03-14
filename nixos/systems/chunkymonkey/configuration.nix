@@ -16,6 +16,7 @@
     ../../modules/tailscale.nix
     ../../modules/docker.nix
     ../../modules/zfs.nix
+    ../../modules/docker-transit-dashboard.nix
   ];
 
   mine = {
@@ -25,6 +26,7 @@
 
   networking.hostName = "chunkymonkey";
   networking.hostId = "9f0d1484";
+  networking.domain = "denys.me";
 
   # Set your time zone.
   time.timeZone = "America/Toronto";
