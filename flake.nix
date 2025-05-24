@@ -130,7 +130,7 @@
             ./nixos/modules/base.nix
             ./nixos/modules/digitalocean.nix
             {
-              system.stateVersion = "23.11";
+              system.stateVersion = "25.05";
               mine.githubKeyUser = "meatcar";
               mine.username = "meatcar";
             }
@@ -154,7 +154,7 @@
           modules = [
             {
               inherit nixpkgs;
-              system.stateVersion = "23.11";
+              system.stateVersion = "25.05";
             }
             inputs.agenix.nixosModules.default
             ./nixos/systems/vps/configuration.nix
@@ -175,25 +175,29 @@
       };
     }
     // {
-      deploy.nodes = {
-        chunkymonkey = {
-          hostname = "chunkymonkey.fish-hydra.ts.net";
-          profiles.system = {
-            sshUser = "meatcar";
-            user = "root";
-            path = inputs.deploy-rs.lib.aarch64-linux.activate.nixos self.nixosConfigurations.chunkymonkey;
-            remoteBuild = true;
+      deploy = {
+        sshUser = "meatcar";
+        user = "root";
+        remoteBuild = true;
+        fastConnection = true;
+
+        nodes = {
+          chunkymonkey = {
+            hostname = "chunkymonkey.fish-hydra.ts.net";
+            profiles.system.path = inputs.deploy-rs.lib.aarch64-linux.activate.nixos self.nixosConfigurations.chunkymonkey;
           };
-        };
-        cube = {
-          hostname = "cube.fish-hydra.ts.net";
-          profiles.system = {
-            sshUser = "meatcar";
-            user = "root";
-            path = inputs.deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.cube;
+          vps = {
+            hostname = "to.fish-hydra.ts.net";
+            profiles.system.path = inputs.deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.vps;
+            remoteBuild = false;
+          };
+          cube = {
+            hostname = "cube.fish-hydra.ts.net";
+            profiles.system.path = inputs.deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.cube;
           };
         };
       };
+      # FIXME: aarch check errors out on x86_64-linux and vice versa.
       # checks = builtins.mapAttrs (
       #   system: deployLib: deployLib.deployChecks self.deploy
       # ) inputs.deploy-rs.lib;
