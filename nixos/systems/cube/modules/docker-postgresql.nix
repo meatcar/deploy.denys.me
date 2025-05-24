@@ -4,7 +4,7 @@
   ...
 }: let
   cfg = config.services.postgresql;
-  port = toString cfg.port;
+  port = toString cfg.settings.port;
   dataDir = "${config.mine.persistPath}/postgres";
   pgversion = "14";
 in {
