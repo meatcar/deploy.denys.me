@@ -1,10 +1,8 @@
 {
   config,
-  modulesPath,
-  pkgs,
-  lib,
   ...
-}: {
+}:
+{
   imports = [
     ./secrets.nix # provided by terraform
     ./agenix.nix
@@ -17,7 +15,6 @@
     ../../modules/acme.nix
     ../../modules/mumble.nix
     ../../modules/znc.nix
-    ../../modules/nodered.nix
     ./modules/nginx.nix
   ];
 
@@ -34,12 +31,15 @@
             RealName = "Denys Pavlov";
           };
           networks = {
-            freenode = {extraConfig = {Server = "chat.freenode.net +7000";};};
+            freenode = {
+              extraConfig = {
+                Server = "chat.freenode.net +7000";
+              };
+            };
           };
         };
       };
     };
-    nodered.enable = true;
   };
 
   networking = {
@@ -52,7 +52,11 @@
 
   users.users."${config.mine.username}" = {
     isNormalUser = true;
-    extraGroups = ["wheel" "docker" "nginx"];
+    extraGroups = [
+      "wheel"
+      "docker"
+      "nginx"
+    ];
     hashedPasswordFile = config.age.secrets.hashedPassword.path;
     openssh.authorizedKeys.keys = config.users.users.root.openssh.authorizedKeys.keys;
   };
