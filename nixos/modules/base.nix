@@ -8,7 +8,7 @@
     lib.pipe
     {
       url = "https://github.com/${config.mine.githubKeyUser}.keys";
-      sha256 = "sha256:04wcfmyzdmd10706j4274f0jh1bghzjh1lxaj9k7acsh6pnh2yyq";
+      sha256 = "sha256:13sk1s6pzlpzpzjrckaqgnfrsj32qqkdfs9l6labqcbiyg68q8li";
     } [
       builtins.fetchurl
       builtins.readFile
