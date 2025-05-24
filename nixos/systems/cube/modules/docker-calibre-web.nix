@@ -3,10 +3,12 @@
   pkgs,
   lib,
   ...
-}: let
+}:
+let
   cfg = config.services.calibre-web;
   port = toString cfg.port;
-in {
+in
+{
   options = {
     services.calibre-web = {
       port = lib.mkOption {
@@ -20,7 +22,7 @@ in {
   config = {
     virtualisation.oci-containers.containers.calibre-web = {
       image = "ghcr.io/linuxserver/calibre-web";
-      ports = ["${port}:8083"];
+      ports = [ "${port}:8083" ];
       volumes = [
         "${config.mine.persistPath}/calibre-web:/config"
         "${config.mine.storagePath}/Multimedia/Books:/books"
@@ -32,7 +34,7 @@ in {
       };
     };
 
-    services.nginx.virtualHosts."calibre-web.${config.networking.fqdn}" = {
+    services.nginx.virtualHosts."books.${config.networking.fqdn}" = {
       enableACME = true;
       forceSSL = true;
       locations."/".proxyPass = "http://127.0.0.1:${port}";

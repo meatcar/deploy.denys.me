@@ -2,9 +2,10 @@
   config,
   pkgs,
   ...
-}: {
+}:
+{
   imports = [
-    ./secrets.nix
+    ./secrets.crypt.nix
     ./agenix.nix
     ./hardware-configuration.nix
     ../../modules/base.nix
@@ -27,7 +28,7 @@
     ./modules/docker-sonarr.nix
     ./modules/docker-radarr.nix
     ./modules/docker-bazarr.nix
-    # ./modules/docker-calibre-web.nix
+    ./modules/docker-calibre-web.nix
     # ./modules/docker-readarr.nix
     ./modules/docker-scrutiny.nix
     ./modules/docker-postgresql.nix
@@ -62,7 +63,10 @@
     boot.loader.efi.canTouchEfiVariables = true;
     boot.tmp.useTmpfs = true;
 
-    environment.systemPackages = with pkgs; [pciutils usbutils];
+    environment.systemPackages = with pkgs; [
+      pciutils
+      usbutils
+    ];
 
     networking = {
       useDHCP = false;
@@ -70,7 +74,10 @@
       interfaces.enp3s0 = {
         useDHCP = true;
       };
-      nameservers = ["1.1.1.1" "8.8.8.8"];
+      nameservers = [
+        "1.1.1.1"
+        "8.8.8.8"
+      ];
     };
 
     users = {
@@ -82,7 +89,11 @@
         meatcar = {
           isNormalUser = true;
           hashedPasswordFile = config.age.secrets.hashedPassword.path;
-          extraGroups = ["wheel" "docker" config.mine.storageGroup];
+          extraGroups = [
+            "wheel"
+            "docker"
+            config.mine.storageGroup
+          ];
           openssh.authorizedKeys.keys = config.users.users.root.openssh.authorizedKeys.keys;
         };
       };
