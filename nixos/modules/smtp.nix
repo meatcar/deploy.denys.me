@@ -3,9 +3,11 @@
   pkgs,
   lib,
   ...
-}: let
+}:
+let
   cfg = config.mine.smtp;
-in {
+in
+{
   options = {
     mine = {
       smtp = {
@@ -39,9 +41,9 @@ in {
         tls = true;
         tls_starttls = false;
         passwordeval = "${pkgs.coreutils}/bin/cat ${cfg.passwordFile}";
-        from = "%U.${config.networking.hostName}@${config.networking.domain}";
+        from = "%U.${config.mine.notificationEmail}";
         aliases = pkgs.writeText "msmtp-aliases" ''
-          root: root.${config.networking.hostName}@${config.networking.domain}
+          root: root.${config.mine.notificationEmail}
         '';
       };
     };

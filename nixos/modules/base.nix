@@ -3,18 +3,21 @@
   pkgs,
   lib,
   ...
-}: let
+}:
+let
   sshKeys =
     lib.pipe
-    {
-      url = "https://github.com/${config.mine.githubKeyUser}.keys";
-      sha256 = "sha256:13sk1s6pzlpzpzjrckaqgnfrsj32qqkdfs9l6labqcbiyg68q8li";
-    } [
-      builtins.fetchurl
-      builtins.readFile
-      (lib.splitString "\n")
-    ];
-in {
+      {
+        url = "https://github.com/${config.mine.githubKeyUser}.keys";
+        sha256 = "sha256:13sk1s6pzlpzpzjrckaqgnfrsj32qqkdfs9l6labqcbiyg68q8li";
+      }
+      [
+        builtins.fetchurl
+        builtins.readFile
+        (lib.splitString "\n")
+      ];
+in
+{
   options.mine = {
     githubKeyUser = lib.mkOption {
       type = lib.types.str;
@@ -27,7 +30,7 @@ in {
     notificationEmail = lib.mkOption {
       type = lib.types.str;
       description = "An email address to send system notifications to";
-      default = "root";
+      default = "${config.networking.hostName}@${config.networking.domain}";
     };
     persistPath = lib.mkOption {
       type = lib.types.path;
@@ -73,13 +76,28 @@ in {
       shell = pkgs.shadow;
     };
 
-    environment.systemPackages = with pkgs; [byobu tmux direnv neovim git htop curl wget];
+    environment.systemPackages = with pkgs; [
+      byobu
+      tmux
+      direnv
+      neovim
+      git
+      htop
+      curl
+      wget
+    ];
 
     nix = {
       settings = {
-        experimental-features = ["nix-command" "flakes"];
+        experimental-features = [
+          "nix-command"
+          "flakes"
+        ];
         auto-optimise-store = true;
-        trusted-users = ["root" "@wheel"];
+        trusted-users = [
+          "root"
+          "@wheel"
+        ];
       };
 
       optimise.automatic = true;
@@ -93,7 +111,10 @@ in {
     system.autoUpgrade = {
       enable = false;
       flake = "github:meatcar/deploy.denys.me#default";
-      flags = ["--update-input" "nixpkgs"];
+      flags = [
+        "--update-input"
+        "nixpkgs"
+      ];
     };
 
     services.earlyoom.enable = true;
