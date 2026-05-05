@@ -9,7 +9,7 @@ let
     lib.pipe
       {
         url = "https://github.com/${config.mine.githubKeyUser}.keys";
-        sha256 = "sha256:13sk1s6pzlpzpzjrckaqgnfrsj32qqkdfs9l6labqcbiyg68q8li";
+        sha256 = "sha256:0n7zcl9fzjk6lblg6gq6455lbmk9ph82dlc7j1nciimg9jd92x2h";
       }
       [
         builtins.fetchurl
