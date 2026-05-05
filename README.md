@@ -19,6 +19,20 @@ If `nix` is not available, you can try to make do with:
 
   Then manually make a snapshot of it in the Digital Ocean console.
 
+## Secrets
+
+Two files are kept out of git and stored in 1Password (Private vault) as Documents:
+
+- `secrets/secrets.crypt.nix` — agenix public key rules
+- `nixos/systems/cube/secrets.crypt.nix` — cube host config
+
+Pull them to disk after a fresh clone:
+
+```sh
+nix develop
+secrets-pull
+```
+
 ## Building a Base Image
 
 ```sh
@@ -40,6 +54,7 @@ terraform apply
 ```
 
 Now, you can run the rest of the deployment.
+
 ```sh
 cp .env.example .env
 $EDITOR .env # see variables.tf for advice on how to get certain vars
