@@ -336,6 +336,7 @@
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs",
         "transit-dashboard": "transit-dashboard",
+        "treefmt-nix": "treefmt-nix",
         "website": "website",
         "wsdd": "wsdd"
       }
@@ -439,6 +440,26 @@
         "url": "ssh://git@github.com/meatcar/transit-dashboard"
       }
     },
+    "treefmt-nix": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1775636079,
+        "narHash": "sha256-pc20NRoMdiar8oPQceQT47UUZMBTiMdUuWrYu2obUP0=",
+        "owner": "numtide",
+        "repo": "treefmt-nix",
+        "rev": "790751ff7fd3801feeaf96d7dc416a8d581265ba",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "treefmt-nix",
+        "type": "github"
+      }
+    },
     "utils": {
       "inputs": {
         "systems": "systems_2"
@@ -460,11 +481,11 @@
     "website": {
       "flake": false,
       "locked": {
-        "lastModified": 1778012867,
-        "narHash": "sha256-M+CC+NR9a42RQszf4r8sd3oFHeS2Rm2kLo7iU5Wo5nc=",
+        "lastModified": 1779901452,
+        "narHash": "sha256-UkByltY8VCCSmrASCTtc7v/tLKZWOUy6NY6WVqzGnsg=",
         "owner": "meatcar",
         "repo": "denys.me",
-        "rev": "7a0adb7ed04d6a3a76805f407cbae3ead92ee4a6",
+        "rev": "2a89ec3a8591f0d54e84f1109819366b63843867",
         "type": "github"
       },
       "original": {

@@ -16,6 +16,10 @@
       url = "github:serokell/deploy-rs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     wsdd = {
       url = "github:christgau/wsdd";
@@ -44,13 +48,19 @@
       system:
       let
         pkgs = import inputs.nixpkgs (nixpkgs // { inherit system; });
+        treefmtEval = inputs.treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
+        # crates.io/api/v1 returns 403; patch importCargoLock to use static CDN
+        importCargoLock = import "${inputs.nixpkgs}/pkgs/build-support/rust/import-cargo-lock.nix" {
+          inherit (pkgs) fetchgit lib writers python3Packages runCommand cargo jq;
+          fetchurl = args: pkgs.fetchurl (args // {
+            url = builtins.replaceStrings
+              [ "https://crates.io/api/v1/crates" ]
+              [ "https://static.crates.io/crates" ]
+              args.url;
+          });
+        };
         scripts = [
-          (pkgs.writeShellScriptBin "secrets-pull" ''
-            set -euo pipefail
-            op document get "deploy.denys.me agenix rules" --vault Private --out-file secrets/secrets.crypt.nix --force
-            op document get "deploy.denys.me cube secrets" --vault Private --out-file nixos/systems/cube/secrets.crypt.nix --force
-          '')
-          (pkgs.writeShellScriptBin "deploy" ''
+          (pkgs.writeShellScriptBin "deploy-sh" ''
             FLAKE="$1"; shift 1
             REMOTE_HOST=
             REMOTE_OPTS= # opts to pass to nixos-rebuild
@@ -91,6 +101,9 @@
         ];
       in
       {
+        formatter = treefmtEval.config.build.wrapper;
+        checks.treefmt = treefmtEval.config.build.check self;
+
         devShells.default = pkgs.mkShell {
           name = "deploy.denys.me";
           BASE_NIX_VERSION = self.nixosConfigurations.doImage.config.system.stateVersion;
@@ -121,7 +134,11 @@
 
                 packer
                 nixos-generators
-                inputs.deploy-rs.packages.${system}.default
+                (inputs.deploy-rs.packages.${system}.default.overrideAttrs (_: {
+                  cargoDeps = importCargoLock {
+                    lockFile = "${inputs.deploy-rs}/Cargo.lock";
+                  };
+                }))
               ]
             );
         };
@@ -203,10 +220,5 @@
           };
         };
       };
-      # FIXME: aarch check errors out on x86_64-linux and vice versa.
-      # checks = builtins.mapAttrs (
-      #   system: deployLib: deployLib.deployChecks self.deploy
-      # ) inputs.deploy-rs.lib;
-      checks = { };
     };
 }
