@@ -45,6 +45,11 @@
       let
         pkgs = import inputs.nixpkgs (nixpkgs // { inherit system; });
         scripts = [
+          (pkgs.writeShellScriptBin "secrets-pull" ''
+            set -euo pipefail
+            op document get "deploy.denys.me agenix rules" --vault Private --out-file secrets/secrets.crypt.nix --force
+            op document get "deploy.denys.me cube secrets" --vault Private --out-file nixos/systems/cube/secrets.crypt.nix --force
+          '')
           (pkgs.writeShellScriptBin "deploy" ''
             FLAKE="$1"; shift 1
             REMOTE_HOST=
@@ -90,13 +95,14 @@
           name = "deploy.denys.me";
           BASE_NIX_VERSION = self.nixosConfigurations.doImage.config.system.stateVersion;
           buildInputs =
-            # scripts ++
+            scripts ++
             (
               with pkgs;
               [
                 nil
                 nixd
                 inputs.agenix.packages.${system}.default
+                _1password-cli
 
                 (terraform.withPlugins (p: [
                   p.local
