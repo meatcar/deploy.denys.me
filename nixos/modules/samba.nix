@@ -29,7 +29,7 @@
 
   systemd.services.samba-wsdd =
     let
-      wsdd = inputs.wsdd;
+      inherit (inputs) wsdd;
     in
     {
       enable = true;

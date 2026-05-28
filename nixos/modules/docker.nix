@@ -1,4 +1,5 @@
-{config, ...}: {
+{ config, ... }:
+{
   systemd.tmpfiles.rules = [
     "L /var/lib/docker - - - - ${config.mine.persistPath}/docker"
   ];

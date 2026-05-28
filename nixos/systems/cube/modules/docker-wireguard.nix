@@ -1,17 +1,16 @@
 {
   config,
-  pkgs,
-  lib,
   ...
-}: {
-  boot.kernelModules = ["wireguard"];
+}:
+{
+  boot.kernelModules = [ "wireguard" ];
   systemd.tmpfiles.rules = [
     "d ${config.mine.persistPath}/wireguard 0755 - - - -"
   ];
 
   virtualisation.oci-containers.containers.wireguard = {
     image = "ghcr.io/linuxserver/wireguard";
-    ports = ["51820:51820/udp"];
+    ports = [ "51820:51820/udp" ];
     volumes = [
       "/sys:/sys:rw"
       "/run/booted-system/kernel-modules/lib/modules:/lib/modules"

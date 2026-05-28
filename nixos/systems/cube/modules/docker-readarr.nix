@@ -1,12 +1,13 @@
 {
   config,
-  pkgs,
   lib,
   ...
-}: let
+}:
+let
   cfg = config.services.readarr;
   port = toString cfg.port;
-in {
+in
+{
   options = {
     services.readarr = {
       port = lib.mkOption {
@@ -24,12 +25,12 @@ in {
 
     virtualisation.oci-containers.containers.readarr = {
       image = "lscr.io/linuxserver/readarr:nightly";
-      ports = ["${port}:8787"];
+      ports = [ "${port}:8787" ];
       volumes = [
         "${config.mine.persistPath}/readarr:/config"
         "/data:/data"
       ];
-      extraOptions = ["--network=host"];
+      extraOptions = [ "--network=host" ];
       environment = {
         PUID = toString config.ids.uids.${config.mine.storageUser};
         PGID = toString config.ids.gids.${config.mine.storageGroup};

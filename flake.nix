@@ -51,13 +51,25 @@
         treefmtEval = inputs.treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
         # crates.io/api/v1 returns 403; patch importCargoLock to use static CDN
         importCargoLock = import "${inputs.nixpkgs}/pkgs/build-support/rust/import-cargo-lock.nix" {
-          inherit (pkgs) fetchgit lib writers python3Packages runCommand cargo jq;
-          fetchurl = args: pkgs.fetchurl (args // {
-            url = builtins.replaceStrings
-              [ "https://crates.io/api/v1/crates" ]
-              [ "https://static.crates.io/crates" ]
-              args.url;
-          });
+          inherit (pkgs)
+            fetchgit
+            lib
+            writers
+            python3Packages
+            runCommand
+            cargo
+            jq
+            ;
+          fetchurl =
+            args:
+            pkgs.fetchurl (
+              args
+              // {
+                url =
+                  builtins.replaceStrings [ "https://crates.io/api/v1/crates" ] [ "https://static.crates.io/crates" ]
+                    args.url;
+              }
+            );
         };
         scripts = [
           (pkgs.writeShellScriptBin "deploy-sh" ''
@@ -108,39 +120,36 @@
           name = "deploy.denys.me";
           BASE_NIX_VERSION = self.nixosConfigurations.doImage.config.system.stateVersion;
           buildInputs =
-            scripts ++
-            (
-              with pkgs;
-              [
-                nil
-                nixd
-                inputs.agenix.packages.${system}.default
-                _1password-cli
+            scripts
+            ++ (with pkgs; [
+              nil
+              nixd
+              inputs.agenix.packages.${system}.default
+              _1password-cli
 
-                (terraform.withPlugins (p: [
-                  p.local
-                  p.external
-                  p.null
-                  p.random
-                  p.aws
-                  p.digitalocean
-                  p.cloudflare
-                ]))
-                awscli2
-                wireguard-tools
-                jq
-                flyctl
-                oci-cli
+              (terraform.withPlugins (p: [
+                p.local
+                p.external
+                p.null
+                p.random
+                p.aws
+                p.digitalocean
+                p.cloudflare
+              ]))
+              awscli2
+              wireguard-tools
+              jq
+              flyctl
+              oci-cli
 
-                packer
-                nixos-generators
-                (inputs.deploy-rs.packages.${system}.default.overrideAttrs (_: {
-                  cargoDeps = importCargoLock {
-                    lockFile = "${inputs.deploy-rs}/Cargo.lock";
-                  };
-                }))
-              ]
-            );
+              packer
+              nixos-generators
+              (inputs.deploy-rs.packages.${system}.default.overrideAttrs (_: {
+                cargoDeps = importCargoLock {
+                  lockFile = "${inputs.deploy-rs}/Cargo.lock";
+                };
+              }))
+            ]);
         };
       }
     )

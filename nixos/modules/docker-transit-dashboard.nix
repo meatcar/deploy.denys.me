@@ -3,10 +3,12 @@
   pkgs,
   specialArgs,
   ...
-}: let
+}:
+let
   app = specialArgs.inputs.transit-dashboard;
   volumes = "${config.mine.persistPath}/transit-dashboard";
-in {
+in
+{
   config = {
     systemd.tmpfiles.rules = [
       "d ${volumes} 0755 - - - -"

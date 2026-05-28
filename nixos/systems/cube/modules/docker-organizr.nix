@@ -1,12 +1,13 @@
 {
   config,
-  pkgs,
   lib,
   ...
-}: let
+}:
+let
   cfg = config.services.organizr;
   port = toString cfg.port;
-in {
+in
+{
   options = {
     services.organizr = {
       port = lib.mkOption {
@@ -24,7 +25,7 @@ in {
 
     virtualisation.oci-containers.containers.organizr = {
       image = "ghcr.io/organizr/organizr";
-      ports = ["${port}:80"];
+      ports = [ "${port}:80" ];
       volumes = [
         "${config.mine.persistPath}/organizr:/config"
       ];

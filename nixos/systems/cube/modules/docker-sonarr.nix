@@ -1,12 +1,13 @@
 {
   config,
-  pkgs,
   lib,
   ...
-}: let
+}:
+let
   cfg = config.services.sonarr;
   port = toString cfg.port;
-in {
+in
+{
   options = {
     services.sonarr = {
       port = lib.mkOption {
@@ -24,12 +25,12 @@ in {
 
     virtualisation.oci-containers.containers.sonarr = {
       image = "lscr.io/linuxserver/sonarr";
-      ports = ["${port}:8989"];
+      ports = [ "${port}:8989" ];
       volumes = [
         "${config.mine.persistPath}/sonarr:/config"
         "/data:/data"
       ];
-      extraOptions = ["--network=host"];
+      extraOptions = [ "--network=host" ];
       environment = {
         PUID = toString config.ids.uids.${config.mine.storageUser};
         PGID = toString config.ids.gids.${config.mine.storageGroup};

@@ -4,9 +4,6 @@
   lib,
   ...
 }:
-let
-  cfg = config.services.diun;
-in
 {
   options = {
     services.diun.port = lib.mkOption {
