@@ -3,12 +3,12 @@
   pkgs,
   lib,
   ...
-}: let
+}:
+let
   cfg = config.services.nextcloud;
   port = toString cfg.port;
-  uid = toString config.ids.uids.${config.mine.storageUser};
-  gid = toString config.ids.gids.${config.mine.storageGroup};
-in {
+in
+{
   options = {
     services.nextcloud = {
       port = lib.mkOption {
@@ -24,7 +24,7 @@ in {
       trusted-domains = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         description = "nextcloud trusted domains";
-        default = [cfg.fqdn];
+        default = [ cfg.fqdn ];
       };
     };
   };
@@ -36,8 +36,8 @@ in {
 
     systemd.timers.nextcloud-cron = {
       description = "nextcloud-cron.service";
-      wantedBy = ["timers.target"];
-      after = ["docker-nextcloud.service"];
+      wantedBy = [ "timers.target" ];
+      after = [ "docker-nextcloud.service" ];
       timerConfig.OnCalendar = "*:0/5"; # every 5 minutes
       timerConfig.Persistent = true;
     };
@@ -57,8 +57,11 @@ in {
 
     virtualisation.oci-containers.containers.nextcloud = {
       image = "nextcloud:24";
-      dependsOn = ["postgres" "redis"];
-      ports = ["${port}:80"];
+      dependsOn = [
+        "postgres"
+        "redis"
+      ];
+      ports = [ "${port}:80" ];
       # user = "${uid}:${gid}";
       volumes = [
         "${config.mine.persistPath}/nextcloud:/var/www/html"
@@ -75,63 +78,64 @@ in {
         REDIS_HOST_PORT = toString config.services.redis.servers.default.port;
         # REDIS_HOST_PASSWORD_FILE = config.age.secrets.redisPass.path;
       };
-      extraOptions = ["--network=postgres"];
+      extraOptions = [ "--network=postgres" ];
     };
 
-    services.nginx.virtualHosts = let
-      base-config = {
-        enableACME = true;
-        forceSSL = true;
-        extraConfig = ''
-          add_header Referrer-Policy                      "no-referrer"   always;
-          add_header X-Content-Type-Options               "nosniff"       always;
-          add_header X-Download-Options                   "noopen"        always;
-          add_header X-Frame-Options                      "SAMEORIGIN"    always;
-          add_header X-Permitted-Cross-Domain-Policies    "none"          always;
-          add_header X-Robots-Tag                         "none"          always;
-          add_header X-XSS-Protection                     "1; mode=block" always;
-          add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload";
-
-          client_max_body_size 512M;
-          client_body_timeout 300s;
-
-          access_log /var/log/nginx/nextcloud.access.log;
-          error_log /var/log/nginx/nextcloud.error.log;
-
-          server_tokens off;
-        '';
-        locations."/" = {
-          priority = 1;
-          proxyPass = "http://127.0.0.1:${port}";
+    services.nginx.virtualHosts =
+      let
+        base-config = {
+          enableACME = true;
+          forceSSL = true;
           extraConfig = ''
-            if ( $http_user_agent ~ ^DavClnt ) {
-                return 302 /remote.php/webdav/$is_args$args;
-            }
-          '';
-        };
-        locations."/robots.txt" = {
-          extraConfig = ''
-            allow all;
-            log_not_found off;
-            access_log off;
-          '';
-        };
-        locations."^~ /.well-known" = {
-          extraConfig = ''
-            location = /.well-known/carddav { return 301 /remote.php/dav/; }
-            location = /.well-known/caldav  { return 301 /remote.php/dav/; }
+            add_header Referrer-Policy                      "no-referrer"   always;
+            add_header X-Content-Type-Options               "nosniff"       always;
+            add_header X-Download-Options                   "noopen"        always;
+            add_header X-Frame-Options                      "SAMEORIGIN"    always;
+            add_header X-Permitted-Cross-Domain-Policies    "none"          always;
+            add_header X-Robots-Tag                         "none"          always;
+            add_header X-XSS-Protection                     "1; mode=block" always;
+            add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload";
 
-            location /.well-known/pki-validation    { try_files $uri $uri/ =404; }
+            client_max_body_size 512M;
+            client_body_timeout 300s;
 
-            # Let Nextcloud's API for `/.well-known` URIs handle all other
-            # requests by passing them to the front-end controller.
-            return 301 /index.php$request_uri;
+            access_log /var/log/nginx/nextcloud.access.log;
+            error_log /var/log/nginx/nextcloud.error.log;
+
+            server_tokens off;
           '';
+          locations."/" = {
+            priority = 1;
+            proxyPass = "http://127.0.0.1:${port}";
+            extraConfig = ''
+              if ( $http_user_agent ~ ^DavClnt ) {
+                  return 302 /remote.php/webdav/$is_args$args;
+              }
+            '';
+          };
+          locations."/robots.txt" = {
+            extraConfig = ''
+              allow all;
+              log_not_found off;
+              access_log off;
+            '';
+          };
+          locations."^~ /.well-known" = {
+            extraConfig = ''
+              location = /.well-known/carddav { return 301 /remote.php/dav/; }
+              location = /.well-known/caldav  { return 301 /remote.php/dav/; }
+
+              location /.well-known/pki-validation    { try_files $uri $uri/ =404; }
+
+              # Let Nextcloud's API for `/.well-known` URIs handle all other
+              # requests by passing them to the front-end controller.
+              return 301 /index.php$request_uri;
+            '';
+          };
+          locations."~ ^/(?:build|tests|config|lib|3rdparty|templates|data)(?:$|/)".return = "404";
+          locations."~ ^/(?:\\.|autotest|occ|issue|indie|db_|console)".return = "404";
         };
-        locations."~ ^/(?:build|tests|config|lib|3rdparty|templates|data)(?:$|/)".return = "404";
-        locations."~ ^/(?:\\.|autotest|occ|issue|indie|db_|console)".return = "404";
-      };
-    in
+      in
       lib.pipe cfg.trusted-domains [
         (builtins.map (s: {
           name = s;

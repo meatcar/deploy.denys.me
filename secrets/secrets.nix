@@ -6,7 +6,7 @@ let
     cube = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH7aKNMDTXhMoruZYYAqbGY2XBY4Uy81zXHYxs7w6UoR";
     chunkymonkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIA37SIeI0osaeDoehCQ/SbNowUhygnS5PgdJf+majWkI";
   };
-  keys = builtins.mapAttrs (machine: keys: {
+  keys = builtins.mapAttrs (_machine: keys: {
     publicKeys = users ++ (if (builtins.isList keys) then keys else [ keys ]);
   }) (machines // { all = builtins.attrValues machines; });
 in

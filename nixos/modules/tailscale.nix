@@ -2,7 +2,8 @@
   config,
   lib,
   ...
-}: {
+}:
+{
   options = {
     me.tailscale.tailnet = lib.mkOption {
       type = lib.types.str;

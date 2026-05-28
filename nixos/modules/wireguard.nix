@@ -1,4 +1,5 @@
-{lib, ...}: {
+{ lib, ... }:
+{
   options.mine.networking.wireguard = {
     ipIndex = lib.mkOption {
       type = lib.types.int;

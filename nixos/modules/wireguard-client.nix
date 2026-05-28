@@ -2,11 +2,13 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   cfg = config.mine.networking.wireguard;
   clientPort = cfg.serverPort;
-in {
-  imports = [./wireguard.nix];
+in
+{
+  imports = [ ./wireguard.nix ];
   options = {
     mine = {
       networking.wireguard = {
@@ -25,12 +27,12 @@ in {
     networking.wireguard = {
       enable = true;
       interfaces.wg1 = {
-        ips = ["10.100.0.${toString cfg.ipIndex}/24"];
+        ips = [ "10.100.0.${toString cfg.ipIndex}/24" ];
         privateKeyFile = config.age.secrets.wgPrivateKey.path;
         listenPort = clientPort;
         peers = [
           {
-            allowedIPs = ["10.100.0.0/24"];
+            allowedIPs = [ "10.100.0.0/24" ];
             endpoint = "${cfg.serverName}:${toString cfg.serverPort}";
             publicKey = cfg.serverPublicKey;
             persistentKeepalive = 25;
@@ -40,7 +42,7 @@ in {
     };
 
     networking.firewall = {
-      allowedUDPPorts = [clientPort];
+      allowedUDPPorts = [ clientPort ];
     };
   };
 }

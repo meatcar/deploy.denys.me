@@ -1,25 +1,27 @@
 {
   config,
-  pkgs,
-  lib,
   ...
-}: let
-  external = config.networking.nat.externalInterface;
+}:
+let
   wgInterface = "wg1";
-  serverPort = config.mine.networking.wireguard.serverPort;
-in {
-  imports = [./wireguard.nix];
+  inherit (config.mine.networking.wireguard) serverPort;
+in
+{
+  imports = [ ./wireguard.nix ];
   config = {
     networking.nat.enable = true;
     # networking.nat.externalInterface is configured elsewhere per-host
-    networking.nat.internalInterfaces = [wgInterface];
+    networking.nat.internalInterfaces = [ wgInterface ];
     networking.firewall = {
-      allowedTCPPorts = [53];
-      allowedUDPPorts = [53 serverPort];
+      allowedTCPPorts = [ 53 ];
+      allowedUDPPorts = [
+        53
+        serverPort
+      ];
     };
 
     networking.wireguard.interfaces.${wgInterface} = {
-      ips = ["10.100.0.1/24"];
+      ips = [ "10.100.0.1/24" ];
       listenPort = serverPort;
       privateKeyFile = config.age.secrets.wg-priv-key.path;
       peers = import ../generated/wg-clients.nix;

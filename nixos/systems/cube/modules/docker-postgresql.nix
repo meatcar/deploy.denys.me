@@ -2,40 +2,44 @@
   config,
   pkgs,
   ...
-}: let
+}:
+let
   cfg = config.services.postgresql;
   port = toString cfg.settings.port;
   dataDir = "${config.mine.persistPath}/postgres";
   pgversion = "14";
-in {
+in
+{
   config = {
     systemd.tmpfiles.rules = [
       "d ${dataDir} 0750 - - - -"
     ];
     systemd.services.init-docker-network-postgres = {
       description = "Create the docker network 'postgres' for postgres.";
-      after = ["network.target"];
-      wantedBy = ["docker-postgres.service"];
+      after = [ "network.target" ];
+      wantedBy = [ "docker-postgres.service" ];
 
       serviceConfig.Type = "oneshot";
-      script = let
-        docker = "${config.virtualisation.docker.package}/bin/docker";
-        network = "postgres";
-      in ''
-        check=$(${docker} network ls | grep "${network}" || true)
-        if [ -z "$check" ]; then
-          ${docker} network create "${network}"
-        else
-          echo "docker network '${network}' already exists"
-        fi
-      '';
+      script =
+        let
+          docker = "${config.virtualisation.docker.package}/bin/docker";
+          network = "postgres";
+        in
+        ''
+          check=$(${docker} network ls | grep "${network}" || true)
+          if [ -z "$check" ]; then
+            ${docker} network create "${network}"
+          else
+            echo "docker network '${network}' already exists"
+          fi
+        '';
     };
 
     systemd.services."init-postgres-user-db@" = {
       description = "Create the postgres database and user for %i";
-      after = ["docker-postgres.service"];
-      before = ["docker-%i.service"];
-      wantedBy = ["docker-%i.service"];
+      after = [ "docker-postgres.service" ];
+      before = [ "docker-%i.service" ];
+      wantedBy = [ "docker-%i.service" ];
 
       serviceConfig.Type = "oneshot";
       serviceConfig.LoadCredential = [
@@ -82,7 +86,7 @@ in {
 
     virtualisation.oci-containers.containers.postgres = {
       image = "postgres:${pgversion}";
-      ports = ["${port}:5432"];
+      ports = [ "${port}:5432" ];
       volumes = [
         "${dataDir}:/var/lib/postgresql/data"
         "${config.age.secrets.postgresPass.path}:${config.age.secrets.postgresPass.path}"
@@ -90,7 +94,7 @@ in {
       environment = {
         POSTGRES_PASSWORD_FILE = config.age.secrets.postgresPass.path;
       };
-      extraOptions = ["--network=postgres"];
+      extraOptions = [ "--network=postgres" ];
     };
   };
 }
