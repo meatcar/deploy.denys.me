@@ -5,12 +5,10 @@
 }:
 {
   imports = [
-    ./secrets.crypt.nix
     ./agenix.nix
     ./hardware-configuration.nix
     ../../modules/base.nix
     ../../modules/zfs.nix
-    ../../modules/wireguard-client.nix
     ../../modules/tailscale-exit-node.nix
     ../../modules/smtp.nix
     ../../modules/smartd.nix
@@ -48,9 +46,11 @@
       githubKeyUser = "meatcar";
       storagePath = "/data";
       persistPath = "/persist";
-      networking.wireguard.serverPort = 51821;
-      networking.wireguard.ipIndex = 4;
-      smtp.passwordFile = "${config.age.secrets.ssmtpPass.path}";
+      smtp = {
+        host = "smtp.fastmail.com";
+        userFile = config.age.secrets.smtpUser.path;
+        passwordFile = config.age.secrets.ssmtpPass.path;
+      };
     };
 
     # Use the systemd-boot EFI boot loader.
