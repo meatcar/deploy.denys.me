@@ -481,11 +481,11 @@
     "website": {
       "flake": false,
       "locked": {
-        "lastModified": 1779901452,
-        "narHash": "sha256-UkByltY8VCCSmrASCTtc7v/tLKZWOUy6NY6WVqzGnsg=",
+        "lastModified": 1780083060,
+        "narHash": "sha256-daHfG0/r7cskkuq9dOECM7ub9+o54R/xhvlbjILPetk=",
         "owner": "meatcar",
         "repo": "denys.me",
-        "rev": "2a89ec3a8591f0d54e84f1109819366b63843867",
+        "rev": "4fabad10a591a96ee026366e3e7c2c9c03f9d454",
         "type": "github"
       },
       "original": {
