@@ -70,11 +70,14 @@ in
         file = ../../../secrets/ssmtp-pass.age;
         mode = "0444";
       };
+      smtpUser = {
+        file = ../../../secrets/smtp-user.age;
+        mode = "0444";
+      };
       transmissionUser.file = ../../../secrets/transmission-user.age;
       transmissionPass.file = ../../../secrets/transmission-pass.age;
       hashedPassword.file = ../../../secrets/hashed-password.age;
       cloudflareKey.file = ../../../secrets/cloudflare-key.age;
-      wgPrivateKey.file = ../../../secrets/wg-cube-private-key.age;
       redisConf.file = ../../../secrets/redis-conf.age;
       redisPass = {
         file = ../../../secrets/redis-pass.age;

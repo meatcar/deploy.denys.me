@@ -36,7 +36,6 @@ in
               port: ${toString config.mine.smtp.port}
               ssl: true
               localName: ${config.networking.fqdn}
-              username: ${config.mine.smtp.user}
               passwordFile: /smtppass
               from: diun.${email}
               to: admin.${email}
@@ -50,6 +49,10 @@ in
           "${configFile}:/diun.yml"
           "${config.age.secrets.ssmtpPass.path}:/smtppass"
         ];
+        # DIUN_NOTIF_MAIL_USERNAME comes from the smtpUser env file (shared
+        # with the msmtp activation script); keeps the email out of the
+        # /nix/store copy of diun-config.yml.
+        environmentFiles = [ config.age.secrets.smtpUser.path ];
         environment = {
           TZ = config.time.timeZone;
           PUID = toString config.ids.uids.${config.mine.storageUser};
