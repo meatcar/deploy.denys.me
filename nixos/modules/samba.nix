@@ -47,15 +47,14 @@
       };
     };
 
-  networking.firewall.allowedTCPPorts =
-    [
-      445
-      139
-    ]
-    ++ [
-      3702
-      5357
-    ];
+  networking.firewall.allowedTCPPorts = [
+    445
+    139
+  ]
+  ++ [
+    3702
+    5357
+  ];
   networking.firewall.allowedUDPPorts = [
     137
     138

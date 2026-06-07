@@ -2,7 +2,7 @@
   description = "changeme";
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
-    nixpkgs.url = "github:nixos/nixpkgs/25.05";
+    nixpkgs.url = "github:nixos/nixpkgs/26.05";
     nixos-hardware.url = "github:nixos/nixos-hardware";
     agenix = {
       url = "github:ryantm/agenix";
