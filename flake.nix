@@ -1,8 +1,15 @@
 {
   description = "changeme";
+
+  nixConfig = {
+    extra-substituters = "https://nixpkgs-terraform.cachix.org";
+    extra-trusted-public-keys = "nixpkgs-terraform.cachix.org-1:8Sit092rIdAVENA3ZVeH9hzSiqI/jng6JiCrQ1Dmusw=";
+  };
+
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
     nixpkgs.url = "github:nixos/nixpkgs/26.05";
+    nixpkgs-terraform.url = "github:stackbuilders/nixpkgs-terraform";
     nixos-hardware.url = "github:nixos/nixos-hardware";
     agenix = {
       url = "github:ryantm/agenix";
@@ -49,28 +56,6 @@
       let
         pkgs = import inputs.nixpkgs (nixpkgs // { inherit system; });
         treefmtEval = inputs.treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
-        # crates.io/api/v1 returns 403; patch importCargoLock to use static CDN
-        importCargoLock = import "${inputs.nixpkgs}/pkgs/build-support/rust/import-cargo-lock.nix" {
-          inherit (pkgs)
-            fetchgit
-            lib
-            writers
-            python3Packages
-            runCommand
-            cargo
-            jq
-            ;
-          fetchurl =
-            args:
-            pkgs.fetchurl (
-              args
-              // {
-                url =
-                  builtins.replaceStrings [ "https://crates.io/api/v1/crates" ] [ "https://static.crates.io/crates" ]
-                    args.url;
-              }
-            );
-        };
         scripts = [
           (pkgs.writeShellScriptBin "deploy-sh" ''
             FLAKE="$1"; shift 1
@@ -83,7 +68,7 @@
                 BUILD_HOST="$REMOTE_HOST"
                 ;;
               vps)
-                REMOTE_HOST=$(cd terraform && ${pkgs.terraform}/bin/terraform output --raw ip)
+                REMOTE_HOST=$(cd terraform && terraform output --raw ip)
                 BUILD_HOST="$REMOTE_HOST"
                 ;;
               # cube)
@@ -127,7 +112,7 @@
               inputs.agenix.packages.${system}.default
               _1password-cli
 
-              terraform
+              inputs.nixpkgs-terraform.packages.${system}."terraform-1.14"
               awscli2
               wireguard-tools
               jq
@@ -136,11 +121,7 @@
 
               packer
               nixos-generators
-              (inputs.deploy-rs.packages.${system}.default.overrideAttrs (_: {
-                cargoDeps = importCargoLock {
-                  lockFile = "${inputs.deploy-rs}/Cargo.lock";
-                };
-              }))
+              deploy-rs
             ]);
         };
       }
