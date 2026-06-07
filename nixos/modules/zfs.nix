@@ -15,9 +15,8 @@
     };
   };
 
-  # Mail out notifications
+  # Mail out notifications (enableMail auto-detected from sendmailSetuidWrapper)
   services.zfs.zed = {
-    enableMail = true;
     settings = {
       ZED_DEBUG_LOG = "/tmp/zed.debug.log";
       ZED_EMAIL_ADDR = [ "root" ];

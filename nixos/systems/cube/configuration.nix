@@ -37,6 +37,10 @@
   ];
 
   config = {
+    # 26.05 defaults systemd stage-1 initrd; pin scripted until LUKS/ZFS migration
+    # is tested. Revisit before 26.11 (when scripted initrd is removed).
+    boot.initrd.systemd.enable = false;
+
     networking.domain = "denys.me";
     networking.hostName = "cube";
     networking.hostId = "611b4046";
