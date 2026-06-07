@@ -127,15 +127,7 @@
               inputs.agenix.packages.${system}.default
               _1password-cli
 
-              (terraform.withPlugins (p: [
-                p.local
-                p.external
-                p.null
-                p.random
-                p.aws
-                p.digitalocean
-                p.cloudflare
-              ]))
+              terraform
               awscli2
               wireguard-tools
               jq
