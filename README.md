@@ -9,15 +9,8 @@
 
 If `nix` is not available, you can try to make do with:
 
-- `packer`
 - `terraform` with [terraform-provider-secret](https://github.com/tweag/terraform-provider-secret)
-- A nixos image for Digital Ocean, you can try to make one with `packer` and `nix-infect` as follows:
-
-  ```sh
-  packer build packer/build-image.json
-  ```
-
-  Then manually make a snapshot of it in the Digital Ocean console.
+- A NixOS image for Digital Ocean, built on another machine with nixpkgs image tooling
 
 ## Secrets
 
@@ -36,11 +29,10 @@ secrets-pull
 ## Building a Base Image
 
 ```sh
-# Build an image
-IMAGE=$(nixos-generate -f do -c nix/base.nix)
-# Push the image to Digital Ocean
-packer build -var image=$IMAGE packer/push-image.json
+nix build .#doImage
 ```
+
+The resulting Digital Ocean image is linked at `result`.
 
 ## Running
 

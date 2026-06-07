@@ -15,10 +15,6 @@
       url = "github:ryantm/agenix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nixos-generators = {
-      url = "github:nix-community/nixos-generators";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     deploy-rs = {
       url = "github:serokell/deploy-rs";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -50,6 +46,15 @@
         };
       };
       specialArgs = { inherit inputs; };
+      doImageModules = [
+        ./nixos/modules/base.nix
+        ./nixos/modules/digitalocean.nix
+        {
+          system.stateVersion = "25.05";
+          mine.githubKeyUser = "meatcar";
+          mine.username = "meatcar";
+        }
+      ];
     in
     inputs.flake-utils.lib.eachDefaultSystem (
       system:
@@ -100,10 +105,12 @@
       {
         formatter = treefmtEval.config.build.wrapper;
         checks.treefmt = treefmtEval.config.build.check self;
+        packages = inputs.nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
+          doImage = self.nixosConfigurations.doImage.config.system.build.image;
+        };
 
         devShells.default = pkgs.mkShell {
           name = "deploy.denys.me";
-          BASE_NIX_VERSION = self.nixosConfigurations.doImage.config.system.stateVersion;
           buildInputs =
             scripts
             ++ (with pkgs; [
@@ -119,7 +126,6 @@
               flyctl
               oci-cli
 
-              packer
               nixos-generators
               deploy-rs
             ]);
@@ -131,15 +137,7 @@
         doImage = inputs.nixpkgs.lib.nixosSystem {
           inherit specialArgs;
           system = "x86_64-linux";
-          modules = [
-            ./nixos/modules/base.nix
-            ./nixos/modules/digitalocean.nix
-            {
-              system.stateVersion = "25.05";
-              mine.githubKeyUser = "meatcar";
-              mine.username = "meatcar";
-            }
-          ];
+          modules = doImageModules;
         };
         chunkymonkey = inputs.nixpkgs.lib.nixosSystem {
           inherit specialArgs;
