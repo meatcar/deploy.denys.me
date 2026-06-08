@@ -39,6 +39,7 @@
         "network-online.target"
         "samba-smbd.service"
       ];
+      wants = [ "network-online.target" ];
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
         ExecStart = "${pkgs.python3}/bin/python3 ${wsdd}/src/wsdd.py --shortlog";
