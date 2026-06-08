@@ -29,11 +29,9 @@
       kernelModules = [ ];
       supportedFilesystems = [ "btrfs" ];
       luks = {
-        reusePassphrases = true;
         devices =
           let
             defaults = {
-              fallbackToPassword = true;
               keyFile = "/dev/disk/by-id/usb-SanDisk_Ultra_Fit_4C530000070430202130-0:0";
               keyFileSize = 8192;
             };

@@ -29,9 +29,7 @@
   # Set your time zone.
   time.timeZone = "America/Toronto";
 
-  # 26.05 defaults systemd stage-1 initrd; pin scripted until ZFS-root migration
-  # is tested. Revisit before 26.11 (when scripted initrd is removed).
-  boot.initrd.systemd.enable = false;
+  boot.initrd.systemd.enable = true;
 
   # Define a user account. Don’t forget to set a password with ‘passwd’.
   users.users."${config.mine.username}" = {
