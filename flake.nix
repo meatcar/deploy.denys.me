@@ -1,15 +1,9 @@
 {
   description = "changeme";
 
-  nixConfig = {
-    extra-substituters = "https://nixpkgs-terraform.cachix.org";
-    extra-trusted-public-keys = "nixpkgs-terraform.cachix.org-1:8Sit092rIdAVENA3ZVeH9hzSiqI/jng6JiCrQ1Dmusw=";
-  };
-
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
     nixpkgs.url = "github:nixos/nixpkgs/26.05";
-    nixpkgs-terraform.url = "github:stackbuilders/nixpkgs-terraform";
     nixos-hardware.url = "github:nixos/nixos-hardware";
     agenix = {
       url = "github:ryantm/agenix";
@@ -62,6 +56,9 @@
         pkgs = import inputs.nixpkgs (nixpkgs // { inherit system; });
         treefmtEval = inputs.treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
         scripts = [
+          (pkgs.writeShellScriptBin "terraform" ''
+            exec ${pkgs.opentofu}/bin/tofu "$@"
+          '')
           (pkgs.writeShellScriptBin "deploy-sh" ''
             FLAKE="$1"; shift 1
             REMOTE_HOST=
@@ -119,14 +116,12 @@
               inputs.agenix.packages.${system}.default
               _1password-cli
 
-              inputs.nixpkgs-terraform.packages.${system}."terraform-1.14"
               awscli2
               wireguard-tools
               jq
               flyctl
               oci-cli
 
-              nixos-generators
               deploy-rs
             ]);
         };
