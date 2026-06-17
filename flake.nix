@@ -121,6 +121,7 @@
               jq
               flyctl
               oci-cli
+              tflint
 
               deploy-rs
             ]);

@@ -1,6 +1,6 @@
 # for state
 provider "aws" {
-  region  = "us-east-1"
+  region = "us-east-1"
 }
 
 provider "cloudflare" {
@@ -8,7 +8,13 @@ provider "cloudflare" {
 }
 
 provider "digitalocean" {
-  token   = var.digitalocean_token
+  token = var.digitalocean_token
+}
+
+provider "oci" {
+  auth                = "SecurityToken"
+  config_file_profile = var.oci_config_file_profile
+  region              = var.oci_region
 }
 
 module "state" {

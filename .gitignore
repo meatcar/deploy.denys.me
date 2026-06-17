@@ -5,12 +5,21 @@
 # Compiled files
 *.tfstate
 *.tfstate.backup
+*.tfplan
+crash.log
+crash.*.log
 
 # Module directory
 .terraform/
 
 ### Terraform Patch ###
 *.tfvars
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
 
 # End of https://www.gitignore.io/api/terraform
 .env

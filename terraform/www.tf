@@ -1,14 +1,10 @@
-data "digitalocean_image" "nixos" {
-  name = "nixos-22.11"
-}
-
 resource "digitalocean_droplet" "www" {
-  image              = "56524328" #data.digitalocean_image.nixos.id
-  name               = var.hostname
-  region             = "tor1"
-  size               = "s-1vcpu-1gb"
+  image  = "56524328"
+  name   = var.hostname
+  region = "tor1"
+  size   = "s-1vcpu-1gb"
 
-  ssh_keys = [ var.ssh_fingerprint ]
+  ssh_keys = [var.ssh_fingerprint]
 }
 
 resource "null_resource" "nixos_set_channel" {

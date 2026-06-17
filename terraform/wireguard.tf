@@ -1,6 +1,6 @@
 # hack, generate wg private keys manually, to keep the keys from changing on refresh
 resource "random_id" "wg_priv_keys" {
-  for_each = toset( var.wg_nodes )
+  for_each = toset(var.wg_nodes)
 
   keepers = {
     node = each.key
@@ -10,13 +10,13 @@ resource "random_id" "wg_priv_keys" {
 }
 
 data "external" "wg_keys" {
-  for_each = toset( var.wg_nodes )
-  program = ["bin/make-wg-key", sensitive(random_id.wg_priv_keys[each.key].b64_std)]
+  for_each = toset(var.wg_nodes)
+  program  = ["bin/make-wg-key", sensitive(random_id.wg_priv_keys[each.key].b64_std)]
 }
 
 locals {
   wg_peers = {
-    for i,node in var.wg_nodes:
+    for i, node in var.wg_nodes :
     node => {
       name        = node
       public_key  = data.external.wg_keys[node].result.public_key
@@ -25,11 +25,11 @@ locals {
     }
   }
   wg_server  = merge(local.wg_peers["server"], { name = var.hostname })
-  wg_clients = { for k,v in local.wg_peers: k => v if k != "server" }
+  wg_clients = { for k, v in local.wg_peers : k => v if k != "server" }
 }
 
 resource "local_file" "generate_wg_nixos_config" {
-  filename = "../nixos/generated/wg-clients.nix"
+  filename        = "../nixos/generated/wg-clients.nix"
   file_permission = "0640"
   content = templatefile(
     "${path.module}/templates/wg-clients.nix.tmpl",

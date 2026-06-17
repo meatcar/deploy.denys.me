@@ -7,6 +7,14 @@
 - `direnv`
 - `nix` or `nixos`
 
+All OCI and Terraform commands should be run inside the Nix dev shell so the
+repo-provided OpenTofu and OCI CLI versions are used:
+
+```sh
+nix develop
+oci --version
+```
+
 If `nix` is not available, you can try to make do with:
 
 - `terraform` with [terraform-provider-secret](https://github.com/tweag/terraform-provider-secret)
@@ -54,3 +62,18 @@ cd terraform
 terraform init
 terraform apply
 ```
+
+## OCI Authentication
+
+OCI credentials are kept outside this repo under `~/.oci`. The Terraform OCI
+provider uses the short-lived security-token profile named `meatcar`.
+
+```sh
+nix develop
+oci session authenticate --profile-name meatcar --session-expiration-in-minutes 60
+oci session validate --profile meatcar --auth security_token
+```
+
+Set `TF_VAR_oci_region` from the selected OCI profile region and
+`TF_VAR_oci_compartment_ocid` to the compartment containing the `chunkymonkey`
+instance before importing or planning OCI resources.
