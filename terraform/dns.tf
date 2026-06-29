@@ -23,6 +23,15 @@ resource "cloudflare_dns_record" "CNAME-www-wildcard" {
   ttl     = 1
 }
 
+resource "cloudflare_dns_record" "A-trmnl" {
+  zone_id = cloudflare_zone.main.id
+  type    = "A"
+  name    = "trmnl"
+  content = "192.18.149.148"
+  proxied = false
+  ttl     = 1
+}
+
 resource "cloudflare_dns_record" "TXT-bsky" {
   zone_id = cloudflare_zone.main.id
   type    = "TXT"

@@ -13,8 +13,16 @@
       url = "github:serokell/deploy-rs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    age-plugin-1p.url = "github:Enzime/age-plugin-1p";
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    quadlet-nix.url = "github:SEIAROTg/quadlet-nix";
+
+    home-manager = {
+      url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -114,6 +122,8 @@
               nil
               nixd
               inputs.agenix.packages.${system}.default
+              inputs.age-plugin-1p.packages.${system}.age
+              inputs.age-plugin-1p.packages.${system}.age-plugin-1p
               _1password-cli
 
               awscli2
@@ -144,6 +154,7 @@
               system.stateVersion = "23.11";
             }
             inputs.agenix.nixosModules.default
+            inputs.home-manager.nixosModules.home-manager
             ./nixos/systems/chunkymonkey/configuration.nix
           ];
         };

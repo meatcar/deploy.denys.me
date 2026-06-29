@@ -12,9 +12,12 @@
     ../../modules/oracle-cloud.nix
     ../../modules/base.nix
     ../../modules/tailscale.nix
-    ../../modules/docker.nix
+    ../../modules/docker.nix # still needed: transit-dashboard runs on docker
+    ../../modules/quadlets # default.nix wires pod user + all quadlet services
     ../../modules/zfs.nix
     ../../modules/docker-transit-dashboard.nix
+    ../../modules/backups.nix
+    ./backups.nix
   ];
 
   mine = {
@@ -31,7 +34,7 @@
 
   boot.initrd.systemd.enable = true;
 
-  # Define a user account. Don’t forget to set a password with ‘passwd’.
+  # Define a user account. Don't forget to set a password with 'passwd'.
   users.users."${config.mine.username}" = {
     isNormalUser = true;
     extraGroups = [

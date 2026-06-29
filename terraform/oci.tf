@@ -106,6 +106,28 @@ resource "oci_core_security_list" "chunkymonkey" {
       min = 22
     }
   }
+  ingress_security_rules {
+    description = "HTTP"
+    protocol    = "6"
+    source      = "0.0.0.0/0"
+    source_type = "CIDR_BLOCK"
+    stateless   = false
+    tcp_options {
+      min = 80
+      max = 80
+    }
+  }
+  ingress_security_rules {
+    description = "HTTPS"
+    protocol    = "6"
+    source      = "0.0.0.0/0"
+    source_type = "CIDR_BLOCK"
+    stateless   = false
+    tcp_options {
+      min = 443
+      max = 443
+    }
+  }
 }
 
 # __generated__ by OpenTofu from "ocid1.routetable.oc1.ca-toronto-1.aaaaaaaaep4mgi6rtysixrokk6yi242hwo2fwghaxjbsgjvzgycn3ivlq6ja"

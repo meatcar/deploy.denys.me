@@ -17,9 +17,9 @@ in
 
   # to
   "wg-server-priv-key.age" = { inherit (keys.to) publicKeys; };
-  "restic-password.age" = { inherit (keys.to) publicKeys; };
-  "restic-env.age" = { inherit (keys.to) publicKeys; };
-  "restic-repo.age" = { inherit (keys.to) publicKeys; };
+  "restic-password.age".publicKeys = keys.to.publicKeys ++ keys.chunkymonkey.publicKeys;
+  "restic-env.age".publicKeys = keys.to.publicKeys ++ keys.chunkymonkey.publicKeys;
+  "restic-repo.age".publicKeys = keys.to.publicKeys ++ keys.chunkymonkey.publicKeys;
 
   # cube
   "smtp-user.age" = { inherit (keys.cube) publicKeys; };
@@ -34,4 +34,7 @@ in
 
   # chunkymonkey
   "transitDashboardEnv.age" = { inherit (keys.chunkymonkey) publicKeys; };
+  "chunkymonkey-postgres-pass.age" = { inherit (keys.chunkymonkey) publicKeys; };
+  "larapaperPgPass.age" = { inherit (keys.chunkymonkey) publicKeys; };
+  "larapaperEnv.age" = { inherit (keys.chunkymonkey) publicKeys; };
 }
