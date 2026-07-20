@@ -17,12 +17,12 @@
     ../../modules/zfs.nix
     ../../modules/docker-transit-dashboard.nix
     ../../modules/backups.nix
+    ../../modules/failure-notify.nix
     ./backups.nix
   ];
 
   mine = {
     username = "meatcar";
-    githubKeyUser = "meatcar";
   };
 
   networking.hostName = "chunkymonkey";
@@ -34,12 +34,36 @@
 
   boot.initrd.systemd.enable = true;
 
+  # No swap device on this host, so a memory spike goes straight to earlyoom
+  # picking a victim. Compressed swap gives the kernel somewhere to put cold
+  # pages first. Bounded well under RAM so it cannot itself cause pressure.
+  zramSwap = {
+    enable = true;
+    memoryPercent = 15;
+    memoryMax = 4 * 1024 * 1024 * 1024; # 4 GiB ceiling
+  };
+
+  # Failure alerting for the unattended jobs. Deliberately still off: it needs
+  # modules/smtp.nix and real SES credentials, and the module asserts on that.
+  # Turning this on is the last step of the SES milestone; until then, claiming
+  # alerting works would be worse than admitting it does not.
+  mine.failureNotify = {
+    enable = false;
+    units = [
+      "restic-backups-persist"
+      "zfs-scrub"
+      "nix-gc"
+    ];
+  };
+
   # Define a user account. Don't forget to set a password with 'passwd'.
   users.users."${config.mine.username}" = {
     isNormalUser = true;
     extraGroups = [
       "wheel"
-      "docker"
+      # Deliberately NOT in "docker": membership is root-equivalent (it can bind
+      # mount / into a container), and this host also runs interactive agent
+      # sessions as this user. Use `sudo docker` instead.
       "nginx"
     ];
     hashedPasswordFile = config.age.secrets.hashedPassword.path;

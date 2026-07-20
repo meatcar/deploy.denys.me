@@ -95,17 +95,13 @@ resource "oci_core_security_list" "chunkymonkey" {
       type = 3
     }
   }
-  ingress_security_rules {
-    description = ""
-    protocol    = "6"
-    source      = "0.0.0.0/0"
-    source_type = "CIDR_BLOCK"
-    stateless   = false
-    tcp_options {
-      max = 22
-      min = 22
-    }
-  }
+  # Public SSH ingress intentionally removed. Administration and `deploy-sh`
+  # both reach this host over Tailscale (verified: sshd sessions arrive on the
+  # 100.64.0.0/10 tailnet address, which does not traverse this security list),
+  # so exposing 22 to 0.0.0.0/0 only added brute-force surface in front of a
+  # host that holds financial data.
+  # Recovery if the tailnet is ever unavailable: OCI serial console, or
+  # re-adding this rule from the OCI web console.
   ingress_security_rules {
     description = "HTTP"
     protocol    = "6"

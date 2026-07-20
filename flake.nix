@@ -31,6 +31,11 @@
       flake = false;
     };
 
+    sshkeys = {
+      url = "file+https://github.com/meatcar.keys";
+      flake = false;
+    };
+
     website = {
       url = "github:meatcar/denys.me";
       flake = false;
@@ -53,7 +58,6 @@
         ./nixos/modules/digitalocean.nix
         {
           system.stateVersion = "25.05";
-          mine.githubKeyUser = "meatcar";
           mine.username = "meatcar";
         }
       ];

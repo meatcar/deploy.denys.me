@@ -2,27 +2,18 @@
   config,
   pkgs,
   lib,
+  inputs,
   ...
 }:
 let
-  sshKeys =
-    lib.pipe
-      {
-        url = "https://github.com/${config.mine.githubKeyUser}.keys";
-        sha256 = "sha256:1dpj060nq3jcl0vhnvhakj4xdixac3g7vg3p0vb6p4pskzhyssmm";
-      }
-      [
-        builtins.fetchurl
-        builtins.readFile
-        (lib.splitString "\n")
-      ];
+  sshKeys = lib.pipe inputs.sshkeys.outPath [
+    builtins.readFile
+    (lib.splitString "\n")
+    (lib.filter (k: k != ""))
+  ];
 in
 {
   options.mine = {
-    githubKeyUser = lib.mkOption {
-      type = lib.types.str;
-      description = "The github user that provides the ssh keys to authorize.";
-    };
     username = lib.mkOption {
       type = lib.types.str;
       description = "The default user";
@@ -104,7 +95,8 @@ in
       gc = {
         automatic = true;
         dates = "daily";
-        options = "--delete-older-than 1w";
+        # Nix >= 2.34 rejects week units ("1w"); use days.
+        options = "--delete-older-than 7d";
       };
     };
 

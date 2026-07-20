@@ -20,7 +20,6 @@
 
   mine = {
     username = "meatcar";
-    githubKeyUser = "meatcar";
     networking.wireguard.serverPort = 51821;
     znc = {
       enable = true;
