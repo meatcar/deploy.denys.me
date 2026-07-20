@@ -426,10 +426,23 @@
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs_3",
         "quadlet-nix": "quadlet-nix",
+        "sshkeys": "sshkeys",
         "transit-dashboard": "transit-dashboard",
         "treefmt-nix": "treefmt-nix",
         "website": "website",
         "wsdd": "wsdd"
+      }
+    },
+    "sshkeys": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-+zOlwceqExYQnHVFT8Sq6wxABPHtRgRbunLXUeJQ0ec=",
+        "type": "file",
+        "url": "https://github.com/meatcar.keys"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://github.com/meatcar.keys"
       }
     },
     "systems": {

@@ -45,7 +45,6 @@
     time.timeZone = "America/Toronto";
     mine = {
       username = "meatcar";
-      githubKeyUser = "meatcar";
       storagePath = "/data";
       persistPath = "/persist";
       smtp = {
