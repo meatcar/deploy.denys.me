@@ -57,6 +57,25 @@ resource "cloudflare_dns_record" "A-billing-sns" {
   ttl     = 1
 }
 
+resource "cloudflare_dns_record" "CNAME-paseo" {
+  zone_id = cloudflare_zone.main.id
+  type    = "CNAME"
+  name    = "paseo"
+  content = "wymejaba.up.railway.app"
+  proxied = false
+  ttl     = 1
+}
+
+resource "cloudflare_dns_record" "TXT-paseo-railway" {
+  zone_id = cloudflare_zone.main.id
+  type    = "TXT"
+  name    = "_railway-verify.paseo"
+  content = "railway-verify=a89c4085ab056bede47b680daac316759884854b1763ab6c5c9ad23d7d95a5bd"
+  comment = "Railway custom-domain ownership verification"
+  proxied = false
+  ttl     = 1
+}
+
 ## Amazon SES (ca-central-1) - outbound mail for Invoice Ninja
 #
 # Explicit records are required here because the CNAME-www-wildcard record above

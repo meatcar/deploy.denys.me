@@ -134,6 +134,7 @@
               wireguard-tools
               jq
               flyctl
+              railway
               oci-cli
               tflint
 
