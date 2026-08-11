@@ -10,7 +10,7 @@ let
     defaults
     auth on
     tls on
-    tls_starttls off
+    tls_starttls ${if cfg.startTls then "on" else "off"}
     aliases /etc/msmtp-aliases
 
     account default
@@ -19,7 +19,7 @@ let
     domain ${config.networking.domain}
     user @SMTP_USER@
     passwordeval ${pkgs.coreutils}/bin/cat ${cfg.passwordFile}
-    from %U.${config.mine.notificationEmail}
+    from ${cfg.from}
   '';
 in
 {
@@ -34,10 +34,20 @@ in
           type = lib.types.str;
           description = "SMTP Host";
         };
+        from = lib.mkOption {
+          type = lib.types.str;
+          description = "Envelope and default From address";
+          default = "%U.${config.mine.notificationEmail}";
+        };
         port = lib.mkOption {
           type = lib.types.port;
           description = "SMTP Port";
-          default = 565;
+          default = 465;
+        };
+        startTls = lib.mkOption {
+          type = lib.types.bool;
+          description = "Use STARTTLS rather than implicit TLS";
+          default = false;
         };
         passwordFile = lib.mkOption {
           type = lib.types.path;

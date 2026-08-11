@@ -30,7 +30,13 @@ in
           config.home-manager.users.pod.virtualisation.quadlet.networks.postgres.ref
         ];
       };
-      serviceConfig.Restart = "on-failure";
+      serviceConfig = {
+        Restart = "on-failure";
+        # Steady state sits under 50M; the ceiling is here to stop a runaway
+        # query from consuming the host, not to constrain normal use.
+        MemoryHigh = "768M";
+        MemoryMax = "1G";
+      };
     };
   };
 }

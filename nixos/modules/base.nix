@@ -111,7 +111,9 @@ in
 
     services.earlyoom.enable = true;
     services.earlyoom.killHook = pkgs.writeShellScript "earlyoom-kill-hook" ''
-      echo "Process $EARLYOOM_NAME ($EARLYOOM_PID) was killed" >> /var/log/earlyoom.log
+      ${pkgs.coreutils}/bin/printf 'Process %s (%s) was killed\n' \
+        "$EARLYOOM_NAME" "$EARLYOOM_PID" \
+        | ${pkgs.systemd}/bin/systemd-cat --identifier=earlyoom-kill --priority=warning
     '';
   };
 }

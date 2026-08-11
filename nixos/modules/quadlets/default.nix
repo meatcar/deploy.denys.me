@@ -11,13 +11,53 @@
 }:
 let
   persistPath = config.mine.persistPath;
+  # https://www.cloudflare.com/ips/ — public browser traffic is proxied.
+  cloudflareIpv4 = [
+    "173.245.48.0/20"
+    "103.21.244.0/22"
+    "103.22.200.0/22"
+    "103.31.4.0/22"
+    "141.101.64.0/18"
+    "108.162.192.0/18"
+    "190.93.240.0/20"
+    "188.114.96.0/20"
+    "197.234.240.0/22"
+    "198.41.128.0/17"
+    "162.158.0.0/15"
+    "104.16.0.0/13"
+    "104.24.0.0/14"
+    "172.64.0.0/13"
+    "131.0.72.0/22"
+  ];
+  # SNS HTTPS delivery currently originates from this AWS-owned, non-EC2
+  # ca-central-1 service prefix. The dedicated router accepts only the signed
+  # webhook path and validates the configured TopicArn inside Invoice Ninja.
+  awsSnsIpv4 = [ "52.94.80.0/20" ];
+  proxySourceRules =
+    map (cidr: {
+      inherit cidr;
+      ports = "8080,8443";
+    }) cloudflareIpv4
+    ++ map (cidr: {
+      inherit cidr;
+      ports = "8443";
+    }) awsSnsIpv4;
+  proxyAllowRules = lib.concatMapStringsSep "\n" (rule: ''
+    iptables -w -C nixos-fw -s ${rule.cidr} -p tcp -m multiport --dports ${rule.ports} -j nixos-fw-accept 2>/dev/null || \
+      iptables -w -I nixos-fw 1 -s ${rule.cidr} -p tcp -m multiport --dports ${rule.ports} -j nixos-fw-accept
+  '') proxySourceRules;
+  proxyRemoveRules = lib.concatMapStringsSep "\n" (rule: ''
+    iptables -w -D nixos-fw -s ${rule.cidr} -p tcp -m multiport --dports ${rule.ports} -j nixos-fw-accept 2>/dev/null || true
+  '') proxySourceRules;
 in
 {
   imports = [
     ./pg-dump.nix
+    ./mysql-dump.nix
     ./traefik.nix
     ./postgres.nix
     ./larapaper.nix
+    ./invoiceninja.nix
   ];
 
   # Dedicated, unprivileged service user that owns the rootless podman session.
@@ -68,51 +108,49 @@ in
 
       home.stateVersion = "26.05";
 
-      # Rootless API socket so traefik can discover other pod containers.
-      # The socket lives at /run/user/2000/podman/podman.sock once the user
-      # session is live (linger ensures it always is).
-      systemd.user.sockets.podman = {
-        Unit.Description = "Podman API socket";
-        Socket.ListenStream = "%t/podman/podman.sock";
-        Install.WantedBy = [ "sockets.target" ];
-      };
-      systemd.user.services.podman = {
-        Unit.Description = "Podman API service";
-        Unit.Requires = [ "podman.socket" ];
-        Service.Type = "exec";
-        Service.ExecStart = "${pkgs.podman}/bin/podman system service";
-        Service.Environment = "LOGGING=info";
-      };
+      # The rootless podman API socket used to be exposed here so traefik's
+      # docker provider could discover containers. Traefik now routes from a
+      # static file provider (see traefik.nix), and nothing else consumed the
+      # socket, so it is gone: an internet-facing process holding a
+      # container-runtime API was the single largest escalation path on this
+      # host.
 
       # Shared quadlet networks. Name is pinned so the literal podman network
-      # name matches what traefik.yml's `network: proxy` and the
-      # `traefik.docker.network=proxy` label expect.
-      virtualisation.quadlet.networks.proxy.networkConfig.name = "proxy";
-      virtualisation.quadlet.networks.postgres.networkConfig.name = "postgres";
+      # name matches the `proxy` service URLs in traefik's dynamic config.
+      virtualisation.quadlet.networks.proxy.networkConfig = {
+        name = "proxy";
+        subnets = [ "10.89.1.0/24" ];
+      };
+      virtualisation.quadlet.networks.postgres.networkConfig = {
+        name = "postgres";
+        subnets = [ "10.89.0.0/24" ];
+      };
     };
   };
 
-  # DNAT: redirect privileged 80/443 to the rootless traefik high ports.
-  # Rootless processes can't bind ports below 1024; this is how the pod
-  # user's traefik (8080/8443) receives public traffic.
-  networking.firewall.allowedTCPPorts = [
-    8080
-    8443
-  ];
+  # DNAT: redirect privileged 80/443 to the rootless Traefik high ports.
+  # The ports are not globally opened: source-specific rules admit Cloudflare
+  # and the AWS SNS delivery prefix before the standard NixOS reject rule. This
+  # preserves the peer IP until policy enforcement even though rootlessport
+  # hides it from Traefik.
   networking.firewall.extraCommands = ''
-    iptables -t nat -C PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 8080 2>/dev/null || \
-      iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 8080
-    iptables -t nat -C PREROUTING -p tcp --dport 443 -j REDIRECT --to-ports 8443 2>/dev/null || \
-      iptables -t nat -A PREROUTING -p tcp --dport 443 -j REDIRECT --to-ports 8443
-    iptables -t nat -C OUTPUT -o lo -p tcp --dport 80 -j REDIRECT --to-ports 8080 2>/dev/null || \
-      iptables -t nat -A OUTPUT -o lo -p tcp --dport 80 -j REDIRECT --to-ports 8080
-    iptables -t nat -C OUTPUT -o lo -p tcp --dport 443 -j REDIRECT --to-ports 8443 2>/dev/null || \
-      iptables -t nat -A OUTPUT -o lo -p tcp --dport 443 -j REDIRECT --to-ports 8443
+    ${proxyAllowRules}
+    iptables -w -t nat -D PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 8080 2>/dev/null || true
+    iptables -w -t nat -D PREROUTING -p tcp --dport 443 -j REDIRECT --to-ports 8443 2>/dev/null || true
+    iptables -w -t nat -C PREROUTING -m addrtype --dst-type LOCAL -p tcp --dport 80 -j REDIRECT --to-ports 8080 2>/dev/null || \
+      iptables -w -t nat -A PREROUTING -m addrtype --dst-type LOCAL -p tcp --dport 80 -j REDIRECT --to-ports 8080
+    iptables -w -t nat -C PREROUTING -m addrtype --dst-type LOCAL -p tcp --dport 443 -j REDIRECT --to-ports 8443 2>/dev/null || \
+      iptables -w -t nat -A PREROUTING -m addrtype --dst-type LOCAL -p tcp --dport 443 -j REDIRECT --to-ports 8443
+    iptables -w -t nat -C OUTPUT -o lo -p tcp --dport 80 -j REDIRECT --to-ports 8080 2>/dev/null || \
+      iptables -w -t nat -A OUTPUT -o lo -p tcp --dport 80 -j REDIRECT --to-ports 8080
+    iptables -w -t nat -C OUTPUT -o lo -p tcp --dport 443 -j REDIRECT --to-ports 8443 2>/dev/null || \
+      iptables -w -t nat -A OUTPUT -o lo -p tcp --dport 443 -j REDIRECT --to-ports 8443
   '';
   networking.firewall.extraStopCommands = ''
-    iptables -t nat -D PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 8080 || true
-    iptables -t nat -D PREROUTING -p tcp --dport 443 -j REDIRECT --to-ports 8443 || true
-    iptables -t nat -D OUTPUT -o lo -p tcp --dport 80 -j REDIRECT --to-ports 8080 || true
-    iptables -t nat -D OUTPUT -o lo -p tcp --dport 443 -j REDIRECT --to-ports 8443 || true
+    ${proxyRemoveRules}
+    iptables -w -t nat -D PREROUTING -m addrtype --dst-type LOCAL -p tcp --dport 80 -j REDIRECT --to-ports 8080 2>/dev/null || true
+    iptables -w -t nat -D PREROUTING -m addrtype --dst-type LOCAL -p tcp --dport 443 -j REDIRECT --to-ports 8443 2>/dev/null || true
+    iptables -w -t nat -D OUTPUT -o lo -p tcp --dport 80 -j REDIRECT --to-ports 8080 2>/dev/null || true
+    iptables -w -t nat -D OUTPUT -o lo -p tcp --dport 443 -j REDIRECT --to-ports 8443 2>/dev/null || true
   '';
 }

@@ -84,6 +84,7 @@ in
             {
               echo "Subject: [${config.networking.hostName}] $unit failed"
               echo "To: ${cfg.to}"
+              echo "From: ${config.mine.smtp.from}"
               echo
               echo "$unit failed on ${config.networking.hostName} at $(date -Is)."
               echo

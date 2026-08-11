@@ -1,6 +1,38 @@
 # __generated__ by OpenTofu
 # Please review these resources and move them into your main configuration files.
 
+locals {
+  chunkymonkey_cloudflare_sources = [
+    "173.245.48.0/20",
+    "103.21.244.0/22",
+    "103.22.200.0/22",
+    "103.31.4.0/22",
+    "141.101.64.0/18",
+    "108.162.192.0/18",
+    "190.93.240.0/20",
+    "188.114.96.0/20",
+    "197.234.240.0/22",
+    "198.41.128.0/17",
+    "162.158.0.0/15",
+    "104.16.0.0/13",
+    "104.24.0.0/14",
+    "172.64.0.0/13",
+    "131.0.72.0/22",
+  ]
+  # AWS-owned, non-EC2 ca-central-1 service prefix used by SNS HTTPS delivery.
+  chunkymonkey_sns_sources = ["52.94.80.0/20"]
+  chunkymonkey_proxy_ingress = merge(
+    {
+      for pair in setproduct(toset(local.chunkymonkey_cloudflare_sources), toset([80, 443])) :
+      "${pair[0]}:${pair[1]}" => { source = pair[0], port = pair[1] }
+    },
+    {
+      for source in toset(local.chunkymonkey_sns_sources) :
+      "${source}:443" => { source = source, port = 443 }
+    },
+  )
+}
+
 # __generated__ by OpenTofu from "ocid1.vcn.oc1.ca-toronto-1.amaaaaaanvwzxkqajgltohabkxvuk3skooqmllqve3vxsokezi4ingzclrta"
 resource "oci_core_vcn" "chunkymonkey" {
   cidr_block     = "10.0.0.0/16"
@@ -102,26 +134,21 @@ resource "oci_core_security_list" "chunkymonkey" {
   # host that holds financial data.
   # Recovery if the tailnet is ever unavailable: OCI serial console, or
   # re-adding this rule from the OCI web console.
-  ingress_security_rules {
-    description = "HTTP"
-    protocol    = "6"
-    source      = "0.0.0.0/0"
-    source_type = "CIDR_BLOCK"
-    stateless   = false
-    tcp_options {
-      min = 80
-      max = 80
-    }
-  }
-  ingress_security_rules {
-    description = "HTTPS"
-    protocol    = "6"
-    source      = "0.0.0.0/0"
-    source_type = "CIDR_BLOCK"
-    stateless   = false
-    tcp_options {
-      min = 443
-      max = 443
+  # Defense in depth for the matching NixOS host firewall. Public browser
+  # traffic must traverse Cloudflare; the only direct route is the exact,
+  # signature-verified SNS webhook from AWS's service-owned prefix.
+  dynamic "ingress_security_rules" {
+    for_each = local.chunkymonkey_proxy_ingress
+    content {
+      description = ingress_security_rules.value.port == 80 ? "Proxy HTTP" : "Proxy HTTPS"
+      protocol    = "6"
+      source      = ingress_security_rules.value.source
+      source_type = "CIDR_BLOCK"
+      stateless   = false
+      tcp_options {
+        min = ingress_security_rules.value.port
+        max = ingress_security_rules.value.port
+      }
     }
   }
 }
@@ -233,7 +260,7 @@ resource "oci_core_instance" "chunkymonkey" {
     vlan_id                = ""
   }
   instance_options {
-    are_legacy_imds_endpoints_disabled = false
+    are_legacy_imds_endpoints_disabled = true
   }
   launch_options {
     boot_volume_type                    = "PARAVIRTUALIZED"
@@ -259,5 +286,9 @@ resource "oci_core_instance" "chunkymonkey" {
     kms_key_id                      = ""
     source_id                       = "ocid1.image.oc1.ca-toronto-1.aaaaaaaav4b5wgn6jyzz2wj4n6vbrfp4qxyxjjg3z5u7cyziypsw2hbcrm3a"
     source_type                     = "image"
+  }
+
+  lifecycle {
+    prevent_destroy = true
   }
 }
