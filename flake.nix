@@ -128,7 +128,6 @@
               inputs.agenix.packages.${system}.default
               inputs.age-plugin-1p.packages.${system}.age
               inputs.age-plugin-1p.packages.${system}.age-plugin-1p
-              _1password-cli
 
               awscli2
               wireguard-tools
