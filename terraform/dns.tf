@@ -28,6 +28,79 @@ resource "cloudflare_dns_record" "A-trmnl" {
   type    = "A"
   name    = "trmnl"
   content = "192.18.149.148"
+  proxied = true
+  ttl     = 1
+}
+
+# Both services on chunkymonkey are proxied. The host firewall admits only
+# Cloudflare source ranges to the shared origin ports, so the known origin IP
+# cannot bypass edge policy. Certificates use Cloudflare DNS-01.
+resource "cloudflare_dns_record" "A-billing" {
+  zone_id = cloudflare_zone.main.id
+  type    = "A"
+  name    = "billing"
+  content = "192.18.149.148"
+  proxied = true
+  ttl     = 1
+}
+
+# SNS delivery through Cloudflare is unreliable for signed notification bodies.
+# This direct hostname exposes only the exact webhook route, while the host
+# firewall admits AWS's non-EC2 ca-central-1 service prefix and rejects everyone
+# else. The application still verifies each SNS signature and TopicArn.
+resource "cloudflare_dns_record" "A-billing-sns" {
+  zone_id = cloudflare_zone.main.id
+  type    = "A"
+  name    = "billing-sns"
+  content = "192.18.149.148"
+  proxied = false
+  ttl     = 1
+}
+
+## Amazon SES (ca-central-1) - outbound mail for Invoice Ninja
+#
+# Explicit records are required here because the CNAME-www-wildcard record above
+# otherwise answers for every unclaimed name under the zone, which would shadow
+# both the DKIM lookups and the custom MAIL FROM domain.
+#
+# The domain identity, Easy DKIM, custom MAIL FROM, and SES production access
+# are active in ca-central-1.
+
+# Easy DKIM: SES publishes the signing keys, we just point at them.
+resource "cloudflare_dns_record" "ses-dkim" {
+  for_each = toset([
+    "hjyo62rwk7fb2ywit2qaganbbcnk72pt",
+    "ftur4fvj43xm7fksgbdin4gnephaiwil",
+    "ecwfutngstrlhv7t2537gx5k2vj2mqjp",
+  ])
+
+  zone_id = cloudflare_zone.main.id
+  type    = "CNAME"
+  name    = "${each.key}._domainkey"
+  content = "${each.key}.dkim.amazonses.com"
+  comment = "Amazon SES Easy DKIM"
+  proxied = false
+  ttl     = 1
+}
+
+# Custom MAIL FROM domain, so the envelope sender aligns with denys.me for SPF
+# rather than falling back to amazonses.com.
+resource "cloudflare_dns_record" "ses-mail-from-MX" {
+  zone_id  = cloudflare_zone.main.id
+  type     = "MX"
+  name     = "mail"
+  content  = "feedback-smtp.ca-central-1.amazonses.com"
+  priority = 10
+  comment  = "Amazon SES custom MAIL FROM (bounce/complaint feedback)"
+  ttl      = 1
+}
+
+resource "cloudflare_dns_record" "ses-mail-from-SPF" {
+  zone_id = cloudflare_zone.main.id
+  type    = "TXT"
+  name    = "mail"
+  content = "v=spf1 include:amazonses.com -all"
+  comment = "Amazon SES custom MAIL FROM SPF"
   proxied = false
   ttl     = 1
 }

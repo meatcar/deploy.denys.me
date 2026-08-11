@@ -11,10 +11,6 @@ let
 
   # Provisioning script: creates the larapaper pg role + db idempotently.
   # Runs inside a postgres:alpine init container on the postgres network.
-  # Notes:
-  #   - \$do\$ escapes the $do$ dollar-quoting so bash heredoc doesn't expand $do
-  #   - $USER_PASSWORD IS expanded by the shell (that's intentional)
-  #   - "UNICODE" uses SQL identifier quoting to avoid Nix ''..'' string issues
   initScript = pkgs.writeShellScript "larapaper-initdb" ''
     set -euo pipefail
     export PGPASSWORD
@@ -26,16 +22,9 @@ let
       sleep 2
     done
 
-    psql --host postgres --username postgres <<EOSQL
-      DO \$do\$
-      BEGIN
-        IF EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'larapaper') THEN
-          RAISE NOTICE 'Role "larapaper" already exists. Skipping.';
-        ELSE
-          CREATE ROLE larapaper LOGIN PASSWORD '$USER_PASSWORD';
-        END IF;
-      END
-      \$do\$;
+    psql --host postgres --username postgres --set=user_password="$USER_PASSWORD" <<'EOSQL'
+      SELECT format('CREATE ROLE larapaper LOGIN PASSWORD %L', :'user_password')
+      WHERE NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'larapaper')\gexec
 
       SELECT 'CREATE DATABASE larapaper ENCODING "UNICODE"'
       WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'larapaper')\gexec
@@ -106,7 +95,7 @@ in
           APP_URL = "https://trmnl.denys.me";
           APP_TIMEZONE = "America/Toronto";
           FORCE_HTTPS = "true"; # Traefik terminates TLS
-          TRUSTED_PROXIES = "*"; # trust the proxy network for correct scheme/host
+          TRUSTED_PROXIES = "10.89.1.0/24";
           DB_CONNECTION = "pgsql";
           DB_HOST = "postgres"; # resolved via podman DNS on the postgres network
           DB_PORT = "5432";
@@ -125,17 +114,16 @@ in
           podCfg.networks.postgres.ref
           podCfg.networks.proxy.ref
         ];
-        # Traefik discovers this container via the pod user's podman socket.
-        labels = {
-          "traefik.enable" = "true";
-          "traefik.docker.network" = "proxy";
-          "traefik.http.routers.larapaper.rule" = "Host(`trmnl.denys.me`)";
-          "traefik.http.routers.larapaper.entrypoints" = "websecure";
-          "traefik.http.routers.larapaper.tls.certresolver" = "le";
-          "traefik.http.services.larapaper.loadbalancer.server.port" = "8080";
-        };
+        # Routed by traefik's file provider (see traefik.nix) as
+        # http://larapaper:8080. Traefik no longer reads container labels,
+        # because it no longer has access to the podman API.
       };
-      serviceConfig.Restart = "on-failure";
+      serviceConfig = {
+        Restart = "on-failure";
+        # Steady state sits around 175M; leave room for PHP request spikes.
+        MemoryHigh = "512M";
+        MemoryMax = "768M";
+      };
     };
   };
 

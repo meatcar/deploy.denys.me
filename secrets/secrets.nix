@@ -37,4 +37,10 @@ in
   "chunkymonkey-postgres-pass.age" = { inherit (keys.chunkymonkey) publicKeys; };
   "larapaperPgPass.age" = { inherit (keys.chunkymonkey) publicKeys; };
   "larapaperEnv.age" = { inherit (keys.chunkymonkey) publicKeys; };
+  "chunkymonkey-mysql-root-pass.age" = { inherit (keys.chunkymonkey) publicKeys; };
+  "invoiceninjaEnv.age" = { inherit (keys.chunkymonkey) publicKeys; };
+  "invoiceninjaSesEnv.age" = { inherit (keys.chunkymonkey) publicKeys; };
+  "chunkymonkey-ses-smtp-user.age" = { inherit (keys.chunkymonkey) publicKeys; };
+  "chunkymonkey-ses-smtp-pass.age" = { inherit (keys.chunkymonkey) publicKeys; };
+  "chunkymonkey-cloudflare-token.age" = { inherit (keys.chunkymonkey) publicKeys; };
 }
