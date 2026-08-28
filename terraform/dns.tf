@@ -176,6 +176,38 @@ resource "cloudflare_dns_record" "parked-wildcard-CNAME" {
   ttl     = 1
 }
 
+## Amp custom domain
+
+resource "cloudflare_dns_record" "amp-verification" {
+  zone_id = data.cloudflare_zone.parked["pvlv.ca"].id
+  type    = "TXT"
+  name    = "_amp-challenge.amp.pvlv.ca"
+  content = "amp-domain-verification=d991575b865348a28111dd90daac29414464a9719485440b81048a88d2728ba1"
+  comment = "Amp custom-domain ownership verification"
+  proxied = false
+  ttl     = 1
+}
+
+resource "cloudflare_dns_record" "amp-A" {
+  zone_id = data.cloudflare_zone.parked["pvlv.ca"].id
+  type    = "A"
+  name    = "amp.pvlv.ca"
+  content = "34.49.94.208"
+  comment = "Amp custom domain"
+  proxied = false
+  ttl     = 1
+}
+
+resource "cloudflare_dns_record" "amp-wildcard-A" {
+  zone_id = data.cloudflare_zone.parked["pvlv.ca"].id
+  type    = "A"
+  name    = "*.amp.pvlv.ca"
+  content = "34.49.94.208"
+  comment = "Amp custom-domain wildcard"
+  proxied = false
+  ttl     = 1
+}
+
 resource "cloudflare_dns_record" "parked-MX1" {
   for_each = toset(var.parked_domains)
 
