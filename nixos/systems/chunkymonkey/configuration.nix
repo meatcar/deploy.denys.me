@@ -12,6 +12,7 @@
     ../../modules/oracle-cloud.nix
     ../../modules/base.nix
     ../../modules/tailscale.nix
+    ../../modules/netbird.nix
     ../../modules/docker.nix # still needed: transit-dashboard runs on docker
     ../../modules/quadlets # default.nix wires pod user + all quadlet services
     ../../modules/zfs.nix
@@ -24,6 +25,7 @@
 
   mine = {
     username = "meatcar";
+    cliProxyApi.deploymentFile = ./cli-proxy-api.json;
     smtp = {
       host = "email-smtp.ca-central-1.amazonaws.com";
       from = "billing@denys.me";
@@ -43,13 +45,13 @@
 
   boot.initrd.systemd.enable = true;
 
-  # Administrative SSH is available only over the tailnet. OCI no longer
-  # exposes public TCP/22; keep the host firewall aligned with that boundary.
+  # NOTE: Keep both VPN access paths during the NetBird trial.
   services.openssh = {
     openFirewall = false;
     settings.PermitRootLogin = "no";
   };
   networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ 22 ];
+  networking.firewall.interfaces.wt0.allowedTCPPorts = [ 22 ];
 
   # No swap device on this host, so a memory spike goes straight to earlyoom
   # picking a victim. Compressed swap gives the kernel somewhere to put cold

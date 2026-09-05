@@ -37,9 +37,11 @@ let
           # network path before Traefik consumes forwarded headers.
           trustedIPs:
             - 10.89.1.0/24
+      netbird:
+        address: ":9443"
     providers:
       file:
-        filename: /etc/traefik/dynamic.yml
+        directory: /etc/traefik/dynamic
     certificatesResolvers:
       le-dns:
         acme:
@@ -141,10 +143,11 @@ in
       publishPorts = [
         "8080:80"
         "8443:443"
+        "9443:9443"
       ];
       volumes = [
         "${traefikConfig}:/etc/traefik/traefik.yml:ro"
-        "${traefikDynamicConfig}:/etc/traefik/dynamic.yml:ro"
+        "${traefikDynamicConfig}:/etc/traefik/dynamic/main.yml:ro"
         "${persistDir}/acme.json:/acme.json"
         # DNS-01 credential. Mounted as a file and referenced by *_FILE so the
         # token never lands in the container's environment or in the nix store.

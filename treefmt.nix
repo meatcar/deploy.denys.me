@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 {
   projectRootFile = "flake.nix";
   programs = {
@@ -6,7 +6,11 @@
     nixfmt.package = pkgs.nixfmt;
     statix.enable = true;
     deadnix.enable = true;
+    ruff-format.enable = true;
+    ruff-check.enable = true;
   };
+  settings.formatter.ruff-format.includes = lib.mkForce [ "packages/**/*.py" ];
+  settings.formatter.ruff-check.includes = lib.mkForce [ "packages/**/*.py" ];
   settings.global.excludes = [
     "flake.lock"
     "*.age"

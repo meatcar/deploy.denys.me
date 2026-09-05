@@ -58,6 +58,7 @@ in
     ./postgres.nix
     ./larapaper.nix
     ./invoiceninja.nix
+    ./cli-proxy-api
   ];
 
   # Dedicated, unprivileged service user that owns the rootless podman session.

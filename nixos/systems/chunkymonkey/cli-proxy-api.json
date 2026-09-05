@@ -1,0 +1,11 @@
+{
+  "ssh_host": "chunkymonkey.fish-hydra.ts.net",
+  "service_user": "pod",
+  "runtime_directory": "/run/user/2000",
+  "state_directory": "/persist/cli-proxy-api",
+  "public_host": "cpa.pvlv.ca",
+  "management_host": "cpa.vpn.denys.me",
+  "secret_mount": "kv",
+  "inference_secret_path": "github/meatcar/deploy.denys.me/dev/cli-proxy-api",
+  "admin_secret_path": "github/meatcar/deploy.denys.me/prod/cli-proxy-api/manager-admin"
+}

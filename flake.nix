@@ -13,6 +13,10 @@
       url = "github:serokell/deploy-rs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     age-plugin-1p.url = "github:Enzime/age-plugin-1p";
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
@@ -67,6 +71,7 @@
       let
         pkgs = import inputs.nixpkgs (nixpkgs // { inherit system; });
         treefmtEval = inputs.treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
+        cliProxyApi = import ./packages/cli-proxy-api/package.nix { inherit pkgs; };
         scripts = [
           (pkgs.writeShellScriptBin "terraform" ''
             exec ${pkgs.opentofu}/bin/tofu "$@"
@@ -113,15 +118,114 @@
       in
       {
         formatter = treefmtEval.config.build.wrapper;
-        checks.treefmt = treefmtEval.config.build.check self;
-        packages = inputs.nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
-          doImage = self.nixosConfigurations.doImage.config.system.build.image;
+        checks = {
+          treefmt = treefmtEval.config.build.check self;
+        }
+        // inputs.nixpkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
+          cli-proxy-isolation = import ./nixos/modules/quadlets/cli-proxy-api/isolation-test.nix {
+            inherit pkgs;
+          };
+          vpn-coexistence =
+            let
+              hosts = map (name: self.nixosConfigurations.${name}.config) [
+                "chunkymonkey"
+                "cube"
+                "vps"
+              ];
+            in
+            assert builtins.all (
+              host:
+              let
+                netbird = host.services.netbird.clients.default;
+              in
+              host.services.tailscale.enable
+              && netbird.port == 51822
+              && netbird.interface == "wt0"
+              && !netbird.openInternalFirewall
+              && netbird.config.DisableDNS
+              && netbird.config.DisableClientRoutes
+              && netbird.config.DisableServerRoutes
+              && !netbird.config.ServerSSHAllowed
+            ) hosts;
+            assert self.nixosConfigurations.chunkymonkey.config.virtualisation.docker.enable;
+            assert
+              self.nixosConfigurations.chunkymonkey.config.networking.firewall.interfaces.tailscale0.allowedTCPPorts
+              == [ 22 ];
+            pkgs.runCommand "vpn-coexistence" { } "touch $out";
+          cli-proxy-api = cliProxyApi;
+          vpn-isolation = import ./nixos/systems/vpn/isolation-test.nix { inherit pkgs; };
+          bao-vps =
+            let
+              bao = self.nixosConfigurations.baoVps.config;
+            in
+            assert bao.boot.loader.grub.devices == [ "/dev/sda" ];
+            assert bao.disko.devices.disk.system.device == "/dev/sda";
+            assert !bao.systemd.services.openstack-init.enable;
+            assert !bao.systemd.services.apply-ec2-data.enable;
+            assert !bao.virtualisation.amazon-init.enable;
+            assert bao.services.netbird.clients.default.config.ManagementURL.Host == "api.netbird.io:443";
+            assert bao.networking.firewall.allowedTCPPorts == [ 22 ];
+            assert bao.networking.firewall.interfaces.wt0.allowedTCPPorts == [ 443 ];
+            assert bao.services.openbao.settings.listener.private.address == "10.201.219.143:443";
+            assert bao.services.openbao.settings.api_addr == "https://bao.vpn.denys.me";
+            assert bao.systemd.services.openbao.serviceConfig.AmbientCapabilities == [ "CAP_NET_BIND_SERVICE" ];
+            assert !bao.systemd.services.openbao.serviceConfig.PrivateUsers;
+            assert builtins.elem "AF_NETLINK"
+              bao.systemd.services.openbao.serviceConfig.RestrictAddressFamilies;
+            assert
+              bao.users.users.root.openssh.authorizedKeys.keys == [
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBcq01gh2tn/+hcm75N3LnS003mUBjXcT6qNndMhObPO me@onepassword"
+              ];
+            pkgs.runCommand "bao-vps" { } "touch $out";
+          vpn-host-separation =
+            let
+              vpn = self.nixosConfigurations.vpn.config;
+              bao = self.nixosConfigurations.bao.config;
+            in
+            assert !vpn.services.openbao.enable;
+            assert !vpn.services.netbird.enable;
+            assert vpn.services.traefik.enable;
+            assert bao.services.openbao.enable;
+            assert bao.services.netbird.enable;
+            assert !bao.services.traefik.enable;
+            assert bao.virtualisation.oci-containers.containers == { };
+            assert bao.networking.firewall.allowedTCPPorts == [ 22 ];
+            assert bao.networking.firewall.interfaces.wt0.allowedTCPPorts == [ 443 ];
+            assert !(builtins.elem "/var/lib/openbao/audit.log" vpn.services.restic.backups.vpn.paths);
+            pkgs.runCommand "vpn-host-separation" { } "touch $out";
         };
+        packages =
+          inputs.nixpkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
+            cli-proxy-api-ops = cliProxyApi;
+          }
+          // inputs.nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
+            doImage = self.nixosConfigurations.doImage.config.system.build.image;
+            vpnImage = self.nixosConfigurations.vpn.config.system.build.images.openstack;
+            baoImage = self.nixosConfigurations.bao.config.system.build.images.openstack;
+            baoInstaller = pkgs.nixos-anywhere.overrideAttrs (old: {
+              # NOTE: Upstream disables host verification before applying CLI SSH options.
+              # see https://github.com/nix-community/nixos-anywhere/issues/552
+              postPatch = (old.postPatch or "") + ''
+                substituteInPlace src/nixos-anywhere.sh \
+                  --replace-fail 'UserKnownHostsFile=/dev/null' 'UserKnownHostsFile=''${NIXOS_ANYWHERE_KNOWN_HOSTS:-$HOME/.ssh/known_hosts}' \
+                  --replace-fail 'StrictHostKeyChecking=no' 'StrictHostKeyChecking=yes'
+              '';
+            });
+          };
 
         devShells.default = pkgs.mkShell {
           name = "deploy.denys.me";
+          CLI_PROXY_API_CONFIG = toString ./nixos/systems/chunkymonkey/cli-proxy-api.json;
+          CLI_PROXY_API_TEST_SETTINGS = builtins.toJSON (
+            import ./nixos/modules/quadlets/cli-proxy-api/settings.nix {
+              publicHost = "api.example.test";
+              bridgeVersion =
+                (import ./nixos/modules/quadlets/cli-proxy-api/images.nix { inherit pkgs; }).bridge.version;
+            }
+          );
           buildInputs =
             scripts
+            ++ [ cliProxyApi ]
             ++ (with pkgs; [
               nil
               nixd
@@ -130,12 +234,18 @@
               inputs.age-plugin-1p.packages.${system}.age-plugin-1p
 
               awscli2
+              openbao
               wireguard-tools
               jq
               flyctl
               railway
               oci-cli
               tflint
+              python3
+              python3Packages.pytest
+              ruff
+              python3Packages.python-openstackclient
+              shellcheck
 
               deploy-rs
             ]);
@@ -144,6 +254,21 @@
     )
     // {
       nixosConfigurations = {
+        vpn = inputs.nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          modules = [ ./nixos/systems/vpn/configuration.nix ];
+        };
+        bao = inputs.nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          modules = [ ./nixos/systems/bao/configuration.nix ];
+        };
+        baoVps = inputs.nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          modules = [
+            inputs.disko.nixosModules.disko
+            ./nixos/systems/bao/vps.nix
+          ];
+        };
         doImage = inputs.nixpkgs.lib.nixosSystem {
           inherit specialArgs;
           system = "x86_64-linux";
@@ -196,6 +321,18 @@
         fastConnection = true;
 
         nodes = {
+          vpn = {
+            hostname = "vpn.denys.me";
+            sshUser = "root";
+            profiles.system.path = inputs.deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.vpn;
+            remoteBuild = false;
+          };
+          bao = {
+            hostname = "bao.vpn.denys.me";
+            sshUser = "root";
+            profiles.system.path = inputs.deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.bao;
+            remoteBuild = false;
+          };
           chunkymonkey = {
             hostname = "chunkymonkey.fish-hydra.ts.net";
             profiles.system.path = inputs.deploy-rs.lib.aarch64-linux.activate.nixos self.nixosConfigurations.chunkymonkey;

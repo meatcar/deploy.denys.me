@@ -1,0 +1,103 @@
+# Terraform operations
+
+Run every command in `nix develop`. Each root has separate S3 state. Always
+inspect a saved plan and get approval before applying it.
+
+```sh
+terraform -chdir=terraform/<root> init
+terraform -chdir=terraform/<root> plan -out=change.tfplan
+terraform -chdir=terraform/<root> apply change.tfplan
+```
+
+Use the current AWS profile and `aws sso login --profile "$AWS_PROFILE"` for
+backend access. OpenBao's Terraform provider also uses that SSO session. The
+Bao 2.5.4 CLI cannot log in with AWS; use userpass for CLI work.
+
+## Hosted NetBird
+
+Set `NB_PAT` in the environment. Never put it in HCL, tfvars, shell history, or
+command output. Before changing `terraform/netbird`, verify live peer IDs,
+complete group membership, policies, and DNS in the hosted account. Peer names
+are not identities.
+
+Keep `bao-server` limited to the Bao peer and preserve every approved
+`bao-admins` and `cpa-admins` member. Review account-wide policies because they
+can bypass narrower service policies. The CPA policy needs TCP 443 and 9443:
+NetBird filters both before and after the host redirect. It grants no SSH.
+
+Private CPA DNS must resolve `cpa.vpn.denys.me` to the enrolled server. Clients
+must accept NetBird DNS. Do not create an overlapping `vpn.denys.me` zone.
+Tailscale remains operational; NetBird changes must not remove or replace it.
+
+Use an ignored `terraform/netbird/adoption.tfvars` for provider IDs when
+reconciling existing objects. Never use a broad apply to fix an import error.
+`prevent_destroy` does not prevent an in-place membership or policy change.
+
+## Purchased OVH VPS
+
+`terraform/ovh-vps` owns the purchased VPS record.
+
+Supply `OVH_APPLICATION_KEY`, `OVH_APPLICATION_SECRET`, and
+`OVH_CONSUMER_KEY` through the environment. Scope credentials to
+`GET /auth/details` and `GET /vps/vps-5c07e980.vps.ovh.ca` where possible.
+Keep `plan = []`; changing purchase, image, SSH-key, or plan-option fields can
+reinstall the server or alter its service. NixOS owns the OS and SSH keys.
+
+## OpenBao configuration
+
+Reach `https://bao.vpn.denys.me` through NetBird. Normal Terraform plans
+use AWS SSO. Keep the existing userpass account for recovery. Do not replace the
+auth mount or loosen the exact trusted AWS SSO role to a wildcard.
+
+OpenBao bootstrap is complete. Do not rerun `initialize_bao`, recreate the AWS
+auth setup, or reinitialize the database. The backup token, password, recovery
+shares, runtime IAM keys, and application passwords stay outside Terraform.
+See the [Bao host runbook](../../nixos/systems/bao/README.md) for first-install
+and recovery procedures.
+
+## Railway
+
+Set `RAILWAY_TOKEN` in the environment. `terraform/railway` owns the existing
+Paseo project, production service, domain binding, replicas, and listed
+non-secret variables. Variable changes redeploy the service and require
+deployment approval. The provider does not own health checks, restart policy,
+serverless mode, or CPU and memory limits; preserve those through the Railway
+settings documented in the [Paseo runbook](../../railway/paseo-relay/README.md).
+
+Do not print provider debug logs or raw API responses. The provider fetches the
+full variable map even though state owns only selected non-secret values.
+
+## Ownership and safety boundaries
+
+- `terraform/bao` uses AWS without contacting Bao, so recovery infrastructure
+  remains manageable while Bao is offline. `terraform/bao-config` requires
+  the private Bao API. Keep these states separate.
+- `terraform/ovh-vps` isolates the purchased server and OVH credentials from
+  routine AWS and Bao administration.
+- NixOS owns host networking, firewalls, containers, ACME, audit logging, and backups.
+- Initialization, installation, OAuth enrollment, setup keys, and recovery material stay outside state.
+- Cloudflare DNS-01 credential changes require separate review.
+- `terraform/www.tf` forgets the retired provisioner without destroying or rebooting the droplet.
+- Keep `flyio/fly.toml`; Fly.io retired its Terraform provider.
+- No OIDC trust or orb-to-Bao connectivity is installed.
+
+## Offline checks
+
+Initialize providers without a backend, then validate each root:
+
+```sh
+for root in netbird ovh-vps bao-config railway bao; do
+  terraform -chdir=terraform/$root init -backend=false
+  terraform -chdir=terraform/$root fmt -check
+  terraform -chdir=terraform/$root validate
+done
+```
+
+Run the mocked-provider tests with the moved runner:
+
+```sh
+nix develop --command bash terraform/tests/run.sh
+```
+
+These checks do not prove that a live plan is safe. Review the live plan and
+perform a post-apply access check from an authorized NetBird client.

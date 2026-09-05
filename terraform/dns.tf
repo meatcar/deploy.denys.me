@@ -32,6 +32,49 @@ resource "cloudflare_dns_record" "A-trmnl" {
   ttl     = 1
 }
 
+data "cloudflare_zone" "pvlv" {
+  filter = {
+    name = "pvlv.ca"
+  }
+}
+
+resource "cloudflare_dns_record" "A-cli-proxy-api" {
+  zone_id = data.cloudflare_zone.pvlv.id
+  type    = "A"
+  name    = "cpa"
+  content = "192.18.149.148"
+  proxied = true
+  ttl     = 1
+}
+
+resource "cloudflare_dns_record" "TXT-vpn-private" {
+  zone_id = cloudflare_zone.main.id
+  type    = "TXT"
+  name    = "*.vpn"
+  content = "private-netbird-only"
+  comment = "Prevent public wildcard address resolution under vpn.denys.me"
+  proxied = false
+  ttl     = 300
+}
+
+resource "cloudflare_ruleset" "pvlv_configuration" {
+  zone_id = data.cloudflare_zone.pvlv.id
+  name    = "pvlv.ca configuration"
+  kind    = "zone"
+  phase   = "http_config_settings"
+
+  rules = [{
+    ref         = "cpa_strict_tls"
+    description = "Verify Traefik TLS for CLIProxyAPI"
+    expression  = "http.host eq \"cpa.pvlv.ca\""
+    action      = "set_config"
+    enabled     = true
+    action_parameters = {
+      ssl = "strict"
+    }
+  }]
+}
+
 # Both services on chunkymonkey are proxied. The host firewall admits only
 # Cloudflare source ranges to the shared origin ports, so the known origin IP
 # cannot bypass edge policy. Certificates use Cloudflare DNS-01.

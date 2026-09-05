@@ -12,6 +12,7 @@
     ../../modules/backups.nix
     ../../modules/wireguard-server.nix
     ../../modules/tailscale.nix
+    ../../modules/netbird.nix
     ../../modules/acme.nix
     ../../modules/mumble.nix
     ../../modules/znc.nix

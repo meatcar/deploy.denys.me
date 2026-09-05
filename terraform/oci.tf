@@ -127,13 +127,21 @@ resource "oci_core_security_list" "chunkymonkey" {
       type = 3
     }
   }
-  # Public SSH ingress intentionally removed. Administration and `deploy-sh`
-  # both reach this host over Tailscale (verified: sshd sessions arrive on the
-  # 100.64.0.0/10 tailnet address, which does not traverse this security list),
-  # so exposing 22 to 0.0.0.0/0 only added brute-force surface in front of a
-  # host that holds financial data.
-  # Recovery if the tailnet is ever unavailable: OCI serial console, or
+  # Public SSH ingress intentionally removed. Administration reaches this host
+  # over Tailscale or NetBird. Public TCP/22 remains closed.
+  # Recovery if both VPNs are unavailable: OCI serial console, or
   # re-adding this rule from the OCI web console.
+  ingress_security_rules {
+    description = "NetBird direct peer traffic"
+    protocol    = "17"
+    source      = "0.0.0.0/0"
+    source_type = "CIDR_BLOCK"
+    stateless   = false
+    udp_options {
+      min = 51822
+      max = 51822
+    }
+  }
   # Defense in depth for the matching NixOS host firewall. Public browser
   # traffic must traverse Cloudflare; the only direct route is the exact,
   # signature-verified SNS webhook from AWS's service-owned prefix.

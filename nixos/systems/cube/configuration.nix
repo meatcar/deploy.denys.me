@@ -10,6 +10,7 @@
     ../../modules/base.nix
     ../../modules/zfs.nix
     ../../modules/tailscale-exit-node.nix
+    ../../modules/netbird.nix
     ../../modules/smtp.nix
     ../../modules/smartd.nix
     ../../modules/acme.nix

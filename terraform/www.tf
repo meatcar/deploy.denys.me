@@ -7,28 +7,10 @@ resource "digitalocean_droplet" "www" {
   ssh_keys = [var.ssh_fingerprint]
 }
 
-resource "null_resource" "nixos_set_channel" {
-  connection {
-    host    = digitalocean_droplet.www.ipv4_address
-    user    = "root"
-    type    = "ssh"
-    timeout = "2m"
-    agent   = "true"
-  }
+removed {
+  from = null_resource.nixos_set_channel
 
-  provisioner "remote-exec" {
-    inline = [
-      "nix-channel --remove nixos",
-      "nix-channel --add https://nixos.org/channels/nixos-22.05 nixos",
-      "nix-channel --update"
-    ]
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "echo rebooting",
-      "reboot"
-    ]
-    on_failure = continue
+  lifecycle {
+    destroy = false
   }
 }

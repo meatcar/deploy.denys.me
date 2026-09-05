@@ -13,6 +13,7 @@
 }:
 let
   persistPath = config.mine.persistPath;
+  cliProxyApi = builtins.fromJSON (builtins.readFile config.mine.cliProxyApi.deploymentFile);
   # Rootless podman named-volume _data path under the pod home.
   # Verify after first deploy: runuser -u pod -- podman volume inspect larapaper-storage --format '{{.Mountpoint}}'
   volumeData = name: "${persistPath}/pod/.local/share/containers/storage/volumes/${name}/_data";
@@ -20,6 +21,8 @@ let
   invoiceninjaStorageData = volumeData "invoiceninja-storage";
 in
 {
+  mine.cliProxyApi.backupFile = "${persistPath}/dumps/cli-proxy-api.tar";
+
   services.restic.backups.persist = {
     # Refresh the DB dump synchronously *before* the snapshot. Previously the
     # pg-dump@ timer fired after restic (restic at 00:00, dump at 00:00+30min
@@ -35,6 +38,7 @@ in
       set -eu
       ${pkgs.systemd}/bin/systemctl --machine=pod@.host --user start --wait pg-dump@larapaper.service
       ${pkgs.systemd}/bin/systemctl --machine=pod@.host --user start --wait mysql-dump@invoiceninja.service
+      ${pkgs.systemd}/bin/systemctl --machine=${lib.escapeShellArg "${cliProxyApi.service_user}@.host"} --user start --wait cli-proxy-api-backup.service
     '';
     # The VPS shares this restic repository and runs at the module default
     # (OnCalendar=daily, i.e. 00:00 with no jitter), so overlapping runs would
@@ -51,14 +55,16 @@ in
     # deliberately absent, because a file-level copy of a live datadir restores
     # to a torn, possibly unusable state.
     paths = lib.mkForce [
-      "${persistPath}/dumps" # pg_dump + mysqldump output, refreshed by backupPrepareCommand
+      "${persistPath}/dumps" # Prepared database dumps and CLIProxyAPI archive
       larapaperStorageData # generated TRMNL screen images (regenerated; best-effort)
       invoiceninjaStorageData # uploaded documents, logos, generated PDFs: NOT regenerable
-      "${persistPath}/transit-dashboard/tailscale" # node identity; restoring it avoids re-authentication
+      "${persistPath}/transit-dashboard/tailscale" # retained during the NetBird trial
+      "/var/lib/netbird-default" # NetBird node identity; restoring it avoids re-enrollment
       "${persistPath}/traefik" # acme.json (LE certificates)
     ];
     # Exclude everything else under the pod home (podman image graph is large).
     exclude = [
+      "${persistPath}/dumps/.cli-proxy-api-*"
       "${persistPath}/pod/.local/share/containers/storage/overlay*"
       "${persistPath}/pod/.local/share/containers/storage/cache"
       "${persistPath}/pod/.local/share/containers/storage/tmp"
