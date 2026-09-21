@@ -23,7 +23,7 @@ Plan infrastructure with `terragrunt --working-dir terraform run --all -- plan`.
 - `nixos/`: host and service configuration
 - `terraform/`: infrastructure split into independent state roots
 - `packages/cli-proxy-api/`: CLIProxyAPI administration commands and tests
-- `packer/`, `flyio/`, `railway/`: platform-specific configuration
+- `packer/`, `railway/`: platform-specific configuration
 - `docs/runbooks/`: operator procedures
 - `docs/design/`: durable design decisions
 

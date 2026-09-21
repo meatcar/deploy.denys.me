@@ -99,7 +99,6 @@ full variable map even though state owns only selected non-secret values.
 - Initialization, installation, OAuth enrollment, setup keys, and recovery material stay outside state.
 - Cloudflare DNS-01 credential changes require separate review.
 - `terraform/www.tf` forgets the retired provisioner without destroying or rebooting the droplet.
-- Keep `flyio/fly.toml`; Fly.io retired its Terraform provider.
 - No OIDC trust or orb-to-Bao connectivity is installed.
 
 ## Offline checks
