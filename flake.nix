@@ -72,49 +72,6 @@
         pkgs = import inputs.nixpkgs (nixpkgs // { inherit system; });
         treefmtEval = inputs.treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
         cliProxyApi = import ./packages/cli-proxy-api/package.nix { inherit pkgs; };
-        scripts = [
-          (pkgs.writeShellScriptBin "terraform" ''
-            exec ${pkgs.opentofu}/bin/tofu "$@"
-          '')
-          (pkgs.writeShellScriptBin "deploy-sh" ''
-            FLAKE="$1"; shift 1
-            REMOTE_HOST=
-            REMOTE_OPTS= # opts to pass to nixos-rebuild
-            BUILD_HOST=
-            case "$FLAKE" in
-              chunkymonkey)
-                REMOTE_HOST=chunkymonkey.fish-hydra.ts.net
-                BUILD_HOST="$REMOTE_HOST"
-                ;;
-              vps)
-                REMOTE_HOST=$(cd terraform && terraform output --raw ip)
-                BUILD_HOST="$REMOTE_HOST"
-                ;;
-              # cube)
-              #   REMOTE_HOST=cube.fish-hydra.ts.net
-              #   REMOTE_OPTS=--impure
-              #   BUILD_HOST="$REMOTE_HOST"
-              #   ;;
-              *)
-                echo no such remote host "$FLAKE" >&2
-                exit 1
-            esac
-
-            if ! ssh -o ConnectTimeout=5 "$REMOTE_HOST" exit; then
-              echo "$0: no connection to $REMOTE_HOST" >&2
-              exit 1
-            fi
-
-            cmd=$(echo nixos-rebuild "$@" \
-              --flake .#"$FLAKE" \
-              --target-host "$REMOTE_HOST" \
-              --build-host "$BUILD_HOST" \
-              --use-remote-sudo \
-              --use-substitutes $REMOTE_OPTS)
-            echo "$cmd"
-            $cmd
-          '')
-        ];
       in
       {
         formatter = treefmtEval.config.build.wrapper;
@@ -206,7 +163,6 @@
           }
           // inputs.nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
             doImage = self.nixosConfigurations.doImage.config.system.build.image;
-            vpnImage = self.nixosConfigurations.vpn.config.system.build.images.openstack;
             baoImage = self.nixosConfigurations.bao.config.system.build.images.openstack;
             baoInstaller = pkgs.nixos-anywhere.overrideAttrs (old: {
               # NOTE: Upstream disables host verification before applying CLI SSH options.
@@ -221,6 +177,10 @@
 
         devShells.default = pkgs.mkShell {
           name = "deploy.denys.me";
+          # NOTE: Watson's home cache is on a noexec filesystem.
+          shellHook = ''
+            export TG_PROVIDER_CACHE_DIR="''${TG_PROVIDER_CACHE_DIR:-$PWD/.terragrunt-cache/providers}"
+          '';
           CLI_PROXY_API_CONFIG = toString ./nixos/systems/chunkymonkey/cli-proxy-api.json;
           CLI_PROXY_API_TEST_SETTINGS = builtins.toJSON (
             import ./nixos/modules/quadlets/cli-proxy-api/settings.nix {
@@ -229,33 +189,34 @@
                 (import ./nixos/modules/quadlets/cli-proxy-api/images.nix { inherit pkgs; }).bridge.version;
             }
           );
-          buildInputs =
-            scripts
-            ++ [ cliProxyApi ]
-            ++ (with pkgs; [
-              nil
-              nixd
-              inputs.agenix.packages.${system}.default
-              inputs.age-plugin-1p.packages.${system}.age
-              inputs.age-plugin-1p.packages.${system}.age-plugin-1p
+          buildInputs = [
+            cliProxyApi
+          ]
+          ++ (with pkgs; [
+            nil
+            nixd
+            inputs.agenix.packages.${system}.default
+            inputs.age-plugin-1p.packages.${system}.age
+            inputs.age-plugin-1p.packages.${system}.age-plugin-1p
 
-              awscli2
-              openbao
-              wireguard-tools
-              jq
-              flyctl
-              railway
-              oci-cli
-              opentofu
-              tflint
-              python3
-              python3Packages.pytest
-              ruff
-              python3Packages.python-openstackclient
-              shellcheck
+            awscli2
+            openbao
+            wireguard-tools
+            jq
+            flyctl
+            railway
+            oci-cli
+            opentofu
+            terragrunt
+            tflint
+            python3
+            python3Packages.pytest
+            ruff
+            python3Packages.python-openstackclient
+            shellcheck
 
-              deploy-rs
-            ]);
+            deploy-rs
+          ]);
         };
       }
     )
@@ -328,16 +289,18 @@
         fastConnection = true;
 
         nodes = {
-          vpn = {
-            hostname = "vpn.denys.me";
-            sshUser = "root";
-            profiles.system.path = inputs.deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.vpn;
-            remoteBuild = false;
-          };
           bao = {
-            hostname = "bao.vpn.denys.me";
+            hostname = "51.222.84.199";
             sshUser = "root";
-            profiles.system.path = inputs.deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.bao;
+            sshOpts = [
+              "-o"
+              "StrictHostKeyChecking=yes"
+              "-o"
+              "IdentityAgent=~/.1password/agent.sock"
+              "-o"
+              "UserKnownHostsFile=output/ovh-bao-vps/bao-known_hosts"
+            ];
+            profiles.system.path = inputs.deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.baoVps;
             remoteBuild = false;
           };
           chunkymonkey = {

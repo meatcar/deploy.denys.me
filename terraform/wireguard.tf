@@ -1,4 +1,9 @@
-# hack, generate wg private keys manually, to keep the keys from changing on refresh
+variable "working_directory" {
+  type        = string
+  description = "Original Terraform root directory for generated WireGuard files outside the Terragrunt cache."
+  default     = "."
+}
+
 resource "random_id" "wg_priv_keys" {
   for_each = toset(var.wg_nodes)
 
@@ -29,7 +34,7 @@ locals {
 }
 
 resource "local_file" "generate_wg_nixos_config" {
-  filename        = "../nixos/generated/wg-clients.nix"
+  filename        = abspath("${var.working_directory}/../nixos/generated/wg-clients.nix")
   file_permission = "0640"
   content = templatefile(
     "${path.module}/templates/wg-clients.nix.tmpl",
@@ -41,7 +46,7 @@ resource "local_file" "generate_wg_nixos_config" {
 resource "local_sensitive_file" "wg_client_config" {
   for_each = local.wg_clients
 
-  filename        = "${path.module}/output/wg-${local.wg_clients[each.key].name}.conf"
+  filename        = abspath("${var.working_directory}/output/wg-${local.wg_clients[each.key].name}.conf")
   file_permission = "0640"
   content = templatefile(
     "${path.module}/templates/wireguard-client.conf",

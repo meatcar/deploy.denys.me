@@ -12,10 +12,11 @@ NixOS, OpenTofu, and service configuration for denys.me.
 - [Install and recover the OpenBao host](nixos/systems/bao/README.md)
 - [Operate Paseo Relay](railway/paseo-relay/README.md)
 
-Run repository tools through `nix develop`. The dev shell pins OpenTofu, cloud
-CLIs, pytest, Ruff, and the other supported tools.
+Run repository tools through `nix develop`. The dev shell pins Terragrunt,
+OpenTofu, cloud CLIs, and checks.
 
 Format with `nix fmt`; verify with `nix flake check`.
+Plan infrastructure with `terragrunt --working-dir terraform run --all -- plan`.
 
 ## Repository map
 

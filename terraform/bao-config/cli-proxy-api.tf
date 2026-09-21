@@ -1,5 +1,11 @@
+variable "repository_root" {
+  type        = string
+  description = "Original repository directory containing the deployment profile and operator package."
+  default     = "../.."
+}
+
 locals {
-  cli_proxy_api_config_file = abspath("${path.module}/../../nixos/systems/chunkymonkey/cli-proxy-api.json")
+  cli_proxy_api_config_file = abspath("${var.repository_root}/nixos/systems/chunkymonkey/cli-proxy-api.json")
   cli_proxy_api_config      = jsondecode(file(local.cli_proxy_api_config_file))
   cli_proxy_api_path        = local.cli_proxy_api_config.inference_secret_path
 
@@ -54,8 +60,8 @@ ephemeral "vault_kv_secret_v2" "cli_proxy_api_pending" {
 resource "terraform_data" "cli_proxy_api_deployment" {
   triggers_replace = [
     local.cli_proxy_api_key_generation,
-    filesha256("${path.module}/../../packages/cli-proxy-api/src/cli_proxy_api/deploy_key.py"),
-    filesha256("${path.module}/../../packages/cli-proxy-api/src/cli_proxy_api/deployment.py"),
+    filesha256("${var.repository_root}/packages/cli-proxy-api/src/cli_proxy_api/deploy_key.py"),
+    filesha256("${var.repository_root}/packages/cli-proxy-api/src/cli_proxy_api/deployment.py"),
     filesha256(local.cli_proxy_api_config_file),
   ]
 

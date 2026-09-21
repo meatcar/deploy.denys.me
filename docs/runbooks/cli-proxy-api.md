@@ -68,8 +68,8 @@ Terraform still owns inference-key staging, delivery, verification, and
 publication at `kv/github/meatcar/deploy.denys.me/dev/cli-proxy-api`.
 
 ```sh
-terraform -chdir=terraform/bao-config plan -out=cli-proxy-api.tfplan
-terraform -chdir=terraform/bao-config apply cli-proxy-api.tfplan
+terragrunt --working-dir terraform/bao-config run -- plan -out=cli-proxy-api.tfplan
+terragrunt --working-dir terraform/bao-config run -- apply cli-proxy-api.tfplan
 ```
 
 Increment `cli_proxy_api_key_generation` only for a deliberate rotation. Retry

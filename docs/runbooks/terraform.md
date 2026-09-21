@@ -1,13 +1,32 @@
 # Terraform operations
 
-Run every command in `nix develop`. Each root has separate S3 state. Always
-inspect a saved plan and get approval before applying it.
+Load `.env` with direnv, then run commands in `nix develop`. Terragrunt uses
+OpenTofu and preserves each root's existing S3 state. Plan all six units:
 
 ```sh
-terraform -chdir=terraform/<root> init
-terraform -chdir=terraform/<root> plan -out=change.tfplan
-terraform -chdir=terraform/<root> apply change.tfplan
+terragrunt --working-dir terraform run --all -- plan
 ```
+
+From inside `terraform/`, use `terragrunt run --all -- plan`. Initialization is
+automatic. For one unit, save, inspect, and approve its plan before applying:
+
+```sh
+terragrunt --working-dir terraform/netbird run -- plan -out=change.tfplan
+terragrunt --working-dir terraform/netbird run -- show change.tfplan
+terragrunt --working-dir terraform/netbird run -- apply change.tfplan
+```
+
+The main unit is `terraform/`; the others are `bao`, `bao-config`, `netbird`,
+`ovh-vps`, and `railway`. `tf-modules/terraform-state` is a child module, not a
+Terragrunt unit. Bao configuration runs after `bao` and `netbird`; host
+deployment remains separate. Use deploy-rs for configured hosts, for example
+`deploy .#chunkymonkey`.
+
+To save all plans, add `--out-dir "$PWD/output/plans"` before `-- plan`, running
+from the repository root. Plans can contain secrets; keep that directory private
+and ignored. Bulk apply automatically approves individual units. Prefer reviewed
+single-unit applies; re-plan dependents after upstream changes. There is no
+cross-state transaction or automatic rollback.
 
 Use the current AWS profile and `aws sso login --profile "$AWS_PROFILE"` for
 backend access. OpenBao's Terraform provider also uses that SSO session. The
@@ -29,8 +48,9 @@ Private CPA DNS must resolve `cpa.vpn.denys.me` to the enrolled server. Clients
 must accept NetBird DNS. Do not create an overlapping `vpn.denys.me` zone.
 Tailscale remains operational; NetBird changes must not remove or replace it.
 
-Use an ignored `terraform/netbird/adoption.tfvars` for provider IDs when
-reconciling existing objects. Never use a broad apply to fix an import error.
+Provider IDs and complete memberships live in `terraform/netbird/terragrunt.hcl`.
+Do not pass the old `adoption.tfvars`; it would override those inputs.
+Never use a broad apply to fix an import error.
 `prevent_destroy` does not prevent an in-place membership or policy change.
 
 ## Purchased OVH VPS
@@ -63,6 +83,7 @@ non-secret variables. Variable changes redeploy the service and require
 deployment approval. The provider does not own health checks, restart policy,
 serverless mode, or CPU and memory limits; preserve those through the Railway
 settings documented in the [Paseo runbook](../../railway/paseo-relay/README.md).
+Project and service IDs are recorded in `terraform/railway/terragrunt.hcl`.
 
 Do not print provider debug logs or raw API responses. The provider fetches the
 full variable map even though state owns only selected non-secret values.
@@ -90,10 +111,10 @@ nix fmt
 nix flake check
 ```
 
-Treefmt checks Nix, Python, Terraform, shell, JSON, and TOML. Linux flake checks
-also run TFLint's recommended rules, validate roots with committed provider locks
-and their child modules, and run the mocked-provider tests. No cloud credentials
-or live backend are used.
+Treefmt checks Nix, Python, Terraform, Terragrunt, shell, JSON, and TOML. Linux
+flake checks validate Terragrunt configuration and multi-unit execution, run
+TFLint's recommended rules, validate provider schemas, and run native
+mocked-provider tests. No cloud credentials or live backend are used.
 
 Run only the Terraform checks on the current workstation:
 

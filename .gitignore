@@ -11,6 +11,8 @@ crash.*.log
 
 # Module directory
 .terraform/
+.terragrunt-cache/
+.terragrunt-stack/
 
 ### Terraform Patch ###
 *.tfvars

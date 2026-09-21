@@ -9,6 +9,7 @@
     ruff-format.enable = true;
     ruff-check.enable = true;
     terraform.enable = true;
+    hclfmt.enable = true;
     shellcheck.enable = true;
     shfmt.enable = true;
     jsonfmt.enable = true;

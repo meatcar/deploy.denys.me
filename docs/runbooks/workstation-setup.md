@@ -10,7 +10,7 @@ nix develop
 ```
 
 No uv, Poetry, or separate Python environment is needed. The shell includes
-pytest, Ruff, OpenTofu, and the cloud CLIs.
+pytest, Ruff, Terragrunt, OpenTofu (`tofu`), and the cloud CLIs.
 
 ## Local secret files
 
@@ -41,16 +41,10 @@ Set `TF_VAR_oci_region` from that profile and set
 
 ## Terraform state bootstrap
 
-Only a new installation needs the state backend bootstrap. Do not rerun this to
-repair or reinitialize an existing backend.
-
-```sh
-terraform -chdir=terraform/tf-modules/terraform-state init
-terraform -chdir=terraform/tf-modules/terraform-state apply
-```
-
-Authenticate to AWS first using the configured profile. All current roots use
-encrypted, locked state in `terraform-state-denys-me`.
+All roots use encrypted, locked state in `terraform-state-denys-me`. The main
+root owns the backend resources through `module.state`; do not apply
+`tf-modules/terraform-state` independently against the existing account.
+Bootstrapping a new account requires a separate state-bootstrap procedure.
 
 ## DigitalOcean image
 
