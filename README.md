@@ -1,28 +1,29 @@
 # Infrastructure for denys.me
 
-NixOS, OpenTofu, and service configuration for denys.me.
+NixOS hosts and Terragrunt-managed infrastructure.
+
+## Setup
+
+1. Install Nix with flakes and direnv. Review and approve `.envrc`.
+2. For infrastructure access, copy `.env.example` to `.env` with mode `0600`.
+   See [credentials](terraform/README.md#access).
+3. Download these 1Password Documents from the Private vault to their ignored paths:
+   - `secrets/secrets.crypt.nix`
+   - `nixos/systems/cube/secrets.crypt.nix`
 
 ## Workflow
-
-Direnv loads the pinned environment and optional local credentials.
 
 ```sh
 nix flake check
 ```
 
-Plan and apply through [Terragrunt](docs/runbooks/terraform.md).
+[Plan and apply with Terragrunt](terraform/README.md#plan-and-apply).
 
-## Reference
+## Where to look
 
-- [Set up a workstation](docs/runbooks/workstation-setup.md)
-- [Operate CLIProxyAPI](docs/runbooks/cli-proxy-api.md)
-- [Operate OpenBao](docs/runbooks/openbao.md)
-- [Operate Paseo Relay](docs/runbooks/paseo-relay.md)
-
-## Repository map
-
+- [flake-parts/](flake-parts/): tools, checks, and flake outputs
 - [nixos/](nixos/): hosts and services
-- [terraform/](terraform/): independent infrastructure state roots
-- [packages/](packages/): operations and tests
-- [docs/runbooks/](docs/runbooks/): procedures
-- [docs/design/](docs/design/): design decisions
+- [terraform/](terraform/): infrastructure and provider constraints
+- [CLIProxyAPI](packages/cli-proxy-api/README.md): keys and recovery
+- [OpenBao](nixos/systems/bao/README.md): installation and recovery
+- [Paseo](railway/paseo-relay/README.md): relay clients
