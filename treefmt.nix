@@ -8,6 +8,11 @@
     deadnix.enable = true;
     ruff-format.enable = true;
     ruff-check.enable = true;
+    terraform.enable = true;
+    shellcheck.enable = true;
+    shfmt.enable = true;
+    jsonfmt.enable = true;
+    taplo.enable = true;
   };
   settings.formatter.ruff-format.includes = lib.mkForce [ "packages/**/*.py" ];
   settings.formatter.ruff-check.includes = lib.mkForce [ "packages/**/*.py" ];

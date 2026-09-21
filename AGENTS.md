@@ -5,4 +5,5 @@
 - Group multi-file NixOS services under `nixos/modules/<kind>/<service>/`; keep single-file modules simple. NixOS owns service lifecycle, not application logic.
 - Keep Terraform roots independent. Place their test tooling under `terraform/tests/`.
 - Nix pins dependencies and exposes checks. Python uses pytest fixtures and Ruff through `nix fmt`; container tests are opt-in and use isolated state.
+- Use Git-backed flake sources for Nix evaluation, including `git+file://` with `builtins.getFlake`. Path flakes copy ignored secrets and Terraform state into the Nix store.
 - Preserve behavior during layout changes. Verify package entry points, NixOS evaluation, Terraform references, and documentation links after moves.

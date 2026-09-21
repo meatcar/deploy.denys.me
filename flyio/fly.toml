@@ -9,45 +9,45 @@ kill_signal = 'SIGINT'
 kill_timeout = '5s'
 
 [experimental]
-  auto_rollback = true
+auto_rollback = true
 
 [build]
-  image = 'louislam/uptime-kuma:2-slim'
-  # image = 'golang'
+image = 'louislam/uptime-kuma:2-slim'
+# image = 'golang'
 
 [env]
-  PORT = '8080'
+PORT = '8080'
 
 [processes]
-  app = 'sleep infinity'
+app = 'sleep infinity'
 
 [[mounts]]
-  source = 'kuma'
-  destination = '/app/data'
+source = 'kuma'
+destination = '/app/data'
 
 [[services]]
-  protocol = 'tcp'
-  internal_port = 8080
-  processes = ['app']
+protocol = 'tcp'
+internal_port = 8080
+processes = ['app']
 
-  [[services.ports]]
-    port = 80
-    handlers = ['http']
-    force_https = true
+[[services.ports]]
+port = 80
+handlers = ['http']
+force_https = true
 
-  [[services.ports]]
-    port = 443
-    handlers = ['tls', 'http']
+[[services.ports]]
+port = 443
+handlers = ['tls', 'http']
 
-  [services.concurrency]
-    type = 'connections'
-    hard_limit = 25
-    soft_limit = 20
+[services.concurrency]
+type = 'connections'
+hard_limit = 25
+soft_limit = 20
 
-  [[services.tcp_checks]]
-    interval = '15s'
-    timeout = '2s'
-    grace_period = '1s'
+[[services.tcp_checks]]
+interval = '15s'
+timeout = '2s'
+grace_period = '1s'
 
 [[vm]]
-  size = 'shared-cpu-1x'
+size = 'shared-cpu-1x'

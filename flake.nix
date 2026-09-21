@@ -121,6 +121,12 @@
         checks = {
           treefmt = treefmtEval.config.build.check self;
         }
+        // inputs.nixpkgs.lib.optionalAttrs pkgs.stdenv.isLinux (
+          import ./terraform/checks.nix {
+            inherit pkgs;
+            src = self;
+          }
+        )
         // inputs.nixpkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
           cli-proxy-isolation = import ./nixos/modules/quadlets/cli-proxy-api/isolation-test.nix {
             inherit pkgs;
@@ -240,6 +246,7 @@
               flyctl
               railway
               oci-cli
+              opentofu
               tflint
               python3
               python3Packages.pytest

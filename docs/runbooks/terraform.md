@@ -83,21 +83,29 @@ full variable map even though state owns only selected non-secret values.
 
 ## Offline checks
 
-Initialize providers without a backend, then validate each root:
+Format and run the repository checks:
 
 ```sh
-for root in netbird ovh-vps bao-config railway bao; do
-  terraform -chdir=terraform/$root init -backend=false
-  terraform -chdir=terraform/$root fmt -check
-  terraform -chdir=terraform/$root validate
-done
+nix fmt
+nix flake check
 ```
 
-Run the mocked-provider tests with the moved runner:
+Treefmt checks Nix, Python, Terraform, shell, JSON, and TOML. Linux flake checks
+also run TFLint's recommended rules, validate roots with committed provider locks
+and their child modules, and run the mocked-provider tests. No cloud credentials
+or live backend are used.
+
+Run only the Terraform checks on the current workstation:
 
 ```sh
-nix develop --command bash terraform/tests/run.sh
+nix build .#checks.x86_64-linux.terraform-lint .#checks.x86_64-linux.terraform --no-link
 ```
+
+Provider downloads are pinned by the checked-in lock files and a cached Nix
+mirror. The first build needs network access to fetch them; validation and tests
+run in the sandbox without network access. After updating provider locks, update
+the corresponding mirror hashes in `terraform/checks.nix` using Nix's reported
+hash mismatch, then rerun the checks.
 
 These checks do not prove that a live plan is safe. Review the live plan and
 perform a post-apply access check from an authorized NetBird client.

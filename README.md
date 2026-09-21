@@ -15,6 +15,8 @@ NixOS, OpenTofu, and service configuration for denys.me.
 Run repository tools through `nix develop`. The dev shell pins OpenTofu, cloud
 CLIs, pytest, Ruff, and the other supported tools.
 
+Format with `nix fmt`; verify with `nix flake check`.
+
 ## Repository map
 
 - `nixos/`: host and service configuration
