@@ -6,14 +6,6 @@ data "netbird_peers" "chunkymonkey" {
   ip = "10.201.92.223"
 }
 
-data "netbird_group" "bao_admins" {
-  name = "bao-admins"
-}
-
-data "netbird_group" "bao_server" {
-  name = "bao-server"
-}
-
 resource "netbird_peer" "bao" {
   id                            = one(data.netbird_peers.bao.ids)
   name                          = "bao"

@@ -9,11 +9,6 @@ terraform {
   required_version = ">= 1.8.0"
 }
 
-# for state
-provider "aws" {
-  region = "us-east-1"
-}
-
 resource "aws_s3_bucket" "terraform-state-storage-s3" {
   bucket = "terraform-state-denys-me"
 

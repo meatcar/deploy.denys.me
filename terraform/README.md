@@ -1,14 +1,23 @@
 # Infrastructure
 
+Before the first apply of the consolidated configuration, complete the
+[state migration](migrations/README.md). Existing installations still have six
+remote states until that procedure is approved and completed.
+
 ## Plan and apply
 
 From the [repository environment](../README.md#setup), select one state root:
 
 ```sh
-terragrunt --working-dir terraform/netbird run -- plan -out=change.tfplan
-terragrunt --working-dir terraform/netbird run -- show change.tfplan
-terragrunt --working-dir terraform/netbird run -- apply change.tfplan
+tofu -chdir=terraform init -lockfile=readonly
+tofu -chdir=terraform plan -out=change.tfplan
+tofu -chdir=terraform show change.tfplan
+tofu -chdir=terraform apply change.tfplan
 ```
+
+Use `-chdir=terraform/bao-config` for Bao configuration. Terragrunt is only an
+optional bulk runner: `terragrunt --working-dir terraform run --all -- plan`.
+It orders infrastructure before Bao configuration; it does not activate NixOS.
 
 - Plans contain secrets. Keep them private and ignored.
 - Re-plan dependent states after upstream changes. There is no shared rollback.
@@ -17,12 +26,12 @@ terragrunt --working-dir terraform/netbird run -- apply change.tfplan
 
 | State root | Owns |
 | --- | --- |
-| `terraform/` | Cloudflare, DigitalOcean, OCI, AWS |
-| `terraform/bao` | OpenBao KMS, IAM, backup storage |
+| `terraform/` | Hosts, public/private DNS, VPN access, AWS support, Railway workloads |
 | `terraform/bao-config` | OpenBao auth, policies, project secrets |
-| `terraform/netbird` | VPN policies, peers, private DNS |
-| `terraform/ovh-vps` | Existing OpenBao VPS |
-| `terraform/railway` | Projects, services, volumes, domains |
+
+Native child modules in `modules/` organize related resources without adding
+states. Provider configuration belongs in the root. Bao configuration stays
+separate because its provider requires a running, reachable Bao instance.
 
 ## Access
 
@@ -38,8 +47,8 @@ Keep secrets out of HCL, tfvars, history, and debug logs.
 
 | Area | Constraint |
 | --- | --- |
-| State backend | Owned by `module.state` in the main root. Never apply `tf-modules/terraform-state` separately against this account. |
-| OpenBao | Keep `bao` independent of `bao-config`. Preserve SSO trust and userpass recovery. Never reinitialize the database. |
+| State backend | Owned by `module.state` in the main root. Never apply `modules/terraform-state` separately against this account. |
+| OpenBao | Keep bootstrap infrastructure independent of `bao-config`. Preserve SSO trust and userpass recovery. Never reinitialize the database. |
 | NetBird | Check peer IDs and complete group memberships. Broad policies can bypass narrow ones. Preserve Tailscale coexistence. |
 | NetBird DNS | Avoid overlapping `vpn.denys.me` zones. Test DNS, TLS, and authentication from affected clients. |
 | CLIProxyAPI ports | Keep TCP 443 and 9443. NetBird filters both sides of the host redirect. |

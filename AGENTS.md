@@ -9,13 +9,10 @@ flake-parts/                 # shell, checks, formatting, packages, hosts, deplo
 nixos/modules/               # reusable NixOS services and configuration
 nixos/systems/               # host configuration and recovery instructions
 packages/cli-proxy-api/       # credential operations, backups, and tests
-terraform/                   # Terragrunt workflow and primary infrastructure state
-  tf-modules/                # reusable Terraform modules
-  bao/                       # AWS KMS, IAM, and backup storage for OpenBao
+terraform/                   # primary infrastructure state; native OpenTofu composition
+  modules/                   # child modules, not separate deployment states
   bao-config/                # OpenBao auth, policies, and project secrets
-  netbird/                   # VPN access policies and private DNS
-  ovh-vps/                   # existing OpenBao VPS
-  railway/                   # hosted projects, services, volumes, and domains
+  migrations/                # reviewed state-consolidation procedure and offline helper
 secrets/                     # encrypted provisioning inputs, see README
 output/                      # ignored local provisioning artifacts
 ```
@@ -41,7 +38,7 @@ output/                      # ignored local provisioning artifacts
     - Add new lint/checks when tech stack shifts, ensuring fast runtime.
 - List outputs: `nix flake show`
 - Update input: `nix flake lock --override-input <input> <url+rev>`
-- Plan and apply through `terragrunt` (see `./terraform/README.md` for details).
+- Plan and apply through `tofu`; Terragrunt is an optional bulk runner (see `./terraform/README.md`).
 
 ## Nix
 
@@ -59,3 +56,9 @@ output/                      # ignored local provisioning artifacts
 - Clarity: Light, terse and focused, just enough to orient a smart developer. Avoid narrative and duplication.
 - Progressive disclosure and single source of truth: co-locate guidance with its context, link rather than repeat. Strictly only what code cannot express, keep how-to steps separate from explanation.
 - Workflow: inspect the implementation, fix clarity/structure/discoverability there first, write the minimum useful guidance, cut duplication and narrative, verify links and instructions.
+
+## Project Memory
+
+Stored in `docs/memory/`.
+
+**Session start:** Read the `project-memory` skill and follow it.

@@ -7,14 +7,6 @@ mock_provider "netbird" {
     target = data.netbird_peers.chunkymonkey
     values = { ids = ["cpa-peer"] }
   }
-  override_data {
-    target = data.netbird_group.bao_admins
-    values = { id = "bao-admins" }
-  }
-  override_data {
-    target = data.netbird_group.bao_server
-    values = { id = "bao-server" }
-  }
   override_resource {
     target = netbird_peer.bao
     values = { ip = "10.201.219.143" }
@@ -42,9 +34,6 @@ mock_provider "netbird" {
 }
 
 variables {
-  bao_dns_zone_id    = "bao-zone"
-  bao_dns_record_id  = "bao-record"
-  bao_policy_id      = "bao-policy"
   bao_admin_peer_ids = ["bao-admin-laptop", "bao-admin-desktop"]
   cpa_admin_peer_ids = ["cpa-admin-laptop"]
 }

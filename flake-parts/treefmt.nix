@@ -21,8 +21,14 @@
           jsonfmt.enable = true;
           taplo.enable = true;
         };
-        settings.formatter.ruff-format.includes = lib.mkForce [ "packages/**/*.py" ];
-        settings.formatter.ruff-check.includes = lib.mkForce [ "packages/**/*.py" ];
+        settings.formatter.ruff-format.includes = lib.mkForce [
+          "packages/**/*.py"
+          "terraform/**/*.py"
+        ];
+        settings.formatter.ruff-check.includes = lib.mkForce [
+          "packages/**/*.py"
+          "terraform/**/*.py"
+        ];
         settings.global.excludes = [
           "flake.lock"
           "*.age"

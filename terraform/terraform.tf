@@ -24,6 +24,18 @@ terraform {
       source  = "oracle/oci"
       version = "~> 8.0"
     }
+    ovh = {
+      source  = "ovh/ovh"
+      version = "= 2.19.0"
+    }
+    netbird = {
+      source  = "netbirdio/netbird"
+      version = "= 0.0.10"
+    }
+    railway = {
+      source  = "terraform-community-providers/railway"
+      version = "= 0.6.2"
+    }
     external = {
       source  = "hashicorp/external"
       version = "~> 2.4"
@@ -41,5 +53,5 @@ terraform {
       version = "~> 3.9"
     }
   }
-  required_version = ">= 1.8.0"
+  required_version = ">= 1.11.0"
 }

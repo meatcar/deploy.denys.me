@@ -1,22 +1,23 @@
-# for state
-provider "aws" {
-  region = "us-east-1"
-}
-
-provider "cloudflare" {
-  api_token = var.cloudflare_token
-}
-
-provider "digitalocean" {
-  token = var.digitalocean_token
-}
-
-provider "oci" {
-  auth                = "SecurityToken"
-  config_file_profile = var.oci_config_file_profile
-  region              = var.oci_region
-}
-
 module "state" {
-  source = "./tf-modules/terraform-state"
+  source = "./modules/terraform-state"
+}
+
+module "bao_support" {
+  source = "./modules/bao-support"
+
+  providers = {
+    aws = aws.ca_central_1
+  }
+}
+
+module "netbird_access" {
+  source = "./modules/netbird-access"
+
+  bao_dns_zone_name  = "Private OpenBao"
+  bao_admin_peer_ids = ["dag13hqfadhs739d7rg0"]
+  cpa_admin_peer_ids = ["dag13hqfadhs739d7rg0"]
+}
+
+module "railway_services" {
+  source = "./modules/railway-services"
 }
