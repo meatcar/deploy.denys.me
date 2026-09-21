@@ -16,7 +16,6 @@ terraform/                   # Terragrunt workflow and primary infrastructure st
   netbird/                   # VPN access policies and private DNS
   ovh-vps/                   # existing OpenBao VPS
   railway/                   # hosted projects, services, volumes, and domains
-railway/paseo-relay/          # relay client setup and provider limitations
 secrets/                     # encrypted provisioning inputs, see README
 output/                      # ignored local provisioning artifacts
 ```

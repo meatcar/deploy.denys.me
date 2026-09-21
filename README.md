@@ -26,4 +26,4 @@ nix flake check
 - [terraform/](terraform/): infrastructure and provider constraints
 - [CLIProxyAPI](packages/cli-proxy-api/README.md): keys and recovery
 - [OpenBao](nixos/systems/bao/README.md): installation and recovery
-- [Paseo](railway/paseo-relay/README.md): relay clients
+- [Paseo](nixos/modules/quadlets/paseo-relay/README.md): relay deployment and clients
