@@ -100,22 +100,17 @@ resource "cloudflare_dns_record" "A-billing-sns" {
   ttl     = 1
 }
 
-resource "cloudflare_dns_record" "CNAME-paseo" {
-  zone_id = cloudflare_zone.main.id
-  type    = "CNAME"
-  name    = "paseo"
-  content = "wymejaba.up.railway.app"
-  proxied = false
-  ttl     = 1
+moved {
+  from = cloudflare_dns_record.CNAME-paseo
+  to   = cloudflare_dns_record.A-paseo
 }
 
-resource "cloudflare_dns_record" "TXT-paseo-railway" {
+resource "cloudflare_dns_record" "A-paseo" {
   zone_id = cloudflare_zone.main.id
-  type    = "TXT"
-  name    = "_railway-verify.paseo"
-  content = "railway-verify=a89c4085ab056bede47b680daac316759884854b1763ab6c5c9ad23d7d95a5bd"
-  comment = "Railway custom-domain ownership verification"
-  proxied = false
+  type    = "A"
+  name    = "paseo"
+  content = "192.18.149.148"
+  proxied = true
   ttl     = 1
 }
 

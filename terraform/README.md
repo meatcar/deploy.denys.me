@@ -52,7 +52,7 @@ For OVH, prefer API access limited to `GET /auth/details` and the target VPS's G
 
 Recovery and credentials: [OpenBao](../nixos/systems/bao/README.md),
 [CLIProxyAPI](../packages/cli-proxy-api/README.md).
-Railway settings outside Terraform: [Paseo](../railway/paseo-relay/README.md).
+Relay clients and deployment: [Paseo](../railway/paseo-relay/README.md).
 
 ## Checks
 

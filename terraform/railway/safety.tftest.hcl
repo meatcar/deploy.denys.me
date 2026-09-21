@@ -12,10 +12,6 @@ mock_provider "railway" {
 }
 
 variables {
-  project_id   = "00000000-0000-4000-8000-000000000001"
-  service_id   = "00000000-0000-4000-8000-000000000002"
-  service_name = "paseo-relay"
-  region       = "us-east4-eqdc4a"
   project_ids = {
     rsshub  = "00000000-0000-4000-8000-000000000003"
     monitor = "00000000-0000-4000-8000-000000000004"

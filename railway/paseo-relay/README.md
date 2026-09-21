@@ -1,20 +1,23 @@
 # Paseo Relay
 
-- [Infrastructure workflow](../../terraform/README.md)
-- [Service and variables](../../terraform/railway/main.tf)
+- [Service and pinned source](../../nixos/modules/quadlets/paseo-relay/default.nix)
 - [DNS records](../../terraform/dns.tf)
-- [Source fork](https://github.com/meatcar/paseo-relay): upstream sync, Railway autodeploy
+- [Source fork](https://github.com/meatcar/paseo-relay)
 
-## Railway-owned settings
+Runs on chunkymonkey as a rootless Podman service. Cloudflare proxies WebSockets
+to Traefik; the origin firewall remains source-restricted. No persistent storage.
 
-These settings are outside the provider's schema:
+## Deploy
 
-| Setting | Value |
-| --- | --- |
-| Healthcheck | `/ready`, 60-second timeout |
-| Per-replica limits | 1 vCPU, 2 GB RAM |
-| Serverless | Enabled |
-| Restart policy | Always |
+Update the source revision and hash in the module, then run from the repo root:
+
+```sh
+direnv exec . deploy .#chunkymonkey
+```
+
+Quadlet builds the upstream Dockerfile natively on ARM64. Restarting the relay
+disconnects active sockets; clients must reconnect. Check `/health` and `/ready`,
+then verify paired traffic both ways and reconnects after deployment.
 
 ## Clients
 
@@ -28,5 +31,3 @@ PASEO_RELAY_PUBLIC_USE_TLS=true
 
 - Endpoint changes require a new pairing offer.
 - Upstream fallback: `relay.paseo.sh:443`.
-- Clients must tolerate cold starts and reconnects.
-- After deploy: check `/health` and `/ready`, pair a client, test traffic both ways and reconnects.
