@@ -77,13 +77,31 @@ and recovery procedures.
 
 ## Railway
 
-Set `RAILWAY_TOKEN` in the environment. `terraform/railway` owns the existing
-Paseo project, production service, domain binding, replicas, and listed
-non-secret variables. Variable changes redeploy the service and require
-deployment approval. The provider does not own health checks, restart policy,
-serverless mode, or CPU and memory limits; preserve those through the Railway
-settings documented in the [Paseo runbook](../../railway/paseo-relay/README.md).
-Project and service IDs are recorded in `terraform/railway/terragrunt.hcl`.
+Set `RAILWAY_TOKEN` in the environment. `terraform/railway` declares:
+
+- Paseo: project, production service, domain, replicas, and listed non-secret variables.
+- RSSHub: project, RSSHub and Redis services, Redis volume, and Railway domain.
+- Monitoring: project, Uptime Kuma and MySQL services, both volumes, and `monitor.denys.me`.
+
+Project and service IDs are in `terraform/railway/terragrunt.hcl`; `imports.tf`
+adopts the existing resources. The adoption plan must contain imports only,
+with no creates, updates, or deletes. Review it before applying:
+
+```sh
+terragrunt --working-dir terraform/railway run -- plan -out=railway.tfplan
+terragrunt --working-dir terraform/railway run -- apply railway.tfplan
+```
+
+Service and variable updates redeploy workloads and require deployment approval.
+Never remove a service's nested `volume` to relinquish ownership: the provider
+deletes its data during an update, even with service-level `prevent_destroy`.
+
+RSSHub's existing repository connection has no branch trigger readable by the
+provider. Its source connection stays Railway-managed. New services retain
+their existing computed regions and replicas. Secret variables, volume sizes,
+health checks, restart policies, serverless mode, and CPU/memory limits also
+stay Railway-managed. See the [Paseo runbook](../../railway/paseo-relay/README.md)
+for its remaining service settings.
 
 Do not print provider debug logs or raw API responses. The provider fetches the
 full variable map even though state owns only selected non-secret values.
