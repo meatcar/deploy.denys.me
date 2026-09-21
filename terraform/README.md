@@ -1,7 +1,7 @@
 # Terraform
 
-Each directory below is an independent state root. Use the repository's pinned
-tooling and review a saved plan before applying it.
+[Plan and apply with Terragrunt](../docs/runbooks/terraform.md).
+Each entry is an independent state root.
 
 | Root | Owns |
 | --- | --- |
@@ -10,10 +10,6 @@ tooling and review a saved plan before applying it.
 | `terraform/netbird` | Hosted NetBird groups, policies, peer settings, and private DNS |
 | `terraform/ovh-vps` | Purchased OpenBao OVH VPS |
 | `terraform/bao-config` | OpenBao API configuration: policies, auth, and project secrets |
-| `terraform/railway` | Paseo service, domain, replicas, and non-secret variables |
+| `terraform/railway` | Paseo, RSSHub, and monitoring projects, services, volumes, and domains |
 
-See the [Terraform runbook](../docs/runbooks/terraform.md) for authentication,
-planning, validation, and ownership boundaries. CLIProxyAPI key procedures are
-in the [CLIProxyAPI runbook](../docs/runbooks/cli-proxy-api.md).
-
-Do not run `nixos/systems/vpn/bootstrap.py`; hosted NetBird replaced that setup.
+CLIProxyAPI key procedures are in the [service runbook](../docs/runbooks/cli-proxy-api.md).

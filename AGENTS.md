@@ -1,9 +1,8 @@
 # Repository conventions
 
-- Keep READMEs as short navigation indexes. Put procedures in `docs/runbooks/` and durable decisions in `docs/design/`. Omit deployment history.
-- Put Python commands in `packages/<service>/src/`, with `pyproject.toml`, `package.nix`, and adjacent `tests/`. Expose namespaced entry points instead of loose scripts.
-- Group multi-file NixOS services under `nixos/modules/<kind>/<service>/`; keep single-file modules simple. NixOS owns service lifecycle, not application logic.
-- Keep Terraform states independent; Terragrunt coordinates their roots. Put native tests beside each root and offline checks in `terraform/checks.nix`.
-- Nix pins dependencies and exposes checks. Python uses pytest fixtures and Ruff through `nix fmt`; container tests are opt-in and use isolated state.
-- Use Git-backed flake sources for Nix evaluation, including `git+file://` with `builtins.getFlake`. Path flakes copy ignored secrets and Terraform state into the Nix store.
-- Preserve behavior during layout changes. Verify package entry points, NixOS evaluation, Terraform references, and documentation links after moves.
+- Validate with `nix flake check`; wire new quality checks into it.
+- Plan and apply through Terragrunt; follow [the infrastructure runbook](docs/runbooks/terraform.md). Keep state roots independent.
+- Keep READMEs as indexes, procedures in `docs/runbooks/`, and decisions in `docs/design/`. Link to the canonical workflow instead of repeating commands.
+- Package Python operations in `packages/<service>/` with namespaced entry points and adjacent tests. NixOS modules own service lifecycle.
+- Group multi-file services under `nixos/modules/<kind>/<service>/`; leave single-file modules simple.
+- Use Git-backed Nix flake sources. Path flakes copy ignored secrets and state into the store. Preserve ignore rules protecting local data.

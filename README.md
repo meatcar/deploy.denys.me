@@ -1,31 +1,28 @@
 # Infrastructure for denys.me
 
-[![built with nix](https://builtwithnix.org/badge.svg)](https://builtwithnix.org)
-
 NixOS, OpenTofu, and service configuration for denys.me.
 
-## Start here
+## Workflow
+
+Direnv loads the pinned environment and optional local credentials.
+
+```sh
+nix flake check
+```
+
+Plan and apply through [Terragrunt](docs/runbooks/terraform.md).
+
+## Reference
 
 - [Set up a workstation](docs/runbooks/workstation-setup.md)
-- [Plan and apply Terraform](docs/runbooks/terraform.md)
 - [Operate CLIProxyAPI](docs/runbooks/cli-proxy-api.md)
-- [Install and recover the OpenBao host](nixos/systems/bao/README.md)
-- [Operate Paseo Relay](railway/paseo-relay/README.md)
-
-Run repository tools through `nix develop`. The dev shell pins Terragrunt,
-OpenTofu, cloud CLIs, and checks.
-
-Format with `nix fmt`; verify with `nix flake check`.
-Plan infrastructure with `terragrunt --working-dir terraform run --all -- plan`.
+- [Operate OpenBao](docs/runbooks/openbao.md)
+- [Operate Paseo Relay](docs/runbooks/paseo-relay.md)
 
 ## Repository map
 
-- `nixos/`: host and service configuration
-- `terraform/`: infrastructure split into independent state roots
-- `packages/cli-proxy-api/`: CLIProxyAPI administration commands and tests
-- `packer/`, `railway/`: platform-specific configuration
-- `docs/runbooks/`: operator procedures
-- `docs/design/`: durable design decisions
-
-Tailscale remains in service alongside hosted NetBird. The self-hosted VPN
-configuration is historical, not an active deployment path.
+- [nixos/](nixos/): hosts and services
+- [terraform/](terraform/): independent infrastructure state roots
+- [packages/](packages/): operations and tests
+- [docs/runbooks/](docs/runbooks/): procedures
+- [docs/design/](docs/design/): design decisions

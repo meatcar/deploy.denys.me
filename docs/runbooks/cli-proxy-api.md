@@ -26,32 +26,13 @@ extract it as `pod` into an empty `/persist/cli-proxy-api` directory with mode
 admin rotation locally without Bao. Retry an unpublished rotation with its
 existing generation before starting another.
 
-## Checks
-
-```sh
-nix develop --command pytest packages/cli-proxy-api
-nix build .#checks.x86_64-linux.cli-proxy-api --no-link
-nix build .#checks.x86_64-linux.cli-proxy-isolation --no-link
-```
-
-The default pytest run excludes container tests. Run them explicitly with a
-locally built image archive:
-
-```sh
-CPA_TEST_IMAGE=/path/to/image.tar.gz \
-  nix develop --command pytest packages/cli-proxy-api -m containers
-```
-
-The package source is under `packages/cli-proxy-api/`. The NixOS module is
-under `nixos/modules/quadlets/cli-proxy-api/`.
-
 ## Deployment settings
 
 Edit [`nixos/systems/chunkymonkey/cli-proxy-api.json`](../../nixos/systems/chunkymonkey/cli-proxy-api.json)
 for hostnames, SSH, state location, and Bao paths. NixOS, Terraform, and operator
 commands read this non-secret profile. Keep credentials out of it.
 
-`nix develop` selects this profile through `CLI_PROXY_API_CONFIG`. Both
+The development shell selects this profile through `CLI_PROXY_API_CONFIG`. Both
 `cli-proxy-api-rotate-admin` and `cli-proxy-api-deploy-key` accept
 `--config /path/to/deployment.json` to select another deployment.
 
@@ -64,13 +45,9 @@ Initialization preserves existing configuration and credentials.
 
 ## Project inference key
 
-Terraform still owns inference-key staging, delivery, verification, and
-publication at `kv/github/meatcar/deploy.denys.me/dev/cli-proxy-api`.
-
-```sh
-terragrunt --working-dir terraform/bao-config run -- plan -out=cli-proxy-api.tfplan
-terragrunt --working-dir terraform/bao-config run -- apply cli-proxy-api.tfplan
-```
+Terraform owns inference-key staging, delivery, verification, and publication
+at `kv/github/meatcar/deploy.denys.me/dev/cli-proxy-api`. Use the
+[infrastructure workflow](terraform.md) with `terraform/bao-config`.
 
 Increment `cli_proxy_api_key_generation` only for a deliberate rotation. Retry
 the current plan to reuse a staged key after failure. To retry delivery alone,

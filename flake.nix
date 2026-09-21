@@ -1,5 +1,5 @@
 {
-  description = "changeme";
+  description = "Infrastructure for denys.me";
 
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
@@ -116,6 +116,16 @@
               == [ 22 ];
             pkgs.runCommand "vpn-coexistence" { } "touch $out";
           cli-proxy-api = cliProxyApi;
+          bao-operations =
+            pkgs.runCommand "bao-operations"
+              {
+                nativeBuildInputs = [ pkgs.python3 ];
+              }
+              ''
+                export PYTHONDONTWRITEBYTECODE=1
+                python -m unittest discover -s ${./nixos/systems/vpn} -p 'test_*.py'
+                touch "$out"
+              '';
           vpn-isolation = import ./nixos/systems/vpn/isolation-test.nix { inherit pkgs; };
           bao-vps =
             let
@@ -177,6 +187,7 @@
 
         devShells.default = pkgs.mkShell {
           name = "deploy.denys.me";
+          inputsFrom = [ treefmtEval.config.build.devShell ];
           # NOTE: Watson's home cache is on a noexec filesystem.
           shellHook = ''
             export TG_PROVIDER_CACHE_DIR="''${TG_PROVIDER_CACHE_DIR:-$PWD/.terragrunt-cache/providers}"
@@ -210,9 +221,7 @@
             tflint
             python3
             python3Packages.pytest
-            ruff
             python3Packages.python-openstackclient
-            shellcheck
 
             deploy-rs
           ]);
