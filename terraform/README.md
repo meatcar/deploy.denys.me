@@ -1,8 +1,8 @@
 # Infrastructure
 
-Before the first apply of the consolidated configuration, complete the
-[state migration](migrations/README.md). Existing installations still have six
-remote states until that procedure is approved and completed.
+The live configuration uses the two state roots below. The one-time
+[state migration](migrations/README.md) completed on 2026-09-22.
+Do not apply pre-consolidation checkouts against these backends.
 
 ## Plan and apply
 

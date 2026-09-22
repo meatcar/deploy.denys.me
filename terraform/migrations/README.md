@@ -1,5 +1,10 @@
 # Consolidate six states into two
 
+**Completed on 2026-09-22. Do not rerun against the live backends.** All 114
+managed objects retained their identities. Both active roots plan with no
+resource changes; the four retired state keys remain empty. The procedure below
+is retained for recovery context.
+
 **Do not apply the new root before migrating existing state.** This procedure
 changes backend state, not cloud resources, and requires explicit approval.
 Keep every operator, scheduled job, and old checkout from writing state for
