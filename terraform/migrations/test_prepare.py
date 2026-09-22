@@ -1,3 +1,5 @@
+import base64
+from copy import deepcopy
 import importlib.util
 import json
 from pathlib import Path
@@ -108,7 +110,10 @@ class PrepareTest(unittest.TestCase):
         self.assertEqual(railway["instances"][0]["index_key"], 'monitor.with"quote')
         for name in ("bao", "netbird", "railway", "ovh-vps"):
             emptied = json.loads((self.destination / f"{name}.tfstate").read_text())
+            original = json.loads(originals[f"{name}.tfstate"])
             self.assertEqual(emptied["resources"], [])
+            self.assertEqual(emptied["lineage"], original["lineage"])
+            self.assertGreater(emptied["serial"], original["serial"])
         self.assertEqual(
             originals, {path.name: path.read_bytes() for path in self.source.iterdir()}
         )
@@ -118,6 +123,65 @@ class PrepareTest(unittest.TestCase):
                 path.stat().st_mode & 0o077 == 0
                 for path in self.destination.glob("*.tfstate*")
             )
+        )
+
+    def test_preserves_current_and_deposed_objects_at_their_destination(self):
+        expected = []
+        for name, module, generations in (
+            ("main", None, (None, "dead0001")),
+            ("bao", "module.bao_support", (None, "dead0002", "dead0003")),
+            ("railway", "module.railway_services", ("dead0004",)),
+        ):
+            path = self.source / f"{name}.tfstate"
+            state = json.loads(path.read_text())
+            resource = state["resources"][0]
+            instance = resource["instances"][0]
+            instance["index_key"] = f"{name}.indexed"
+            resource["instances"] = []
+            for number, deposed in enumerate(generations):
+                object_id = f"{name}-{deposed or 'current'}"
+                obj = deepcopy(instance)
+                obj.update(
+                    schema_version=number,
+                    attributes={"id": object_id, "input": f"synthetic-{object_id}"},
+                    sensitive_attributes=[[{"type": "get_attr", "value": "input"}]],
+                    private=base64.b64encode(object_id.encode()).decode(),
+                )
+                if deposed:
+                    obj["deposed"] = deposed
+                resource["instances"].append(obj)
+            path.write_text(json.dumps(state))
+            destination = deepcopy(resource)
+            if module:
+                destination["module"] = module
+            expected.append(destination)
+
+        originals = {path.name: path.read_bytes() for path in self.source.iterdir()}
+        prepare.prepare(self.source, self.destination)
+        candidate = json.loads((self.destination / "main.tfstate").read_text())
+        self.assertEqual(candidate["lineage"], "main")
+        self.assertGreater(candidate["serial"], 7)
+        self.assertEqual(len(candidate["resources"]), 6)
+        for resource in expected:
+            with self.subTest(resource=resource["name"]):
+                matches = [
+                    actual
+                    for actual in candidate["resources"]
+                    if (actual.get("module"), actual["type"], actual["name"])
+                    == (resource.get("module"), resource["type"], resource["name"])
+                ]
+                self.assertEqual(len(matches), 1)
+                actual = matches[0]
+                self.assertEqual(actual["provider"], resource["provider"])
+                self.assertCountEqual(actual["instances"], resource["instances"])
+        for name in ("bao", "netbird", "railway", "ovh-vps"):
+            original = json.loads(originals[f"{name}.tfstate"])
+            emptied = json.loads((self.destination / f"{name}.tfstate").read_text())
+            self.assertEqual(emptied["resources"], [])
+            self.assertEqual(emptied["lineage"], original["lineage"])
+            self.assertGreater(emptied["serial"], original["serial"])
+        self.assertEqual(
+            originals, {path.name: path.read_bytes() for path in self.source.iterdir()}
         )
 
     def test_rejects_collision_before_creating_candidate(self):
