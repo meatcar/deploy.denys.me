@@ -16,10 +16,10 @@ in
     enable = true;
     proxies = {
       "cube.${domain}" = {
-        host = "10.100.0.4";
+        host = "100.72.190.168";
       };
       "huddle.win" = {
-        host = "10.100.0.4";
+        host = "100.72.190.168";
       };
     };
   };
