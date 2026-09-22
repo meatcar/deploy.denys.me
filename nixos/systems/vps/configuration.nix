@@ -10,7 +10,6 @@
     ../../modules/digitalocean.nix
     ../../modules/docker.nix
     ../../modules/backups.nix
-    ../../modules/wireguard-server.nix
     ../../modules/tailscale.nix
     ../../modules/netbird.nix
     ../../modules/acme.nix
@@ -21,7 +20,6 @@
 
   mine = {
     username = "meatcar";
-    networking.wireguard.serverPort = 51821;
     znc = {
       enable = true;
       users = {

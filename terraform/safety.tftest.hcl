@@ -29,13 +29,7 @@ mock_provider "netbird" {
   }
 }
 mock_provider "railway" {}
-mock_provider "external" {
-  mock_data "external" {
-    defaults = {
-      result = { public_key = "test-public-key", private_key = "test-private-key" }
-    }
-  }
-}
+mock_provider "external" {}
 mock_provider "local" {}
 mock_provider "random" {}
 mock_provider "null" {}

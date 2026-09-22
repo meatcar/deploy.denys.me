@@ -143,6 +143,23 @@ class PrepareTest(unittest.TestCase):
             prepare.prepare(self.source, self.destination)
         self.assertFalse(self.destination.exists())
 
+    def test_requires_wireguard_retirement_before_consolidation(self):
+        for resource_type, name, index in (
+            ("random_id", "wg_priv_keys", "server"),
+            ("local_file", "generate_wg_nixos_config", None),
+            ("local_sensitive_file", "wg_client_config", "phone"),
+        ):
+            with self.subTest(resource=name):
+                state = snapshot("main", resource_type, name, index=index)
+                path = self.source / "main.tfstate"
+                path.write_text(json.dumps(state))
+                original = path.read_bytes()
+                destination = self.directory / name
+                with self.assertRaisesRegex(ValueError, "Retire WireGuard"):
+                    prepare.prepare(self.source, destination)
+                self.assertFalse(destination.exists())
+                self.assertEqual(path.read_bytes(), original)
+
     def test_existing_root_addresses_have_complete_moves(self):
         moved = Path(__file__).parents[1] / "moved.tf"
         moves = dict(

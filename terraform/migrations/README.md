@@ -6,6 +6,31 @@ Keep every operator, scheduled job, and old checkout from writing state for
 the entire maintenance window. S3 locks protect individual writes, not this
 multi-state transfer.
 
+## Retire WireGuard first
+
+This checkout removes the unused VPS WireGuard server and Terraform-generated
+keys and client files. Cube's container VPN and NetBird are unchanged.
+
+Before capturing migration snapshots, complete a separate, approved retirement:
+
+1. Build and activate the VPS configuration without its WireGuard server import
+   and `serverPort` setting. Verify access through the remaining VPN before
+   deleting generated files. NixOS activation requires separate approval.
+2. In the initialized pre-refactor checkout, remove only `terraform/wireguard.tf`.
+   Remove any Terragrunt `working_directory` input too. Keep the old root layout,
+   provider locks, and other configuration unchanged.
+3. Review a saved plan against the original main state. Allow only removal of
+   `random_id.wg_priv_keys`, `local_file.generate_wg_nixos_config`, and
+   `local_sensitive_file.wg_client_config`, including their instances. The
+   `data.external.wg_keys` lookups also leave state. Stop on any other resource
+   change. Apply only after approval, from the checkout that owns the local files.
+4. Verify the managed addresses above no longer appear in state, then capture
+   fresh snapshots. The consolidation helper rejects snapshots retaining them.
+
+Keep generated credentials and backups private. Deleting files does not erase
+keys from historical state versions or revoke copies on other machines. Provider
+pins remain available during retirement; do not remove them before it completes.
+
 ## Capture and prepare
 
 1. In an initialized checkout of the pre-refactor configuration, select the
@@ -71,7 +96,10 @@ jq -e '.backend.type == "local" and .backend.config.path == "candidate.tfstate"'
   output/state-consolidation/review/terraform/.terraform/terraform.tfstate
 ```
 
-Stop if the backend check fails. Only after it passes:
+Stop if the backend check fails. Before planning, check that every migrated
+managed object has matching destination configuration. Stop on orphaned
+resources; an orphan can retain a provider binding for the wrong region.
+Only after both checks pass:
 
 ```sh
 tofu -chdir=output/state-consolidation/review/terraform plan -out=review.tfplan

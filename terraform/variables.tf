@@ -48,9 +48,3 @@ variable "oci_compartment_ocid" {
   type        = string
   description = "OCI compartment OCID containing the chunkymonkey instance"
 }
-
-variable "wg_nodes" {
-  type        = list(string)
-  description = "A list of descriptive wireguard node names"
-  default     = ["server", "laptop", "phone", "cube.denys.me", "steamdeck"]
-}

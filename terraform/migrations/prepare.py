@@ -48,6 +48,18 @@ def prepare(source, destination):
 
     with tempfile.TemporaryDirectory() as scratch:
         existing = set(tofu(scratch, "state", "list", f"-state={snapshots['main']}"))
+        if any(
+            address.split("[", 1)[0]
+            in {
+                "random_id.wg_priv_keys",
+                "local_file.generate_wg_nixos_config",
+                "local_sensitive_file.wg_client_config",
+            }
+            for address in existing
+        ):
+            raise ValueError(
+                "Retire WireGuard in the original root before consolidation."
+            )
         moves = []
         for name, prefix in SOURCES.items():
             addresses = tofu(scratch, "state", "list", f"-state={snapshots[name]}")
