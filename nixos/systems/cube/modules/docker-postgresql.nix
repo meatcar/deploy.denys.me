@@ -86,7 +86,7 @@ in
 
     virtualisation.oci-containers.containers.postgres = {
       image = "postgres:${pgversion}";
-      ports = [ "${port}:5432" ];
+      ports = [ "127.0.0.1:${port}:5432" ];
       volumes = [
         "${dataDir}:/var/lib/postgresql/data"
         "${config.age.secrets.postgresPass.path}:${config.age.secrets.postgresPass.path}"

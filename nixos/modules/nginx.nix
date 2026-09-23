@@ -1,8 +1,7 @@
-{ config, ... }:
-{
+_: {
   networking.firewall.allowedTCPPorts = [
-    config.services.nginx.defaultHTTPListenPort
-    config.services.nginx.defaultSSLListenPort
+    80
+    443
   ];
   services.nginx = {
     enable = true;
@@ -11,5 +10,10 @@
     recommendedProxySettings = true;
     recommendedTlsSettings = true;
     statusPage = true;
+    virtualHosts.public-reject = {
+      default = true;
+      rejectSSL = true;
+      extraConfig = "return 404;";
+    };
   };
 }

@@ -162,3 +162,31 @@ resource "netbird_dns_record" "cpa" {
     prevent_destroy = true
   }
 }
+
+resource "netbird_dns_zone" "apps" {
+  for_each = toset(["billing", "trmnl"])
+
+  name                 = "Private ${each.key}"
+  domain               = "${each.key}.vpn.denys.me"
+  enabled              = true
+  enable_search_domain = false
+  distribution_groups  = [netbird_group.cpa_admins.id, netbird_group.cpa_server.id]
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+resource "netbird_dns_record" "apps" {
+  for_each = netbird_dns_zone.apps
+
+  zone_id = each.value.id
+  name    = each.value.domain
+  type    = "A"
+  content = netbird_peer.chunkymonkey.ip
+  ttl     = 60
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}

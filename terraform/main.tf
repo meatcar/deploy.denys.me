@@ -16,6 +16,9 @@ module "netbird_access" {
   bao_dns_zone_name  = "Private OpenBao"
   bao_admin_peer_ids = ["dag13hqfadhs739d7rg0"]
   cpa_admin_peer_ids = ["dag13hqfadhs739d7rg0"]
+
+  private_server_ips      = var.private_server_ips
+  private_access_peer_ids = var.private_access_peer_ids
 }
 
 module "railway_services" {

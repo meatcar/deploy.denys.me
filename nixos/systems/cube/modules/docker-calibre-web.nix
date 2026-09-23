@@ -21,7 +21,7 @@ in
   config = {
     virtualisation.oci-containers.containers.calibre-web = {
       image = "ghcr.io/linuxserver/calibre-web";
-      ports = [ "${port}:8083" ];
+      ports = [ "127.0.0.1:${port}:8083" ];
       volumes = [
         "${config.mine.persistPath}/calibre-web:/config"
         "${config.mine.storagePath}/Multimedia/Books:/books"

@@ -25,12 +25,11 @@ in
 
     virtualisation.oci-containers.containers.sonarr = {
       image = "lscr.io/linuxserver/sonarr";
-      ports = [ "${port}:8989" ];
+      ports = [ "127.0.0.1:${port}:8989" ];
       volumes = [
         "${config.mine.persistPath}/sonarr:/config"
         "/data:/data"
       ];
-      extraOptions = [ "--network=host" ];
       environment = {
         PUID = toString config.ids.uids.${config.mine.storageUser};
         PGID = toString config.ids.gids.${config.mine.storageGroup};

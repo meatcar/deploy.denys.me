@@ -21,7 +21,7 @@ in
   config = {
     virtualisation.oci-containers.containers.scrutiny = {
       image = "ghcr.io/analogj/scrutiny:master-omnibus";
-      ports = [ "${port}:8080" ];
+      ports = [ "127.0.0.1:${port}:8080" ];
       volumes = [
         "${config.mine.persistPath}/scrutiny/config:/opt/scrutiny/config"
         "${config.mine.persistPath}/scrutiny/influxdb2:/opt/scrutiny/influxdb"

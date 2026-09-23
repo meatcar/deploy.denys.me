@@ -180,6 +180,7 @@ in
           Listener.l = {
             AllowIRC = true;
             AllowWeb = true;
+            Host = "127.0.0.1";
             Port = internalPort;
             SSL = false;
           };
@@ -192,7 +193,7 @@ in
         enableACME = true;
         forceSSL = true;
         locations."/" = {
-          proxyPass = "http://localhost:${toString internalPort}";
+          proxyPass = "http://127.0.0.1:${toString internalPort}";
           extraConfig = ''
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
           '';
@@ -202,7 +203,7 @@ in
       # Streaming is nescessary because znc does both HTTP _and_ IRC.
       streamConfig = ''
         upstream znc-irc {
-          server localhost:${toString internalPort};
+          server 127.0.0.1:${toString internalPort};
         }
         server {
           listen ${toString cfg.port} ssl;
@@ -214,6 +215,6 @@ in
         }
       '';
     };
-    networking.firewall.allowedTCPPorts = [ cfg.port ];
+    mine.privateAccess.tcpPorts = [ cfg.port ];
   };
 }

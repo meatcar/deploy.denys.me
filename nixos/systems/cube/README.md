@@ -8,6 +8,24 @@
 Use the declared disk IDs and current filesystem configuration for recovery.
 Disk replacement and installation require explicit approval.
 
+## Private access
+
+Plex and Ombi remain public. Other web applications and the landing page use
+NetBird-only HTTPS. PostgreSQL and proxy backends publish only on loopback.
+Samba requires an authenticated `storage` member; LAN access and discovery
+remain disabled until a trusted interface is selected.
+
+Complete the [enrollment and access cutover](../../../terraform/modules/netbird-access/README.md)
+before relying on private application access. Tailscale carries the public
+VPS proxy and remains an SSH recovery route, not a private web authorization.
+
+Media integrations use Docker's `media` network rather than host networking.
+Update persisted application URLs that used `localhost` to container DNS names,
+for example `http://sonarr:8989`, `http://radarr:7878`,
+`http://gluetun:9091` for Transmission and `http://gluetun:9117` for Jackett.
+Gluetun still owns Transmission/Jackett's shared namespace. FreshRSS/PostgreSQL
+retain their separate `postgres` network.
+
 ## Container VPN
 
 Transmission and Jackett share Gluetun's network namespace. NetBird and

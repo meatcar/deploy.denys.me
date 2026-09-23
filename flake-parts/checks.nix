@@ -14,6 +14,10 @@
           cli-proxy-isolation = import ../nixos/modules/quadlets/cli-proxy-api/isolation-test.nix {
             inherit pkgs;
           };
+          private-access-isolation = import ../nixos/modules/private-access/isolation-test.nix {
+            inherit pkgs;
+            sambaSettings = self.nixosConfigurations.cube.config.services.samba.settings;
+          };
           vpn-coexistence =
             let
               hosts = map (name: self.nixosConfigurations.${name}.config) [
@@ -111,6 +115,100 @@
                 "jackett"
               ];
             pkgs.runCommand "cube-vpn" { } "touch $out";
+          cube-private-backends =
+            let
+              cube = self.nixosConfigurations.cube.config;
+              containers = cube.virtualisation.oci-containers.containers;
+            in
+            assert lib.all (
+              container:
+              lib.all (lib.hasPrefix "127.0.0.1:") container.ports
+              && !(builtins.elem "--network=host" container.extraOptions)
+              && !(builtins.elem "host" container.networks)
+            ) (builtins.attrValues containers);
+            assert !(builtins.elem 32400 cube.networking.firewall.allowedTCPPorts);
+            assert containers.postgres.ports == [ "127.0.0.1:5432:5432" ];
+            assert containers.ombi.networks == [ "media" ];
+            assert containers.sonarr.networks == [ "media" ];
+            assert containers.gluetun.networks == [ "media" ];
+            pkgs.runCommand "cube-private-backends" { } "touch $out";
+          cube-vps-private-http =
+            let
+              cube = self.nixosConfigurations.cube.config;
+              vps = self.nixosConfigurations.vps.config;
+              privateNames = [
+                "cube.denys.me"
+                "organizr.cube.denys.me"
+                "sonarr.cube.denys.me"
+                "radarr.cube.denys.me"
+                "bazarr.cube.denys.me"
+                "transmission.cube.denys.me"
+                "jackett.cube.denys.me"
+                "tautulli.cube.denys.me"
+                "scrutiny.cube.denys.me"
+                "books.cube.denys.me"
+                "rss.cube.denys.me"
+              ];
+              privateListener =
+                vhost:
+                lib.any (listener: listener.port == 9443 && listener.ssl) vhost.listen
+                && lib.all (listener: listener.port == 80 || listener.port == 9443) vhost.listen;
+            in
+            assert lib.all (name: privateListener cube.services.nginx.virtualHosts.${name}) privateNames;
+            assert privateListener vps.services.nginx.virtualHosts."znc.denys.me";
+            assert
+              builtins.attrNames vps.mine.nginx-sni-proxy.proxies == [
+                "ombi.cube.denys.me"
+                "plex.cube.denys.me"
+              ];
+            assert lib.all (proxy: !proxy.subdomains) (builtins.attrValues vps.mine.nginx-sni-proxy.proxies);
+            assert !(vps.virtualisation.oci-containers.containers ? mumbledj);
+            assert vps.services.murmur.enable;
+            assert cube.services.nginx.virtualHosts."plex.cube.denys.me".forceSSL;
+            assert cube.services.nginx.virtualHosts."ombi.cube.denys.me".forceSSL;
+            pkgs.runCommand "cube-vps-private-http" { } "touch $out";
+          cube-vps-private-services =
+            let
+              cube = self.nixosConfigurations.cube.config;
+              vps = self.nixosConfigurations.vps.config;
+            in
+            assert lib.all
+              (
+                host:
+                !host.services.openssh.openFirewall
+                && !host.programs.mosh.openFirewall
+                && !(builtins.elem 22 host.networking.firewall.allowedTCPPorts)
+                && builtins.elem 22 host.networking.firewall.interfaces.tailscale0.allowedTCPPorts
+                && builtins.elem 9443 host.networking.firewall.interfaces.wt0.allowedTCPPorts
+              )
+              [
+                cube
+                vps
+              ];
+            assert cube.services.samba.settings.data."guest ok" == "no";
+            assert cube.services.samba.settings.data."valid users" == "@storage";
+            assert !cube.services.samba.nmbd.enable;
+            assert !cube.systemd.services.samba-wsdd.enable;
+            assert lib.all (port: !(builtins.elem port cube.networking.firewall.allowedTCPPorts)) [
+              139
+              445
+              3702
+              5357
+            ];
+            assert !(builtins.elem 7000 vps.networking.firewall.allowedTCPPorts);
+            assert vps.services.znc.config.Listener.l.Host == "127.0.0.1";
+            assert
+              lib.sort builtins.lessThan (lib.unique cube.networking.firewall.allowedTCPPorts) == [
+                80
+                443
+              ];
+            assert
+              lib.sort builtins.lessThan (lib.unique vps.networking.firewall.allowedTCPPorts) == [
+                80
+                443
+                64738
+              ];
+            pkgs.runCommand "cube-vps-private-services" { } "touch $out";
           cli-proxy-api = config.packages.cli-proxy-api-ops;
           bao-operations =
             pkgs.runCommand "bao-operations"

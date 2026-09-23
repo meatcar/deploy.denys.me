@@ -34,7 +34,7 @@ in
 
     virtualisation.oci-containers.containers.freshrss = {
       image = "lscr.io/linuxserver/freshrss:latest ";
-      ports = [ "${port}:80" ];
+      ports = [ "127.0.0.1:${port}:80" ];
       volumes = [
         "${config.mine.persistPath}/freshrss:/config"
       ];

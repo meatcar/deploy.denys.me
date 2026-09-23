@@ -13,11 +13,10 @@ in
 
   virtualisation.oci-containers.containers.tautulli = {
     image = "lscr.io/linuxserver/tautulli";
-    ports = [ "${port}:8181" ];
+    ports = [ "127.0.0.1:${port}:8181" ];
     volumes = [
       "${config.mine.persistPath}/tautulli:/config"
     ];
-    extraOptions = [ "--network=host" ];
     environment = {
       PUID = toString config.ids.uids.${config.mine.storageUser};
       PGID = toString config.ids.gids.${config.mine.storageGroup};

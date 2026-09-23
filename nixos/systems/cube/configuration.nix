@@ -16,6 +16,7 @@
     ../../modules/acme.nix
     ../../modules/samba.nix
     ../../modules/docker.nix
+    ./modules/media-network
     ./modules/docker-diun.nix
     ./modules/docker-gluetun
     ./modules/docker-organizr.nix

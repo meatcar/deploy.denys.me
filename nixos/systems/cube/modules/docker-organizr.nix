@@ -25,7 +25,7 @@ in
 
     virtualisation.oci-containers.containers.organizr = {
       image = "ghcr.io/organizr/organizr";
-      ports = [ "${port}:80" ];
+      ports = [ "127.0.0.1:${port}:80" ];
       volumes = [
         "${config.mine.persistPath}/organizr:/config"
       ];

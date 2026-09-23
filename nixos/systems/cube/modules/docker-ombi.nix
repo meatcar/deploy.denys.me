@@ -11,7 +11,7 @@ in
     services.ombi.port = 3579;
     virtualisation.oci-containers.containers.ombi = {
       image = "ghcr.io/linuxserver/ombi";
-      ports = [ "${port}:3579" ];
+      ports = [ "127.0.0.1:${port}:3579" ];
       volumes = [
         "${config.mine.persistPath}/ombi:/config"
       ];
@@ -19,7 +19,6 @@ in
         PUID = toString config.ids.uids.${config.mine.storageUser};
         PGID = toString config.ids.gids.${config.mine.storageGroup};
       };
-      extraOptions = [ "--network=host" ];
     };
 
     services.nginx.virtualHosts."ombi.${config.networking.fqdn}" = {

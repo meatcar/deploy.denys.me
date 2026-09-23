@@ -1,6 +1,7 @@
 {
   config,
   pkgs,
+  lib,
   ...
 }:
 let
@@ -75,14 +76,30 @@ let
   '';
 in
 {
-  imports = [ ../../../modules/nginx.nix ];
-  services.nginx.virtualHosts."${config.networking.fqdn}" = {
-    enableACME = true;
-    forceSSL = true;
-    default = true;
-    locations."/" = {
-      root = wwwDir;
-      index = "index.html";
+  imports = [
+    ../../../modules/nginx.nix
+    ../../../modules/private-access
+  ];
+  mine.privateAccess.httpHosts = import ../private-http-hosts.nix config.networking.fqdn;
+  services.nginx.virtualHosts =
+    lib.genAttrs
+      [
+        "plex.${config.networking.fqdn}"
+        "ombi.${config.networking.fqdn}"
+      ]
+      (_: {
+        extraConfig = ''
+          if ($ssl_server_name != $host) { return 421; }
+        '';
+      })
+    // {
+      "${config.networking.fqdn}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations."/" = {
+          root = wwwDir;
+          index = "index.html";
+        };
+      };
     };
-  };
 }

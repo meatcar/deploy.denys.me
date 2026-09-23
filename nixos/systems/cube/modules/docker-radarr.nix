@@ -25,12 +25,11 @@ in
 
     virtualisation.oci-containers.containers.radarr = {
       image = "lscr.io/linuxserver/radarr";
-      ports = [ "${port}:7878" ];
+      ports = [ "127.0.0.1:${port}:7878" ];
       volumes = [
         "${config.mine.persistPath}/radarr:/config"
         "/data:/data"
       ];
-      extraOptions = [ "--network=host" ];
       environment = {
         PUID = toString config.ids.uids.${config.mine.storageUser};
         PGID = toString config.ids.gids.${config.mine.storageGroup};

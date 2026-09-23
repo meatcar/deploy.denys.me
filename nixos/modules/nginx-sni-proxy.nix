@@ -11,12 +11,12 @@ in
     enable = lib.mkEnableOption "nginx-sni-proxy";
     proxies = lib.mkOption {
       description = "Domain names to proxy using ngx_stream_ssl_preread_module";
-      default = [ ];
+      default = { };
       type = lib.types.attrsOf (
         lib.types.submodule {
           options.subdomains = lib.mkOption {
             type = lib.types.bool;
-            default = true;
+            default = false;
             description = "Whether to route all subdomains";
           };
           options.host = lib.mkOption {
@@ -44,6 +44,23 @@ in
       in
       {
         defaultSSLListenPort = lib.mkDefault 44443;
+        defaultListen = [
+          {
+            addr = "0.0.0.0";
+            port = 80;
+            ssl = false;
+          }
+          {
+            addr = "[::]";
+            port = 80;
+            ssl = false;
+          }
+          {
+            addr = "127.0.0.1";
+            port = defaultSSLListenPort;
+            ssl = true;
+          }
+        ];
         streamConfig = ''
           map $ssl_preread_server_name $sni_proxy {
             ${upstreams}
@@ -51,6 +68,7 @@ in
           }
           server {
             listen 443;
+            listen [::]:443;
             ssl_preread on;
             resolver 1.1.1.1;
             proxy_pass $sni_proxy;
