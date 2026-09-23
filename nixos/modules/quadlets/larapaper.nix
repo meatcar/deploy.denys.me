@@ -92,7 +92,10 @@ in
         inherit image;
         environmentFiles = [ config.age.secrets.larapaperEnv.path ]; # APP_KEY, DB_PASSWORD
         environments = {
+          # Storage URLs in firmware responses must stay reachable by devices.
           APP_URL = "https://trmnl.denys.me";
+          SESSION_DOMAIN = "null";
+          SESSION_SECURE_COOKIE = "true";
           APP_TIMEZONE = "America/Toronto";
           FORCE_HTTPS = "true"; # Traefik terminates TLS
           TRUSTED_PROXIES = "10.89.1.0/24";

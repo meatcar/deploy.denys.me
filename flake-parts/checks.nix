@@ -14,6 +14,9 @@
           cli-proxy-isolation = import ../nixos/modules/quadlets/cli-proxy-api/isolation-test.nix {
             inherit pkgs;
           };
+          application-routing = import ../nixos/modules/quadlets/routing-test.nix {
+            inherit pkgs;
+          };
           private-access-isolation = import ../nixos/modules/private-access/isolation-test.nix {
             inherit pkgs;
             sambaSettings = self.nixosConfigurations.cube.config.services.samba.settings;

@@ -185,6 +185,19 @@ let
         PY
       '';
 
+  # The SPA fallback otherwise serves administration for unknown public paths,
+  # including a POST callback changed to GET by Laravel's _method handling.
+  # Keep the upstream client-prefix guard and permit the SPA only on NetBird.
+  clientRoutesSource = pkgs.fetchurl {
+    url = "https://raw.githubusercontent.com/invoiceninja/invoiceninja/v5.13.29/routes/client.php";
+    hash = "sha256-Fr64yHWMEVfZqPOBreoGX765z7869U2e0S5ewsPF2zk=";
+  };
+  clientRoutes = pkgs.runCommand "invoiceninja-client-routes.php" { } ''
+    substitute ${clientRoutesSource} "$out" \
+      --replace-fail "if (request()->is('client') || request()->is('client/*'))" \
+      "if (request()->getHost() !== 'billing.vpn.denys.me' || request()->is('client') || request()->is('client/*'))"
+  '';
+
   # Derived from upstream's debian/nginx/laravel.conf. Kept in the Nix store and
   # mounted read-only. Security headers deliberately live on the traefik router
   # instead, so there is exactly one place that sets them.
@@ -213,9 +226,20 @@ let
       location = /favicon.ico { access_log off; log_not_found off; }
       location = /robots.txt  { access_log off; log_not_found off; }
 
-      error_page 404 /index.php;
+      # Public asset routes cannot fall through to the admin SPA. Never execute
+      # an uploaded PHP file either; index.php is the sole front controller.
+      location ~ \.php(?:/|$) {
+        return 404;
+      }
+      location ~ /\.(?!well-known).* {
+        deny all;
+      }
+      location ~ ^/(build|css|js|images|fonts|vendor|gateway-card-images|storage)/ {
+        try_files $uri =404;
+      }
 
-      location ~ \.php$ {
+      location = /index.php {
+        internal;
         try_files $uri =404;
         fastcgi_pass $invoiceninja_upstream;
         # $realpath_root, not $document_root: `public` is a volume that init.sh
@@ -233,10 +257,6 @@ let
         # Chromium-backed PDF rendering and large reports routinely exceed the
         # 60s default on this ARM host.
         fastcgi_read_timeout 300s;
-      }
-
-      location ~ /\.(?!well-known).* {
-        deny all;
       }
     }
   '';
@@ -328,6 +348,10 @@ in
         ];
         environments = {
           APP_URL = "https://${hostname}";
+          REACT_URL = "https://billing.vpn.denys.me";
+          # Host-only cookies work independently on the customer/admin origins.
+          SESSION_DOMAIN = "null";
+          SESSION_SECURE_COOKIE = "true";
           APP_ENV = "production";
           APP_DEBUG = "false";
           APP_TIMEZONE = "America/Toronto";
@@ -351,6 +375,7 @@ in
           "${podCfg.volumes.invoiceninja-public.ref}:/var/www/html/public"
           "${podCfg.volumes.invoiceninja-storage.ref}:/var/www/html/storage"
           "${snsController}:/var/www/html/app/Http/Controllers/SNSController.php:ro"
+          "${clientRoutes}:/var/www/html/routes/client.php:ro"
         ];
         networks = [
           podCfg.networks.invoiceninja-db.ref

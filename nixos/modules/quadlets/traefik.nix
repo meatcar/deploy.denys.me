@@ -20,6 +20,7 @@
 let
   persistDir = "${config.mine.persistPath}/traefik";
   podCfg = config.home-manager.users.pod.virtualisation.quadlet;
+  publicRoutes = import ./public-routes.nix;
   traefikConfig = pkgs.writeText "traefik.yml" ''
     entryPoints:
       web:
@@ -31,6 +32,18 @@ let
               scheme: https
       websecure:
         address: ":443"
+        http:
+          # Match the same path that nginx/Laravel will interpret. In particular,
+          # reject double-encoding before either backend can decode it again.
+          sanitizePath: true
+          encodedCharacters:
+            allowEncodedSlash: false
+            allowEncodedBackSlash: false
+            allowEncodedNullCharacter: false
+            allowEncodedSemicolon: false
+            allowEncodedPercent: false
+            allowEncodedQuestionMark: false
+            allowEncodedHash: false
         forwardedHeaders:
           # Rootlessport is Traefik's immediate peer and therefore hides
           # Cloudflare's network address. The host firewall authenticates the
@@ -57,9 +70,17 @@ let
     http:
       routers:
         larapaper:
-          rule: "Host(`trmnl.denys.me`)"
+          rule: "Host(`trmnl.denys.me`) && (${publicRoutes.larapaper})"
           entryPoints:
             - websecure
+          service: larapaper
+          tls:
+            certResolver: le-dns
+
+        larapaper-admin:
+          rule: "Host(`trmnl.vpn.denys.me`)"
+          entryPoints:
+            - netbird
           service: larapaper
           tls:
             certResolver: le-dns
@@ -67,13 +88,23 @@ let
         invoiceninja:
           # Keep the SNS controller off the public browser hostname. Its only
           # route is the source-restricted billing-sns router below.
-          rule: "Host(`billing.denys.me`) && !PathPrefix(`/api/v1/sns_webhook`)"
+          rule: "Host(`billing.denys.me`) && (${publicRoutes.invoiceninja})"
           entryPoints:
             - websecure
           service: invoiceninja
           middlewares:
             - invoiceninja-headers
             - invoiceninja-ratelimit
+          tls:
+            certResolver: le-dns
+
+        invoiceninja-admin:
+          rule: "Host(`billing.vpn.denys.me`) && !PathPrefix(`/api/v1/sns_webhook`)"
+          entryPoints:
+            - netbird
+          service: invoiceninja
+          middlewares:
+            - invoiceninja-headers
           tls:
             certResolver: le-dns
 
