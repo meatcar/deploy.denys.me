@@ -24,10 +24,12 @@
         settings.formatter.ruff-format.includes = lib.mkForce [
           "packages/**/*.py"
           "terraform/**/*.py"
+          "nixos/modules/**/*.py"
         ];
         settings.formatter.ruff-check.includes = lib.mkForce [
           "packages/**/*.py"
           "terraform/**/*.py"
+          "nixos/modules/**/*.py"
         ];
         settings.global.excludes = [
           "flake.lock"

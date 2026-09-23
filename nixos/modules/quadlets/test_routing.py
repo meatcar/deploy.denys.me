@@ -75,10 +75,16 @@ class Routing(unittest.TestCase):
         for _ in range(100):
             try:
                 connection = http.client.HTTPSConnection(
-                    "127.0.0.1", cls.ports["websecure"], timeout=1,
+                    "127.0.0.1",
+                    cls.ports["websecure"],
+                    timeout=1,
                     context=ssl._create_unverified_context(),
                 )
-                connection.request("POST", "/api/v1/sns_webhook", headers={"Host": "billing-sns.denys.me"})
+                connection.request(
+                    "POST",
+                    "/api/v1/sns_webhook",
+                    headers={"Host": "billing-sns.denys.me"},
+                )
                 ready = connection.getresponse().status == 200
                 connection.close()
                 if ready:
@@ -101,7 +107,9 @@ class Routing(unittest.TestCase):
         (root / "build" / "app.css").write_text("portal asset")
         (root / "build" / "unexpected.php").write_text('<?php echo "executed PHP";')
         config = Path(sys.argv[3]).read_text()
-        config = config.replace("listen 80 default_server;", f"listen 127.0.0.1:{cls.nginx_port};")
+        config = config.replace(
+            "listen 80 default_server;", f"listen 127.0.0.1:{cls.nginx_port};"
+        )
         config = config.replace("/var/www/html/public", str(root))
         config = config.replace("invoiceninja-app:9000", f"127.0.0.1:{php_port}")
         config = config.replace("include fastcgi_params;", f"include {sys.argv[4]};")
@@ -112,7 +120,15 @@ class Routing(unittest.TestCase):
         )
         for command in [
             ["php-cgi", "-b", f"127.0.0.1:{php_port}"],
-            ["nginx", "-e", "stderr", "-c", str(directory / "nginx.conf"), "-p", str(directory)],
+            [
+                "nginx",
+                "-e",
+                "stderr",
+                "-c",
+                str(directory / "nginx.conf"),
+                "-p",
+                str(directory),
+            ],
         ]:
             process = subprocess.Popen(command, stdout=subprocess.DEVNULL)
             cls.addClassCleanup(cls.stop_process, process)
@@ -138,7 +154,9 @@ class Routing(unittest.TestCase):
 
     def request(self, host, path, method="GET", entrypoint="websecure", headers=None):
         connection = http.client.HTTPSConnection(
-            "127.0.0.1", self.ports[entrypoint], context=ssl._create_unverified_context()
+            "127.0.0.1",
+            self.ports[entrypoint],
+            context=ssl._create_unverified_context(),
         )
         try:
             connection.request(method, path, headers={"Host": host, **(headers or {})})
@@ -161,11 +179,21 @@ class Routing(unittest.TestCase):
         ]:
             with self.subTest(method=method, path=path):
                 self.assertEqual(self.request("trmnl.denys.me", path, method)[0], 200)
-        for path in ["/", "/login", "/dashboard", "/api/devices", "/api/display/status", "/api/display/update"]:
+        for path in [
+            "/",
+            "/login",
+            "/dashboard",
+            "/api/devices",
+            "/api/display/status",
+            "/api/display/update",
+        ]:
             with self.subTest(path=path):
                 self.assertEqual(self.request("trmnl.denys.me", path)[0], 404)
                 self.assertEqual(self.request("trmnl.vpn.denys.me", path)[0], 404)
-                self.assertEqual(self.request("trmnl.vpn.denys.me", path, entrypoint="netbird")[0], 200)
+                self.assertEqual(
+                    self.request("trmnl.vpn.denys.me", path, entrypoint="netbird")[0],
+                    200,
+                )
         self.assertEqual(self.request("trmnl.denys.me", "/api/display", "POST")[0], 404)
 
     def test_invoice_customers_and_callbacks_public_admin_private(self):
@@ -200,13 +228,37 @@ class Routing(unittest.TestCase):
             with self.subTest(method=method, path=path):
                 self.assertEqual(self.request("billing.denys.me", path, method)[0], 200)
         for provider in ["google", "microsoft"]:
-            self.assertEqual(self.request("billing.denys.me", f"/auth/{provider}", "POST")[0], 404)
-        for path in ["/", "/login", "/setup", "/update", "/api/v1/login", "/api/v1/invoices", "/api/v1/users", "/api/v1/tokens", "/token_hash_router", "/build-admin/app.js", "/index.php", "/clientele", "/auth/apple", "/auth/google/extra"]:
+            self.assertEqual(
+                self.request("billing.denys.me", f"/auth/{provider}", "POST")[0], 404
+            )
+        for path in [
+            "/",
+            "/login",
+            "/setup",
+            "/update",
+            "/api/v1/login",
+            "/api/v1/invoices",
+            "/api/v1/users",
+            "/api/v1/tokens",
+            "/token_hash_router",
+            "/build-admin/app.js",
+            "/index.php",
+            "/clientele",
+            "/auth/apple",
+            "/auth/google/extra",
+        ]:
             with self.subTest(path=path):
                 for method in ["GET", "POST"]:
-                    self.assertEqual(self.request("billing.denys.me", path, method)[0], 404)
-                    self.assertEqual(self.request("billing.vpn.denys.me", path, method)[0], 404)
-                self.assertEqual(self.request("billing.vpn.denys.me", path, entrypoint="netbird")[0], 200)
+                    self.assertEqual(
+                        self.request("billing.denys.me", path, method)[0], 404
+                    )
+                    self.assertEqual(
+                        self.request("billing.vpn.denys.me", path, method)[0], 404
+                    )
+                self.assertEqual(
+                    self.request("billing.vpn.denys.me", path, entrypoint="netbird")[0],
+                    200,
+                )
 
     def test_public_paths_cannot_be_reinterpreted_as_administration(self):
         for host, prefix, admin in [
@@ -228,19 +280,38 @@ class Routing(unittest.TestCase):
                     status, body = self.request(host, path)
                     self.assertIn(status, [400, 404])
                     self.assertNotIn(b"backend reached", body)
-            status, _ = self.request(host, admin, headers={
-                "X-Forwarded-Host": host.replace(".denys.me", ".vpn.denys.me"),
-                "X-Original-URL": prefix,
-                "X-Rewrite-URL": prefix,
-            })
+            status, _ = self.request(
+                host,
+                admin,
+                headers={
+                    "X-Forwarded-Host": host.replace(".denys.me", ".vpn.denys.me"),
+                    "X-Original-URL": prefix,
+                    "X-Rewrite-URL": prefix,
+                },
+            )
             self.assertEqual(status, 404)
 
     def test_sns_remains_dedicated_exact_post(self):
-        for host in ["billing.denys.me", "billing-sns.denys.me", "billing.vpn.denys.me"]:
+        for host in [
+            "billing.denys.me",
+            "billing-sns.denys.me",
+            "billing.vpn.denys.me",
+        ]:
             for method in ["GET", "POST", "PUT"]:
-                for path in ["/api/v1/sns_webhook", "/api/v1/sns_webhook/", "/api/v1/sns_webhook/extra", "/api/v1/sns_webhook-other"]:
+                for path in [
+                    "/api/v1/sns_webhook",
+                    "/api/v1/sns_webhook/",
+                    "/api/v1/sns_webhook/extra",
+                    "/api/v1/sns_webhook-other",
+                ]:
                     with self.subTest(host=host, method=method, path=path):
-                        expected = 200 if host == "billing-sns.denys.me" and method == "POST" and path == "/api/v1/sns_webhook" else 404
+                        expected = (
+                            200
+                            if host == "billing-sns.denys.me"
+                            and method == "POST"
+                            and path == "/api/v1/sns_webhook"
+                            else 404
+                        )
                         self.assertEqual(self.request(host, path, method)[0], expected)
 
     def test_invoice_static_files_never_fall_through_to_php(self):
@@ -279,10 +350,20 @@ class Routing(unittest.TestCase):
             with self.subTest(method=method, path=path):
                 self.assertEqual(self.request("cpa.pvlv.ca", path, method)[0], 200)
         for host in ["cpa.pvlv.ca", "cpa.vpn.denys.me"]:
-            for path in ["/", "/v0/management/config", "/management.html", "/usage-service/info", "/v0/resource/plugins/pi-bridge/panel", "/v0/resource/plugins/pi-bridge/dev/usage", "/codex/callback"]:
+            for path in [
+                "/",
+                "/v0/management/config",
+                "/management.html",
+                "/usage-service/info",
+                "/v0/resource/plugins/pi-bridge/panel",
+                "/v0/resource/plugins/pi-bridge/dev/usage",
+                "/codex/callback",
+            ]:
                 with self.subTest(host=host, path=path):
                     self.assertEqual(self.request(host, path)[0], 404)
-        self.assertEqual(self.request("cpa.vpn.denys.me", "/", entrypoint="netbird")[0], 200)
+        self.assertEqual(
+            self.request("cpa.vpn.denys.me", "/", entrypoint="netbird")[0], 200
+        )
         self.assertEqual(self.request("paseo.denys.me", "/")[0], 200)
 
 
