@@ -172,6 +172,36 @@ resource "cloudflare_dns_record" "TXT-bsky" {
   ttl     = 1
 }
 
+resource "cloudflare_dns_record" "amp-verification" {
+  zone_id = data.cloudflare_zone.pvlv.id
+  type    = "TXT"
+  name    = "_amp-challenge.amp.pvlv.ca"
+  content = "amp-domain-verification=d991575b865348a28111dd90daac29414464a9719485440b81048a88d2728ba1"
+  comment = "Amp custom-domain ownership verification"
+  proxied = false
+  ttl     = 1
+}
+
+resource "cloudflare_dns_record" "amp-A" {
+  zone_id = data.cloudflare_zone.pvlv.id
+  type    = "A"
+  name    = "amp.pvlv.ca"
+  content = "34.49.94.208"
+  comment = "Amp custom domain"
+  proxied = false
+  ttl     = 1
+}
+
+resource "cloudflare_dns_record" "amp-wildcard-A" {
+  zone_id = data.cloudflare_zone.pvlv.id
+  type    = "A"
+  name    = "*.amp.pvlv.ca"
+  content = "34.49.94.208"
+  comment = "Amp custom-domain wildcard"
+  proxied = false
+  ttl     = 1
+}
+
 module "parked_domains" {
   source = "./modules/parked-domains"
 
