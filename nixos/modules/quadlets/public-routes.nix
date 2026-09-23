@@ -1,13 +1,24 @@
 # Reviewed against usetrmnl/larapaper 0.37.1 routes/api.php and Invoice Ninja
-# v5.13.29 routes/{client,contact,shop,web,api}.php, AppServiceProvider.php,
+# v5.13.29 routes/{client,vendor,contact,shop,web,api}.php, AppServiceProvider.php,
 # portal templates and composer.lock (Livewire 3.8.3). Re-review on upgrades.
 let
   read = "(Method(`GET`) || Method(`HEAD`))";
   submit = "(${read} || Method(`POST`))";
   uuid = "[0-9a-fA-F-]{36}";
   key = "[A-Za-z0-9._~-]+";
+  vendorRead = "^/(vendors|vendor/(key_login/${key}|purchase_order/${key}(/download(_e_purchase_order)?)?|dashboard|purchase_orders(/${key})?|showBlob/${key}|logout|documents(/${key}(/download(_pdf)?)?)?))$";
+  vendorPost = "^/vendor/(purchase_orders/bulk|purchase_order/upload/${key}|documents/download_multiple)$";
+  vendorProfile = "^/vendor/profile/${key}/edit$";
 in
 {
+  # nginx must pass these dynamic routes to Laravel before its /vendor/ asset
+  # location. Share the paths so adding a public route cannot leave it static.
+  invoiceninjaVendorPaths = [
+    vendorRead
+    vendorPost
+    vendorProfile
+  ];
+
   larapaper = builtins.concatStringsSep " || " [
     "(${read} && (Path(`/api/setup`) || Path(`/api/display`) || Path(`/api/current_screen`)))"
     "(Method(`POST`) && (Path(`/api/log`) || Path(`/api/screens`)))"
@@ -22,6 +33,11 @@ in
     # The client namespace contains no admin routes, including method-spoofed
     # forms. Upstream explicitly aborts its fallback for /client and /client/*.
     "Path(`/client`) || PathPrefix(`/client/`)"
+    # Vendor invitation/key middleware and auth:vendor remain in Laravel.
+    "(${read} && PathRegexp(`${vendorRead}`))"
+    "(Method(`POST`) && PathRegexp(`${vendorPost}`))"
+    # vendor_profile/edit.blade.php submits POST with _method=PUT and CSRF.
+    "((${submit} || Method(`PUT`)) && PathRegexp(`${vendorProfile}`))"
     "(${submit} && Path(`/set_password`))"
     "(${read} && (Path(`/error`) || PathRegexp(`^/documents/${key}(/hashed)?$`)))"
     # Livewire is used by the customer portal, not the React admin application.

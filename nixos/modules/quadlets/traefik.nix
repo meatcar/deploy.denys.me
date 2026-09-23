@@ -108,6 +108,22 @@ let
           tls:
             certResolver: le-dns
 
+        invoiceninja-mailer-oauth:
+          # v5.13.29 starts Socialite state on the current host but always uses
+          # APP_URL for the callback. Move to that host before creating state.
+          # routes/web.php requires no private session here; OAuth::handleAuth
+          # resolves the existing account by the verified provider identity.
+          rule: "Host(`billing.vpn.denys.me`) && (Method(`GET`) || Method(`HEAD`)) && (Path(`/auth/google`) || Path(`/auth/microsoft`))"
+          priority: 100
+          entryPoints:
+            - netbird
+          service: noop@internal
+          middlewares:
+            - invoiceninja-headers
+            - invoiceninja-mailer-origin
+          tls:
+            certResolver: le-dns
+
         invoiceninja-sns:
           rule: "Host(`billing-sns.denys.me`) && Path(`/api/v1/sns_webhook`) && Method(`POST`)"
           priority: 100
@@ -129,6 +145,14 @@ let
               - url: "http://invoiceninja-nginx:80"
 
       middlewares:
+        invoiceninja-mailer-origin:
+          redirectRegex:
+            # The router restricts methods and paths; preserve the raw query,
+            # including react=true, without accepting a caller-supplied host.
+            regex: '^https://[^/]+(/.*)$'
+            replacement: 'https://billing.denys.me''${1}'
+            permanent: false
+
         invoiceninja-headers:
           headers:
             # Invoice Ninja terminates nothing itself; these are the only

@@ -23,6 +23,7 @@ let
   mysqlImage = "mysql:8.4.11"; # 8.4 is the current MySQL LTS series
   nginxImage = "nginx:1.30.4-alpine3.24"; # nginx stable branch
 
+  publicRoutes = import ./public-routes.nix;
   hostname = "billing.denys.me";
   dbName = "invoiceninja";
   dbUser = "invoiceninja";
@@ -233,6 +234,12 @@ let
       }
       location ~ /\.(?!well-known).* {
         deny all;
+      }
+      # /vendor/ contains both static libraries and the purchase-order portal.
+      # Only its explicit dynamic paths may reach Laravel; auth, invitation
+      # validation and CSRF stay upstream. Unknown assets still return 404.
+      location ~ ${builtins.concatStringsSep "|" publicRoutes.invoiceninjaVendorPaths} {
+        rewrite ^ /index.php last;
       }
       location ~ ^/(build|css|js|images|fonts|vendor|gateway-card-images|storage)/ {
         try_files $uri =404;
