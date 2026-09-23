@@ -13,6 +13,9 @@ NixOS hosts and Terragrunt-managed infrastructure.
 
 ## Workflow
 
+Scan untrusted changes with standalone Gitleaks before loading the Nix environment.
+The `secret-scan` flake check runs after Nix copies tracked files into its store.
+
 ```sh
 nix flake check
 ```

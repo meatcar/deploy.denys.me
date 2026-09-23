@@ -16,6 +16,7 @@ crash.*.log
 
 ### Terraform Patch ###
 *.tfvars
+*.tfvars.json
 override.tf
 override.tf.json
 *_override.tf
@@ -25,6 +26,8 @@ terraform.rc
 
 # End of https://www.gitignore.io/api/terraform
 .env
+.env.*
+!.env.example
 output/
 
 result

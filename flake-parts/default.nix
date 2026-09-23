@@ -6,6 +6,7 @@
     ./devshell.nix
     ./hosts.nix
     ./packages.nix
+    ./secret-scan.nix
     ./treefmt.nix
   ];
 
