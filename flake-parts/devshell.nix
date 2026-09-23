@@ -35,7 +35,6 @@
 
           awscli2
           openbao
-          wireguard-tools
           jq
           railway
           oci-cli

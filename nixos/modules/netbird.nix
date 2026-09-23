@@ -4,7 +4,6 @@ _: {
     clients.default = {
       name = "default";
       interface = "wt0";
-      # NOTE: Cube uses UDP/51820; the VPS uses UDP/51821 for WireGuard.
       port = 51822;
       openInternalFirewall = false;
       config = {

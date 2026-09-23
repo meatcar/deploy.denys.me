@@ -17,7 +17,7 @@
     ../../modules/samba.nix
     ../../modules/docker.nix
     ./modules/docker-diun.nix
-    ./modules/docker-wireguard.nix
+    ./modules/docker-gluetun
     ./modules/docker-organizr.nix
     ./modules/docker-transmission.nix
     ./modules/docker-jackett.nix

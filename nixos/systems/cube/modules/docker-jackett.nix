@@ -9,7 +9,8 @@ in
   config = {
     virtualisation.oci-containers.containers.jackett = {
       image = "ghcr.io/linuxserver/jackett";
-      dependsOn = [ "wireguard" ];
+      dependsOn = [ "gluetun" ];
+      networks = [ "container:gluetun" ];
       volumes = [
         "${config.mine.persistPath}/jackett:/config"
       ];
@@ -19,13 +20,10 @@ in
         PGID = toString config.ids.gids.${config.mine.storageGroup};
         AUTO_UPDATE = "true";
       };
-      extraOptions = [
-        "--network=container:wireguard"
-      ];
     };
 
-    virtualisation.oci-containers.containers.wireguard.ports = [
-      "${toString cfg.port}:9117"
+    virtualisation.oci-containers.containers.gluetun.ports = [
+      "127.0.0.1:${toString cfg.port}:9117"
     ];
 
     services.nginx.virtualHosts."jackett.${config.networking.fqdn}" = {

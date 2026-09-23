@@ -40,7 +40,77 @@
             assert
               self.nixosConfigurations.chunkymonkey.config.networking.firewall.interfaces.tailscale0.allowedTCPPorts
               == [ 22 ];
+            assert !(self.nixosConfigurations.vps.config.age.secrets ? wg-priv-key);
+            assert !((import ../secrets/secrets.nix) ? "wg-server-priv-key.age");
             pkgs.runCommand "vpn-coexistence" { } "touch $out";
+          cube-vpn =
+            let
+              cube = self.nixosConfigurations.cube.config;
+              containers = cube.virtualisation.oci-containers.containers;
+              inherit (containers) gluetun;
+              service = cube.systemd.services.docker-gluetun;
+              secret = cube.age.secrets.wgConfig;
+            in
+            assert !(containers ? wireguard);
+            assert secret.file == ../secrets/wg-config.age;
+            assert secret.path == "/run/agenix/wgConfig";
+            assert secret.mode == "0400";
+            assert secret.owner == "root" && secret.group == "root";
+            assert service.restartTriggers == [ ../secrets/wg-config.age ];
+            assert !(cube.systemd.paths ? wgConfig-watcher);
+            assert
+              (import ../secrets/secrets.nix)."wg-config.age".publicKeys == [
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBcq01gh2tn/+hcm75N3LnS003mUBjXcT6qNndMhObPO"
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH7aKNMDTXhMoruZYYAqbGY2XBY4Uy81zXHYxs7w6UoR"
+              ];
+            assert gluetun.environment.VPN_SERVICE_PROVIDER == "custom";
+            assert gluetun.environment.VPN_TYPE == "wireguard";
+            assert gluetun.environment.WIREGUARD_IMPLEMENTATION == "userspace";
+            assert gluetun.environment.FIREWALL_INPUT_PORTS == "9091,9117";
+            assert
+              lib.sort builtins.lessThan gluetun.ports == [
+                "127.0.0.1:9091:9091"
+                "127.0.0.1:9117:9117"
+              ];
+            assert !gluetun.privileged;
+            assert gluetun.capabilities == { NET_ADMIN = true; };
+            assert gluetun.devices == [ "/dev/net/tun:/dev/net/tun" ];
+            assert builtins.elem
+              "--mount=type=bind,src=/run/agenix/wgConfig,dst=/gluetun/wireguard/wg0.conf,readonly"
+              gluetun.extraOptions;
+            assert builtins.all
+              (
+                name:
+                containers.${name}.dependsOn == [ "gluetun" ]
+                && containers.${name}.networks == [ "container:gluetun" ]
+                && containers.${name}.ports == [ ]
+                && containers.${name}.extraOptions == [ ]
+              )
+              [
+                "transmission"
+                "jackett"
+              ];
+            assert service.unitConfig.AssertPathExists == "/run/agenix/wgConfig";
+            assert service.serviceConfig.TimeoutStartSec == 180;
+            assert service.serviceConfig.Restart == "always";
+            assert service.postStart != "";
+            assert builtins.all
+              (
+                name:
+                let
+                  app = cube.systemd.services."docker-${name}";
+                in
+                builtins.elem "docker-gluetun.service" app.after
+                && builtins.elem "docker-gluetun.service" app.requires
+                && builtins.elem "docker-gluetun.service" app.bindsTo
+                && builtins.elem "docker-gluetun.service" app.partOf
+                && builtins.elem "docker-${name}.service" service.wants
+              )
+              [
+                "transmission"
+                "jackett"
+              ];
+            pkgs.runCommand "cube-vpn" { } "touch $out";
           cli-proxy-api = config.packages.cli-proxy-api-ops;
           bao-operations =
             pkgs.runCommand "bao-operations"

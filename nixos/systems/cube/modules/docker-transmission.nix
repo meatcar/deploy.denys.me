@@ -21,7 +21,8 @@ in
     ];
     virtualisation.oci-containers.containers.transmission = {
       image = "ghcr.io/linuxserver/transmission";
-      dependsOn = [ "wireguard" ];
+      dependsOn = [ "gluetun" ];
+      networks = [ "container:gluetun" ];
       volumes = [
         "${config.mine.persistPath}/transmission:/config"
         "${config.mine.storagePath}/System/transmission:${config.mine.storagePath}/System/transmission"
@@ -35,12 +36,9 @@ in
         PUID = toString config.ids.uids.${config.mine.storageUser};
         PGID = toString config.ids.gids.${config.mine.storageGroup};
       };
-      extraOptions = [
-        "--network=container:wireguard"
-      ];
     };
-    virtualisation.oci-containers.containers.wireguard.ports = [
-      "${toString cfg.port}:9091"
+    virtualisation.oci-containers.containers.gluetun.ports = [
+      "127.0.0.1:${toString cfg.port}:9091"
     ];
     services.nginx.virtualHosts."transmission.${config.networking.fqdn}" = {
       enableACME = true;

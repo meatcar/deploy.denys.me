@@ -19,13 +19,13 @@ in
                 type = nullOr str;
                 default = null;
                 description = "Action to run when secret is updated.";
-                example = "systemctl restart wireguard-wg0.service";
+                example = "systemctl restart docker-gluetun.service";
               };
               service = lib.mkOption {
                 type = nullOr str;
                 default = null;
                 description = "The systemd service that uses this secret.";
-                example = "wireguard-wg0";
+                example = "docker-gluetun";
               };
             };
 
@@ -63,7 +63,7 @@ in
             };
           };
         }
-      ) cfg.secrets
+      ) (lib.filterAttrs (_: secret: secret.action != null) cfg.secrets)
     );
     age.secrets = {
       ssmtpPass = {
