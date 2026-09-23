@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   ...
 }:
 {
@@ -47,6 +48,14 @@
   };
 
   time.timeZone = "America/Toronto";
+
+  boot.loader.grub.configurationLimit = 3;
+  nix.gc.options = lib.mkForce "";
+  systemd.services.nix-gc.preStart = "${config.nix.package}/bin/nix-env --profile /nix/var/nix/profiles/system --delete-generations +3";
+
+  services.journald.extraConfig = ''
+    SystemMaxUse=1G
+  '';
 
   users.users."${config.mine.username}" = {
     isNormalUser = true;
