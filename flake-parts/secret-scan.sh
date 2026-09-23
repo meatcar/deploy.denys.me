@@ -9,6 +9,8 @@ scanner=(gitleaks dir --no-banner --no-color --redact=100 --ignore-gitleaks-allo
 
 printf -v digest '%086d' 0
 printf 'hashedPassword = "%s";\n' "\$6\$audit\$$digest" >"$scratch/positive/configuration.nix"
+printf -v yescrypt_digest '%043d' 0
+printf 'hashedPassword = "%s";\n' "\$y\$j9T\$0000000000000000000000\$$yescrypt_digest" >"$scratch/positive/yescrypt.nix"
 printf -- '-----BEGIN %s-----\n%s\n-----END %s-----\n' 'PRIVATE KEY' "$digest" 'PRIVATE KEY' >"$scratch/positive/key.pem"
 
 set +e
@@ -16,7 +18,11 @@ set +e
 status=$?
 set -e
 test "$status" -eq 23
-jq -e 'any(.[]; .RuleID == "unix-password-hash") and any(.[]; .RuleID == "private-key")' "$scratch/findings.json" >/dev/null
+jq -e '
+  any(.[]; .RuleID == "unix-password-hash" and (.File | endswith("/configuration.nix"))) and
+  any(.[]; .RuleID == "unix-password-hash" and (.File | endswith("/yescrypt.nix"))) and
+  any(.[]; .RuleID == "private-key")
+' "$scratch/findings.json" >/dev/null
 
 printf 'hashedPasswordFile = "/run/agenix/hashedPassword";\n' >"$scratch/negative/configuration.nix"
 "${scanner[@]}" "$scratch/negative"
