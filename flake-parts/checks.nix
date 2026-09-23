@@ -21,6 +21,14 @@
             inherit pkgs;
             sambaSettings = self.nixosConfigurations.cube.config.services.samba.settings;
           };
+          znc-loopback = pkgs.runCommand "znc-loopback" { nativeBuildInputs = [ pkgs.python3 ]; } ''
+            export PYTHONDONTWRITEBYTECODE=1
+            python -m unittest discover -s ${../nixos/modules/znc} -p 'test_*.py'
+            touch "$out"
+          '';
+          znc-mutable-upgrade = import ../nixos/modules/znc/upgrade-test.nix {
+            inherit pkgs;
+          };
           vpn-coexistence =
             let
               hosts = map (name: self.nixosConfigurations.${name}.config) [

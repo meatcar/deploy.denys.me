@@ -70,10 +70,34 @@ in
     };
 
   config = lib.mkIf cfg.enable {
-    systemd.tmpfiles.rules = [
-      "d /persist/znc 0700 znc znc -"
-      "L /var/lib/znc - - - - /persist/znc"
-    ];
+    systemd = {
+      tmpfiles.rules = [
+        "d /persist/znc 0700 znc znc -"
+        "L /var/lib/znc - - - - /persist/znc"
+      ];
+      services = {
+        znc = {
+          requires = [ "znc-backend-guard.service" ];
+          after = [ "znc-backend-guard.service" ];
+          # Run after nixpkgs retains or creates the mutable config, before ZNC reads it.
+          preStart = lib.mkAfter ''
+            ${pkgs.python3}/bin/python3 ${./znc/loopback.py} ${lib.escapeShellArg "${config.services.znc.dataDir}/configs/znc.conf"} ${toString internalPort}
+          '';
+        };
+        znc-backend-guard = {
+          description = "Reject remote ingress to ZNC's loopback backend";
+          serviceConfig = {
+            Type = "oneshot";
+            RemainAfterExit = true;
+          };
+          path = [ pkgs.iptables ];
+          # No stop hook: keep this guard when the ordinary firewall is stopped.
+          script = builtins.replaceStrings [ "@port@" ] [ (toString internalPort) ] (
+            builtins.readFile ./znc/firewall.sh
+          );
+        };
+      };
+    };
 
     system.activationScripts =
       let
@@ -181,6 +205,8 @@ in
             AllowIRC = true;
             AllowWeb = true;
             Host = "127.0.0.1";
+            IPv4 = true;
+            IPv6 = false;
             Port = internalPort;
             SSL = false;
           };
