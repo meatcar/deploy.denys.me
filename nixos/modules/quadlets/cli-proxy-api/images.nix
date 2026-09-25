@@ -3,12 +3,12 @@ let
   buildGoModule = pkgs.buildGoModule.override { go = pkgs.go_1_26; };
   api = buildGoModule rec {
     pname = "cli-proxy-api";
-    version = "7.3.4";
+    version = "8.0.18";
     src = pkgs.fetchFromGitHub {
       owner = "router-for-me";
       repo = "CLIProxyAPI";
       tag = "v${version}";
-      hash = "sha256-GskMEQm8fsCDksv1NHGTr2fFJ8rWtbfOnci2wytwmrY=";
+      hash = "sha256-ch82AP07GeuVqhAETym0BTtf2ca0/fZ3YuYG6cZU5H4=";
     };
     vendorHash = "sha256-r3yWkdMcM40G9jV7MxW/qNv3E9WrHavFilW24quEf+8=";
     env.CGO_ENABLED = 1;
@@ -30,13 +30,15 @@ let
       hash = "sha256-CYrZv/zcPJEgpNPMeemZ7kZepPU1IRG76g636DdwnS4=";
     };
     postPatch = ''
-      go mod edit -require=github.com/router-for-me/CLIProxyAPI/v7@v${api.version}
+      sed -i 's|github.com/router-for-me/CLIProxyAPI/v7/|github.com/router-for-me/CLIProxyAPI/v8/|g' *.go
+      go mod edit -droprequire=github.com/router-for-me/CLIProxyAPI/v7 \
+        -require=github.com/router-for-me/CLIProxyAPI/v8@v${api.version}
       sed -i '\|^github.com/router-for-me/CLIProxyAPI/v7 |d' go.sum
       printf '%s\n' \
-        'github.com/router-for-me/CLIProxyAPI/v7 v7.3.4 h1:DBk1BAFvjsa1hwC7Y8szkH48+T3kqROAqnUtm1aXbbs=' \
-        'github.com/router-for-me/CLIProxyAPI/v7 v7.3.4/go.mod h1:GGRX8CS3050BThOf8ZCs6DjSUyp/JwEupBnI2jRPVcY=' >> go.sum
+        'github.com/router-for-me/CLIProxyAPI/v8 v8.0.18 h1:OxNU756Eqnrae7Pqpgmb6UJuJWTeZLoxyRaG6GJ312A=' \
+        'github.com/router-for-me/CLIProxyAPI/v8 v8.0.18/go.mod h1:j1Mtcj0TrC66O1JwbSBB03lY3uYPx4J7yHNvU6nDBCo=' >> go.sum
     '';
-    vendorHash = "sha256-iJPcjy8Z32JxUBugM3NWLJGqLRvCYTl2+y1rjIJTbH8=";
+    vendorHash = "sha256-SIOJSuSkTqterziYGyPg0FMXbWIPh2lr4I/wcgmz0fA=";
     env.CGO_ENABLED = 1;
     buildPhase = ''
       runHook preBuild
