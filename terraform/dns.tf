@@ -182,21 +182,21 @@ resource "cloudflare_dns_record" "amp-verification" {
   ttl     = 1
 }
 
-resource "cloudflare_dns_record" "amp-A" {
+resource "cloudflare_dns_record" "amp-certificate" {
   zone_id = data.cloudflare_zone.pvlv.id
-  type    = "A"
-  name    = "amp.pvlv.ca"
-  content = "34.49.94.208"
-  comment = "Amp custom domain"
+  type    = "CNAME"
+  name    = "_acme-challenge_g7k2v6l6lx7vbw24.amp.pvlv.ca"
+  content = "8c78e01f-1075-4f11-af58-67e3ed9036c7.1.authorize.certificatemanager.goog"
+  comment = "Amp custom-domain TLS certificate"
   proxied = false
   ttl     = 1
 }
 
-resource "cloudflare_dns_record" "amp-wildcard-A" {
+resource "cloudflare_dns_record" "amp-wildcard-CNAME" {
   zone_id = data.cloudflare_zone.pvlv.id
-  type    = "A"
+  type    = "CNAME"
   name    = "*.amp.pvlv.ca"
-  content = "34.49.94.208"
+  content = "custom-domain.ampcode.com"
   comment = "Amp custom-domain wildcard"
   proxied = false
   ttl     = 1
