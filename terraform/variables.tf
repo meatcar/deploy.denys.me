@@ -74,3 +74,9 @@ variable "private_access_peer_ids" {
     storage        = []
   }
 }
+
+variable "repository_root" {
+  type        = string
+  description = "Original repository directory containing the niks3 deployment profile."
+  default     = ".."
+}
