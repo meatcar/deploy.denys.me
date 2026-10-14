@@ -11,7 +11,7 @@ let
   quadlet = config.home-manager.users.${user}.virtualisation.quadlet;
   packages = import ./images.nix { inherit pkgs; };
   operations = import ../../../../packages/cli-proxy-api/package.nix { inherit pkgs; };
-  managerImage = "docker.io/seakee/cpa-manager-plus:v1.14.4@sha256:efbcf628d27fc9058c1c13de4a97b3b7cd5f3c67479518937dfa591cdd9224e2";
+  managerImage = "docker.io/seakee/cpa-manager-plus:v1.14.6@sha256:5fe1f24a165bd8d7c8b1e5a8c24113350126153519b2bdb05ab0b7336e70c5f5";
   admin = pkgs.writeShellApplication {
     name = "cli-proxy-api-admin";
     text = ''

@@ -52,7 +52,7 @@ def api_image():
     if not archive:
         pytest.fail("Container tests require CPA_TEST_IMAGE")
     podman("load", "-i", archive)
-    return "localhost/cli-proxy-api:8.0.18-pi-0.9.1"
+    return "localhost/cli-proxy-api:8.0.28-pi-0.9.1"
 
 
 @pytest.fixture
@@ -114,7 +114,7 @@ def stack(tmp_path, api_image):
             "CPA_UPSTREAM_URL=http://cli-proxy-api:8317",
             "-p",
             "127.0.0.1::18317",
-            "docker.io/seakee/cpa-manager-plus:v1.14.4@sha256:efbcf628d27fc9058c1c13de4a97b3b7cd5f3c67479518937dfa591cdd9224e2",
+            "docker.io/seakee/cpa-manager-plus:v1.14.6@sha256:5fe1f24a165bd8d7c8b1e5a8c24113350126153519b2bdb05ab0b7336e70c5f5",
         )
         api = "http://" + podman("port", prefix + "-api", "8317/tcp")
         manager = "http://" + podman("port", prefix + "-manager", "18317/tcp")
