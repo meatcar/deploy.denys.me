@@ -1,0 +1,7 @@
+{
+  "host": "cache.denys.me",
+  "bucket": "nix-cache-denys",
+  "s3_endpoint": "a829a09cf7fa1f3c1a05b9f1fe71bbc0.r2.cloudflarestorage.com",
+  "listen": "10.0.0.173:5751",
+  "public_key": "cache.denys.me-1:xa+t9+Tx/dFhxE4GZ0UfDFExis81ibYejgAD40hSE4w="
+}

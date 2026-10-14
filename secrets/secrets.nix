@@ -43,4 +43,8 @@ in
   "chunkymonkey-ses-smtp-user.age" = { inherit (keys.chunkymonkey) publicKeys; };
   "chunkymonkey-ses-smtp-pass.age" = { inherit (keys.chunkymonkey) publicKeys; };
   "chunkymonkey-cloudflare-token.age" = { inherit (keys.chunkymonkey) publicKeys; };
+  "niks3-api-token.age" = { inherit (keys.chunkymonkey) publicKeys; };
+  "niks3-sign-key.age" = { inherit (keys.chunkymonkey) publicKeys; };
+  "niks3-r2-access-key.age" = { inherit (keys.chunkymonkey) publicKeys; };
+  "niks3-r2-secret-key.age" = { inherit (keys.chunkymonkey) publicKeys; };
 }

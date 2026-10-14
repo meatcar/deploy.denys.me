@@ -1,4 +1,9 @@
-{ self, lib, ... }:
+{
+  self,
+  inputs,
+  lib,
+  ...
+}:
 {
   perSystem =
     { config, pkgs, ... }:
@@ -17,6 +22,10 @@
           };
           cli-proxy-isolation = import ../nixos/modules/quadlets/cli-proxy-api/isolation-test.nix {
             inherit pkgs;
+          };
+          niks3-policy = import ../nixos/modules/niks3/policy-test.nix {
+            inherit pkgs;
+            inherit (inputs) niks3;
           };
           application-routing = import ../nixos/modules/quadlets/routing-test.nix {
             inherit pkgs;

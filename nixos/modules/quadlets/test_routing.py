@@ -596,6 +596,23 @@ class Routing(unittest.TestCase):
         )
         self.assertEqual(self.request("paseo.denys.me", "/")[0], 200)
 
+    def test_nix_cache_hides_metrics_and_forbids_edge_caching(self):
+        self.assertEqual(self.request("cache.denys.me", "/metrics")[0], 404)
+        connection = http.client.HTTPSConnection(
+            "127.0.0.1",
+            self.ports["websecure"],
+            context=ssl._create_unverified_context(),
+        )
+        try:
+            connection.request(
+                "GET", "/nix-cache-info", headers={"Host": "cache.denys.me"}
+            )
+            response = connection.getresponse()
+            self.assertEqual(response.status, 200)
+            self.assertEqual(response.getheader("Cache-Control"), "no-store")
+        finally:
+            connection.close()
+
 
 if __name__ == "__main__":
     unittest.main(argv=[sys.argv[0]], verbosity=2)

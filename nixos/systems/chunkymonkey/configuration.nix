@@ -20,12 +20,14 @@
     ../../modules/backups.nix
     ../../modules/smtp.nix
     ../../modules/failure-notify.nix
+    ../../modules/niks3
     ./backups.nix
   ];
 
   mine = {
     username = "meatcar";
     cliProxyApi.deploymentFile = ./cli-proxy-api.json;
+    niks3.deploymentFile = ./niks3.json;
     smtp = {
       host = "email-smtp.ca-central-1.amazonaws.com";
       from = "billing@denys.me";

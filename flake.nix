@@ -28,6 +28,12 @@
 
     quadlet-nix.url = "github:SEIAROTg/quadlet-nix";
 
+    niks3 = {
+      url = "github:Mic92/niks3/v1.15.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.treefmt-nix.follows = "treefmt-nix";
+    };
+
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";

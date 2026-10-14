@@ -48,6 +48,14 @@ let
       }
     )
   );
+  niks3Routes = pkgs.writeText "niks3-routes.json" (
+    builtins.toJSON (
+      import ../niks3/routes.nix {
+        host = "cache.denys.me";
+        port = "5751";
+      }
+    )
+  );
   paseo = import ./paseo-relay {
     inherit pkgs;
     config = { };
@@ -77,7 +85,7 @@ pkgs.runCommand "application-routing"
       ${mounted "/etc/traefik/dynamic/main.yml"} \
       ${invoiceMount "invoiceninja-nginx" "/etc/nginx/conf.d/default.conf"} \
       ${pkgs.nginx}/conf/fastcgi_params ${./test_invoice_front_controller.php} \
-      ${cpaRoutes} ${paseoRoutes}
+      ${cpaRoutes} ${paseoRoutes} ${niks3Routes}
     php ${./test_invoice_fallback.php} ${invoiceMount "invoiceninja-app" "/var/www/html/routes/client.php"}
     touch "$out"
   ''
