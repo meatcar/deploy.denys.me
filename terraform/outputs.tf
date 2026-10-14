@@ -1,3 +1,7 @@
+output "sketchy_survivors_d1_database_ids" {
+  value = { for db in cloudflare_d1_database.sketchy_survivors : db.name => db.id }
+}
+
 output "ip" {
   value = digitalocean_droplet.www.ipv4_address
 }
