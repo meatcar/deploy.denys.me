@@ -9,6 +9,7 @@
   };
   ws-auth = true;
   usage-statistics-enabled = true;
+  streaming.keepalive-seconds = 15;
   quota-exceeded = {
     switch-project = true;
     switch-preview-model = false;
