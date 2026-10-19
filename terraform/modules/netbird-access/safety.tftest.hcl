@@ -24,6 +24,10 @@ mock_provider "netbird" {
     values = { id = "bao-server" }
   }
   override_resource {
+    target = netbird_group.deploy_orbs
+    values = { id = "deploy-orbs" }
+  }
+  override_resource {
     target = netbird_group.cpa_admins
     values = { id = "cpa-admins" }
   }
@@ -69,9 +73,12 @@ run "management_access_and_dns_stay_separate" {
     condition = alltrue([
       for name, zone in { bao = netbird_dns_zone.bao, cpa = netbird_dns_zone.cpa } :
       zone.domain == "${name}.vpn.denys.me" && zone.enabled && !zone.enable_search_domain &&
-      zone.distribution_groups == toset(["${name}-admins", "${name}-server"])
+      zone.distribution_groups == toset(concat(
+        ["${name}-admins", "${name}-server"],
+        name == "bao" ? ["deploy-orbs"] : [],
+      ))
     ])
-    error_message = "Private DNS zones must be hostname-specific and distributed only to the corresponding groups."
+    error_message = "Private DNS zones must be hostname-specific; deploy orbs receive only Bao DNS, not CPA DNS."
   }
 
   assert {
@@ -120,6 +127,36 @@ run "enrolled_servers_get_only_declared_access" {
       household      = ["household-fixture"]
       storage        = ["storage-fixture"]
     }
+  }
+
+  assert {
+    condition = (
+      netbird_group.deploy_orbs.name == "amp--orbs" &&
+      netbird_policy.deploy_orbs_bao.enabled && length(netbird_policy.deploy_orbs_bao.rule) == 1 &&
+      alltrue([for rule in netbird_policy.deploy_orbs_bao.rule :
+        rule.enabled && rule.action == "accept" && !rule.bidirectional && rule.protocol == "tcp" &&
+        toset(rule.sources) == toset(["deploy-orbs"]) &&
+        toset(rule.destinations) == toset(["bao-server"]) &&
+        toset(rule.ports) == toset(["443"]) && length(coalesce(rule.port_ranges, [])) == 0
+      ])
+    )
+    error_message = "Deploy orbs must have exactly one one-way TCP/443 grant to Bao only, without port ranges."
+  }
+  assert {
+    condition = alltrue([
+      for policy in concat([netbird_policy.bao, netbird_policy.cpa], values(netbird_policy.private)) :
+      alltrue([for rule in policy.rule :
+        !contains(rule.sources, "deploy-orbs") && !contains(rule.destinations, "deploy-orbs")
+      ])
+    ])
+    error_message = "Deploy orbs must not participate in administrator, CPA, Cube or VPS policies in either direction."
+  }
+  assert {
+    condition = alltrue([
+      for zone in concat([netbird_dns_zone.cpa], values(netbird_dns_zone.apps), values(netbird_dns_zone.private)) :
+      !contains(zone.distribution_groups, "deploy-orbs")
+    ])
+    error_message = "Deploy orbs must not receive CPA, application, Cube or VPS DNS zones."
   }
 
   assert {

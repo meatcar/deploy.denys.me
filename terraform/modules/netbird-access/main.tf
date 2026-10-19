@@ -56,6 +56,15 @@ resource "netbird_group" "bao_server" {
   }
 }
 
+resource "netbird_group" "deploy_orbs" {
+  name = "amp--orbs"
+
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes  = [peers]
+  }
+}
+
 resource "netbird_group" "cpa_admins" {
   name  = "cpa-admins"
   peers = sort(tolist(var.cpa_admin_peer_ids))
@@ -115,12 +124,32 @@ resource "netbird_policy" "cpa" {
   }
 }
 
+resource "netbird_policy" "deploy_orbs_bao" {
+  name    = "amp--orbs--bao"
+  enabled = true
+
+  rule {
+    name          = "Orb OpenBao HTTPS"
+    enabled       = true
+    action        = "accept"
+    bidirectional = false
+    protocol      = "tcp"
+    ports         = ["443"]
+    sources       = [netbird_group.deploy_orbs.id]
+    destinations  = [netbird_group.bao_server.id]
+  }
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
 resource "netbird_dns_zone" "bao" {
   name                 = var.bao_dns_zone_name
   domain               = "bao.vpn.denys.me"
   enabled              = true
   enable_search_domain = false
-  distribution_groups  = [netbird_group.bao_admins.id, netbird_group.bao_server.id]
+  distribution_groups  = [netbird_group.bao_admins.id, netbird_group.bao_server.id, netbird_group.deploy_orbs.id]
 
   lifecycle {
     prevent_destroy = true
