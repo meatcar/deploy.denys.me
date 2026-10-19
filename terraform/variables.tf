@@ -69,7 +69,7 @@ variable "private_access_peer_ids" {
   })
   description = "Complete administrator, Cube household HTTPS and SMB client memberships, managed independently."
   default = {
-    administrators = ["dag13hqfadhs739d7rg0"]
+    administrators = ["dag13hqfadhs739d7rg0", "daq0iarl0ubs738l4770"]
     household      = []
     storage        = []
   }

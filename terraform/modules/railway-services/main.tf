@@ -13,7 +13,7 @@ locals {
     uptime_kuma = {
       name    = "uptime-kuma"
       project = "monitor"
-      image   = "louislam/uptime-kuma:2.5.5"
+      image   = "louislam/uptime-kuma:2.5.6"
       volume  = { name = "uptime-kuma-volume", mount_path = "/app/data" }
     }
     mysql = {

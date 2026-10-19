@@ -21,8 +21,8 @@ module "netbird_access" {
   source = "./modules/netbird-access"
 
   bao_dns_zone_name  = "Private OpenBao"
-  bao_admin_peer_ids = ["dag13hqfadhs739d7rg0"]
-  cpa_admin_peer_ids = ["dag13hqfadhs739d7rg0"]
+  bao_admin_peer_ids = ["dag13hqfadhs739d7rg0", "daq0iarl0ubs738l4770"]
+  cpa_admin_peer_ids = ["dag13hqfadhs739d7rg0", "daq0iarl0ubs738l4770"]
 
   private_server_ips      = var.private_server_ips
   private_access_peer_ids = var.private_access_peer_ids
