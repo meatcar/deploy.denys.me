@@ -1,5 +1,36 @@
 mock_provider "vault" {}
 
+run "amp_project_namespace_is_explicit" {
+  command = plan
+
+  assert {
+    condition = (
+      module.project["meatcar/deploy.denys.me"].mount == "projects/meatcar/deploy.denys.me" &&
+      module.project["meatcar/deploy.denys.me"].policy_names == {
+        "prod/plan" = "project--meatcar--deploy.denys.me--prod--plan--read"
+      } &&
+      module.project["meatcar/deploy.denys.me"].role_names == {
+        "prod/plan" = "project--meatcar--deploy.denys.me--prod--plan--read"
+      } &&
+      module.project["meatcar/deploy.denys.me"].secret_keys == {
+        "prod/plan" = toset(["prod/plan/cloudflare", "prod/plan/digitalocean", "prod/plan/ovh", "prod/plan/netbird", "prod/plan/oci"])
+      }
+    )
+    error_message = "Project layout must expose only the exact prod plan locations and their one policy/role."
+  }
+
+  assert {
+    condition = (
+      vault_jwt_auth_backend.amp.path == "amp" &&
+      vault_jwt_auth_backend.amp.oidc_discovery_url == "https://ampcode.com/api/workload-identity" &&
+      vault_jwt_auth_backend.amp.bound_issuer == "https://ampcode.com/api/workload-identity" &&
+      vault_jwt_auth_backend.amp.default_role == null &&
+      toset(vault_jwt_auth_backend.amp.jwt_supported_algs) == toset(["RS256"])
+    )
+    error_message = "Amp authentication must verify the issuer using discovery, with no default role."
+  }
+}
+
 run "aws_login_trusts_only_the_resolved_sso_role" {
   command = plan
 
