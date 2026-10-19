@@ -10,6 +10,13 @@ module "bao_support" {
   }
 }
 
+module "aws_plan_access" {
+  source = "./modules/aws-plan-access"
+
+  backup_bucket       = module.bao_support.backup_bucket
+  openbao_kms_key_arn = module.bao_support.openbao_kms_key_arn
+}
+
 module "netbird_access" {
   source = "./modules/netbird-access"
 
