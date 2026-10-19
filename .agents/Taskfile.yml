@@ -1,0 +1,29 @@
+version: "3"
+silent: true
+
+env:
+  BAO_ROLE: project--meatcar--deploy.denys.me--prod--plan--read
+
+includes:
+  access: ./access/Taskfile.yml
+
+tasks:
+  before_nix:
+    cmds: []
+
+  setup_auth:
+    cmds:
+      - task: access:setup
+
+  resume_auth:
+    cmds:
+      - task: access:resume
+
+  work:
+    desc: Cache main-root providers without backend credentials
+    cmds:
+      - tofu -chdir=terraform init -backend=false -input=false -lockfile=readonly
+
+  setup_cleanup:
+    cmds:
+      - task: access:cleanup

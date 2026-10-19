@@ -11,6 +11,10 @@
           }
         )
         // lib.optionalAttrs pkgs.stdenv.isLinux {
+          orb-access = import ../tests/orb-access/check.nix {
+            inherit pkgs;
+            src = self;
+          };
           cli-proxy-isolation = import ../nixos/modules/quadlets/cli-proxy-api/isolation-test.nix {
             inherit pkgs;
           };

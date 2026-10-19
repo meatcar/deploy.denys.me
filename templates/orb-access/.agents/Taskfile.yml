@@ -1,0 +1,25 @@
+version: "3"
+silent: true
+
+includes:
+  access: ./access/Taskfile.yml
+
+tasks:
+  before_nix:
+    cmds: []
+
+  setup_auth:
+    cmds:
+      - task: access:setup
+
+  resume_auth:
+    cmds:
+      - task: access:resume
+
+  work:
+    desc: Prepare project dependencies without credentials
+    cmds: []
+
+  setup_cleanup:
+    cmds:
+      - task: access:cleanup

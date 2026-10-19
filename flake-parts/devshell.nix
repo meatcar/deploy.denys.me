@@ -36,6 +36,7 @@
           awscli2
           openbao
           jq
+          go-task
           railway
           oci-cli
           opentofu
@@ -46,7 +47,8 @@
           python3Packages.python-openstackclient
 
           deploy-rs
-        ]);
+        ])
+        ++ pkgs.lib.optionals pkgs.stdenv.isLinux [ pkgs.netbird ];
       };
     };
 }

@@ -27,6 +27,7 @@ nix flake check
 - [flake-parts/](flake-parts/): tools, checks, and flake outputs
 - [nixos/](nixos/): hosts and services
 - [terraform/](terraform/): infrastructure and provider constraints
+- [Amp orbs](.agents/README.md): lifecycle and shared NetBird/Bao template
 - [CLIProxyAPI](packages/cli-proxy-api/README.md): keys and recovery
 - [OpenBao](nixos/systems/bao/README.md): installation and recovery
 - [Paseo](nixos/modules/quadlets/paseo-relay/README.md): relay deployment and clients

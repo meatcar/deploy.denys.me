@@ -25,12 +25,15 @@
           "packages/**/*.py"
           "terraform/**/*.py"
           "nixos/modules/**/*.py"
+          "tests/**/*.py"
         ];
         settings.formatter.ruff-check.includes = lib.mkForce [
           "packages/**/*.py"
           "terraform/**/*.py"
           "nixos/modules/**/*.py"
+          "tests/**/*.py"
         ];
+        settings.formatter.shellcheck.options = [ "-x" ];
         settings.global.excludes = [
           "flake.lock"
           "*.age"

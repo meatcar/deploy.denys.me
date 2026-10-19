@@ -1,0 +1,23 @@
+version: "3"
+silent: true
+
+tasks:
+  setup:
+    desc: Configure the kernel-mode NetBird daemon without enrolling
+    cmds:
+      - bash .agents/access/netbird.sh setup
+
+  resume:
+    desc: Join NetBird with the Amp project setup key
+    cmds:
+      - bash .agents/access/netbird.sh resume
+
+  bao:
+    desc: Run a command with a fresh project-scoped Bao token
+    cmds:
+      - bash .agents/access/bao.sh {{.CLI_ARGS}}
+
+  cleanup:
+    desc: Stop NetBird and remove snapshot credentials
+    cmds:
+      - bash .agents/access/cleanup.sh

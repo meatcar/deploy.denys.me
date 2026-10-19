@@ -10,6 +10,15 @@
     ./treefmt.nix
   ];
 
+  flake.templates.orb-access = {
+    path = ../templates/orb-access;
+    description = "Task-based Amp orb lifecycle with NetBird and on-demand Bao JWT access";
+    welcomeText = ''
+      Read .agents/README.md, supply the devshell packages and project BAO_ROLE,
+      then run chmod +x .agents/setup .agents/resume.
+    '';
+  };
+
   systems = [
     "aarch64-darwin"
     "aarch64-linux"
