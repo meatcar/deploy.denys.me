@@ -16,7 +16,7 @@ provider "digitalocean" {
 }
 
 provider "oci" {
-  auth                = "SecurityToken"
+  auth                = var.oci_auth
   config_file_profile = var.oci_config_file_profile
   region              = var.oci_region
 }

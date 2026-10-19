@@ -33,6 +33,27 @@ Native child modules in `modules/` organize related resources without adding
 states. Provider configuration belongs in the root. Bao configuration stays
 separate because its provider requires a running, reachable Bao instance.
 
+### Agent plans
+
+Agents plan from the repository root with only verified read-only provider
+credentials:
+
+```sh
+TF_VAR_oci_auth=APIKey tofu -chdir=terraform plan \
+  -input=false -lock=false -exclude=module.railway_services
+```
+
+Railway has no read-only token. Exclude its whole module and do not supply a
+Railway token. Run only the main root, never the Terragrunt bulk runner or
+`terraform/bao-config`, whose plans read CLIProxyAPI secrets. Bao configuration
+is a separate state, not a module to exclude from this command.
+
+This partial plan omits Railway and anything depending on it. It is not a full
+drift check or a plan to apply. Before applying, an operator must create and
+review a fresh, unrestricted plan with the appropriate credentials. These flags
+are not a security boundary; provider permissions and restricted state/Bao access
+are.
+
 ## Access
 
 Put credentials in `.env`. Names are in [.env.example](../.env.example).
@@ -42,6 +63,9 @@ Keep secrets out of HCL, tfvars, history, and debug logs.
 - Bao also requires NetBird connectivity.
 - OCI: `oci session authenticate --profile-name meatcar --session-expiration-in-minutes 60`.
   Set `TF_VAR_oci_region` and `TF_VAR_oci_compartment_ocid` for the target compartment.
+  `TF_VAR_oci_auth` defaults to `SecurityToken`. For a read-only API-key user, set
+  it to `APIKey` and select that user's OCI config profile with
+  `TF_VAR_oci_config_file_profile`, which otherwise defaults to `meatcar`.
 
 ## Before changing resources
 

@@ -33,9 +33,15 @@ variable "hostname" {
   description = "The hostname we want to serve"
 }
 
+variable "oci_auth" {
+  type        = string
+  description = "OCI authentication mode; use APIKey for a read-only API-key user."
+  default     = "SecurityToken"
+}
+
 variable "oci_config_file_profile" {
   type        = string
-  description = "OCI CLI config profile to use for security-token authentication"
+  description = "OCI CLI config profile for the selected authentication mode"
   default     = "meatcar"
 }
 
