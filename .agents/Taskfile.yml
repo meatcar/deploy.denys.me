@@ -20,9 +20,14 @@ tasks:
       - task: access:resume
 
   work:
-    desc: Cache main-root providers without backend credentials
+    desc: Cache main-root providers at setup without backend credentials
     cmds:
-      - tofu -chdir=terraform init -backend=false -input=false -lockfile=readonly
+      - if [ "${SANDBOX_LIFECYCLE:-}" = setup ]; then tofu -chdir=terraform init -backend=false -input=false -lockfile=readonly; fi
+
+  plan:
+    desc: Plan the main root with orb read-only credentials
+    cmds:
+      - bash .agents/access/bao.sh python3 .agents/plan.py
 
   setup_cleanup:
     cmds:

@@ -35,24 +35,70 @@ separate because its provider requires a running, reachable Bao instance.
 
 ### Agent plans
 
-Agents plan from the repository root with only verified read-only provider
-credentials:
+In an enrolled Amp orb, run from the repository root:
 
 ```sh
-TF_VAR_oci_auth=APIKey tofu -chdir=terraform plan \
-  -input=false -lock=false -exclude=module.railway_services
+direnv exec . task --taskfile .agents/Taskfile.yml plan
 ```
 
-Railway has no read-only token. Exclude its whole module and do not supply a
-Railway token. Run only the main root, never the Terragrunt bulk runner or
-`terraform/bao-config`, whose plans read CLIProxyAPI secrets. Bao configuration
-is a separate state, not a module to exclude from this command.
+The task logs into Bao on demand, mints a project-scoped AWS web identity for
+`arn:aws:iam::148676508643:role/tofu-plan` with audience
+`urn:amp:aws:tofu-plan:148676508643`, and reads the KV v2 documents below from
+mount `projects/meatcar/deploy.denys.me`. Every field must be a nonempty string;
+missing documents, missing fields, or extra fields stop the task before init.
 
-This partial plan omits Railway and anything depending on it. It is not a full
-drift check or a plan to apply. Before applying, an operator must create and
-review a fresh, unrestricted plan with the appropriate credentials. These flags
-are not a security boundary; provider permissions and restricted state/Bao access
-are.
+| Document | Required fields |
+| --- | --- |
+| `prod/plan/digitalocean` | `TF_VAR_digitalocean_token` |
+| `prod/plan/ovh` | `OVH_APPLICATION_KEY`, `OVH_APPLICATION_SECRET`, `OVH_CONSUMER_KEY` |
+
+The plan covers only resources whose providers have a read-only credential that
+cannot read secrets:
+
+```sh
+tofu -chdir=terraform plan -input=false -lock=false \
+  -target=module.state -target=module.bao_support -target=module.aws_plan_access \
+  -target=digitalocean_droplet.www -target=ovh_vps.bao
+```
+
+Cloudflare, NetBird, OCI, and Railway stay out: their read access exposes
+object contents, SQL, logs, instance metadata, or owner authority. Targeting
+prunes their providers, so the task sets `TF_VAR_cloudflare_token` and
+`TF_VAR_oci_region` to empty strings and supplies no credentials for them. Add a
+target only together with a verified read-only credential for its provider.
+
+Supply the non-secret root inputs through tfvars or their `TF_VAR_*` variables.
+The task passes only declared non-secret root inputs and runtime settings such
+as proxies and CA paths. It ignores inherited provider credentials, AWS
+profiles, Terraform CLI arguments, and debug logging. It never falls back to
+operator credentials or writes a saved plan.
+
+Setup caches providers with `init -backend=false`; resume does not run init.
+The plan task runs `init -reconfigure -input=false -lockfile=readonly` with only
+the AWS role identity, then gives provider credentials only to the plan process.
+Bao tokens and provider values stay in memory. The AWS token and isolated HOME
+are private temporary files removed on success, failure, or handled signals.
+SIGKILL or loss of the orb can prevent cleanup; do not snapshot a running plan.
+No Bao/Vault login or AWS session cache is saved.
+
+To cut agent access at once, run as an operator. Applying the main root and
+`terraform/bao-config` restores it.
+
+```sh
+bao delete auth/amp/role/project--meatcar--deploy.denys.me--prod--plan--read
+aws iam delete-role-policy --role-name tofu-plan --policy-name main-root-refresh
+```
+
+Also revoke the setup key in NetBird; the static `NETBIRD_SETUP_KEY` enrolls
+new orbs into `amp--orbs`. Amp-side identity revocation can lag up to 24 hours.
+
+Run only the main root, never the Terragrunt bulk runner or
+`terraform/bao-config`, whose plans read CLIProxyAPI secrets.
+
+This is a preview, not a drift check or a plan to apply. Treat anything an agent
+can read as disclosed. Before applying, an operator must create and review a
+fresh, unrestricted plan. Targets are not a security boundary; provider
+permissions and restricted state/Bao access are.
 
 ## Access
 

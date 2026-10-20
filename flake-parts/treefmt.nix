@@ -22,12 +22,14 @@
           taplo.enable = true;
         };
         settings.formatter.ruff-format.includes = lib.mkForce [
+          ".agents/*.py"
           "packages/**/*.py"
           "terraform/**/*.py"
           "nixos/modules/**/*.py"
           "tests/**/*.py"
         ];
         settings.formatter.ruff-check.includes = lib.mkForce [
+          ".agents/*.py"
           "packages/**/*.py"
           "terraform/**/*.py"
           "nixos/modules/**/*.py"
