@@ -2,8 +2,10 @@
 set +x
 set -euo pipefail
 
+netbird_bin="$(command -v netbird)"
+
 netbird_command() {
-  sudo timeout --kill-after=5s 60s netbird \
+  sudo timeout --kill-after=5s 60s "$netbird_bin" \
     --daemon-addr unix:///run/amp-orb-netbird/netbird.sock "$@"
 }
 
@@ -24,7 +26,7 @@ Environment=NB_CONFIG=/run/amp-orb-netbird/default.json
 Environment=NB_DNS_STATE_FILE=/run/amp-orb-netbird/state.json
 Environment=NB_DAEMON_ADDR=unix:///run/amp-orb-netbird/netbird.sock
 Environment=NB_USE_NETSTACK_MODE=false
-ExecStart=$(command -v netbird) service run --disable-profiles --log-file console
+ExecStart=$netbird_bin service run --disable-profiles --log-file console
 Restart=on-failure
 RestartSec=2
 EOF

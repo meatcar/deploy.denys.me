@@ -21,7 +21,10 @@ class AccessTest(unittest.TestCase):
         shutil.copytree(SOURCE, self.project, symlinks=True)
         self.bin = self.root / "tools"
         self.bin.mkdir()
-        self.stub("sudo", 'exec "$@"')
+        self.user_bin = self.root / "user-tools"
+        self.user_bin.mkdir()
+        # NOTE: Like sudo secure_path, root does not see user profile tools.
+        self.stub("sudo", 'PATH="${PATH#/user-tools:}" exec "$@"')
         self.stub("direnv", 'if [ "$1" = exec ]; then shift 2; exec "$@"; fi')
         self.stub("systemctl", 'printf "%s\\n" "$*" >> /run/services')
         self.stub(
@@ -67,6 +70,7 @@ else
   exit 1
 fi
 """,
+            directory=self.user_bin,
         )
         for name in ("env", "sh"):
             (self.root / ("usr/bin/env" if name == "env" else "bin/sh")).symlink_to(
@@ -79,8 +83,8 @@ fi
         task.parent.mkdir(parents=True)
         task.symlink_to(shutil.which("task"))
 
-    def stub(self, name, body):
-        file = self.bin / name
+    def stub(self, name, body, directory=None):
+        file = (directory or self.bin) / name
         file.write_text(f"#!{shutil.which('bash')}\nset -euo pipefail\n{body}\n")
         file.chmod(0o755)
 
@@ -110,7 +114,7 @@ fi
                 "/home/user",
                 "--setenv",
                 "PATH",
-                f"/tools:{os.environ['PATH']}",
+                f"/user-tools:/tools:{os.environ['PATH']}",
                 *[
                     item
                     for key, value in env.items()
