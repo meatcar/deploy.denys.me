@@ -1,0 +1,30 @@
+version: "3"
+
+tasks:
+  login:
+    desc: Renew expired AWS/Bao, DigitalOcean and OCI sessions
+    cmds:
+      - task: login:aws
+      - task: login:digitalocean
+      - task: login:oci
+      - direnv reload
+
+  login:aws:
+    status:
+      - aws sts get-caller-identity >/dev/null 2>&1
+    cmds:
+      - aws sso login
+
+  login:digitalocean:
+    status:
+      - doctl account get >/dev/null 2>&1
+    cmds:
+      - doctl auth login --scopes "read write"
+
+  login:oci:
+    vars:
+      PROFILE: '{{default "meatcar" .TF_VAR_oci_config_file_profile}}'
+    status:
+      - oci session validate --profile {{.PROFILE}} --local >/dev/null 2>&1
+    cmds:
+      - oci session authenticate --profile-name {{.PROFILE}} --session-expiration-in-minutes 60 {{if .TF_VAR_oci_region}}--region {{.TF_VAR_oci_region}}{{end}}

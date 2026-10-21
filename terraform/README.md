@@ -105,6 +105,8 @@ permissions and restricted state/Bao access are.
 Put credentials in `.env`. Names are in [.env.example](../.env.example).
 Keep secrets out of HCL, tfvars, history, and debug logs.
 
+`direnv exec . task login` renews each expired session below in turn.
+
 - AWS and Bao use SSO: `aws sso login --profile "$AWS_PROFILE"`.
 - Bao also requires NetBird connectivity.
 - DigitalOcean: `doctl auth login --scopes "read write"`, then `direnv reload`.
