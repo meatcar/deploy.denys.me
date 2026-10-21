@@ -431,6 +431,32 @@ PY
         self.assertFalse((self.home / ".vault-token").exists())
         self.assertFalse((self.root / "run/unsafe-log").exists())
 
+    @unittest.skipUnless(os.environ.get("ORB_ACCESS_SOURCE"), "Repository doctl task")
+    def test_doctl_gets_only_the_read_only_token(self):
+        self.prepare_plan()
+        self.stub(
+            "doctl",
+            'test "$DIGITALOCEAN_ACCESS_TOKEN" = "fixture-digitalocean-$\'\\""; '
+            'test -z "${BAO_TOKEN:-}${VAULT_TOKEN:-}"; printf "%s|" "$@"',
+        )
+        env = dict(
+            BAO_ROLE="fixture-role",
+            TF_VAR_cloudflare_token="operator-cloudflare",
+            TF_VAR_digitalocean_token="operator-digitalocean",
+            NB_PAT="operator-pat",
+        )
+        result = self.run_shell(
+            "task --taskfile .agents/Taskfile.yml doctl -- compute droplet list",
+            **env,
+        )
+        self.assertEqual(result.stdout, "compute|droplet|list|")
+        self.run_shell(
+            "task --taskfile .agents/Taskfile.yml doctl -- account get",
+            success=False,
+            MISSING_DOCUMENT="digitalocean",
+            **env,
+        )
+
     @unittest.skipUnless(os.environ.get("ORB_ACCESS_SOURCE"), "Repository plan task")
     def test_plan_fails_closed_for_each_missing_document(self):
         self.prepare_plan()

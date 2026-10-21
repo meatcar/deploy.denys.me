@@ -30,6 +30,12 @@ tasks:
     cmds:
       - bash .agents/access/bao.sh python3 .agents/plan.py
 
+  doctl:
+    desc: Run doctl with the read-only DigitalOcean plan token
+    dir: "{{.TASKFILE_DIR}}/.."
+    cmds:
+      - bash .agents/access/bao.sh bash .agents/doctl.sh {{.CLI_ARGS}}
+
   setup_cleanup:
     cmds:
       - task: access:cleanup

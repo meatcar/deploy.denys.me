@@ -7,3 +7,6 @@ access. Resume only restores network access.
 
 Run the on-demand [agent plan task](../terraform/README.md#agent-plans) after
 enrollment. Credentials are scoped to child processes, not lifecycle hooks.
+`task --taskfile .agents/Taskfile.yml doctl -- compute droplet list` runs doctl
+with the same read-only DigitalOcean token: Droplets, images, snapshots,
+regions, sizes, and actions only.
