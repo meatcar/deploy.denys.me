@@ -6,7 +6,7 @@
 # Secrets required in agenix.nix (owner=pod): larapaperEnv, larapaperPgPass.
 { config, pkgs, ... }:
 let
-  image = "ghcr.io/usetrmnl/larapaper:0.37.1";
+  buildContext = pkgs.writeTextDir "Containerfile" (builtins.readFile ./larapaper.Containerfile);
   dataDir = "${config.mine.persistPath}/larapaper";
 
   # Provisioning script: creates the larapaper pg role + db idempotently.
@@ -42,6 +42,15 @@ in
   ];
 
   home-manager.users.pod.virtualisation.quadlet = {
+    builds.larapaper = {
+      buildConfig = {
+        tag = "localhost/larapaper:0.37.1-php8.4.27";
+        workdir = "${buildContext}";
+        file = "${buildContext}/Containerfile";
+      };
+      serviceConfig.TimeoutStartSec = "15min";
+    };
+
     # Named volume for generated screen images. Starts empty on first deploy;
     # larapaper regenerates screens periodically so this is acceptable.
     volumes.larapaper-storage.volumeConfig = { };
@@ -89,7 +98,7 @@ in
         ];
       };
       containerConfig = {
-        inherit image;
+        image = podCfg.builds.larapaper.ref;
         environmentFiles = [ config.age.secrets.larapaperEnv.path ]; # APP_KEY, DB_PASSWORD
         environments = {
           # Storage URLs in firmware responses must stay reachable by devices.
