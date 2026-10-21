@@ -19,7 +19,8 @@
 let
   # Pinned by exact patch, matching the traefik/postgres convention in this
   # repo. All three verified to publish native linux/arm64 manifests.
-  appImage = "invoiceninja/invoiceninja-debian:5.13.29";
+  appVersion = "5.13.49";
+  appImage = "invoiceninja/invoiceninja-debian:${appVersion}@sha256:05efd0913eb0d72d0246ec96d6cb6adf5ac3d3e59b9b91514b9f64b892f21c92";
   mysqlImage = "mysql:8.4.11"; # 8.4 is the current MySQL LTS series
   nginxImage = "nginx:1.30.4-alpine3.24"; # nginx stable branch
 
@@ -94,14 +95,14 @@ let
     EOSQL
   '';
 
-  # 5.13.29 has several SNS boundary defects: confirmation signatures are not
+  # 5.13.49 has several SNS boundary defects: confirmation signatures are not
   # checked, verifier exceptions fall back to structural validation, the signed
   # field list handles notifications only, normal confirmation tokens can exceed
   # 200 bytes, and ca-central-1 is missing from the certificate hosts. It also
   # retries valid host-alert feedback forever. Keep this exact-version patch
   # narrow and fail the build if an upstream fragment changes under us.
   snsControllerSource = pkgs.fetchurl {
-    url = "https://raw.githubusercontent.com/invoiceninja/invoiceninja/v5.13.29/app/Http/Controllers/SNSController.php";
+    url = "https://raw.githubusercontent.com/invoiceninja/invoiceninja/v${appVersion}/app/Http/Controllers/SNSController.php";
     hash = "sha256-raCsRqQRRDNJYwgdiC8M7fABAKakVvCXRbGBNN9EYf0=";
   };
   snsController =
@@ -190,8 +191,8 @@ let
   # including a POST callback changed to GET by Laravel's _method handling.
   # Keep the upstream client-prefix guard and permit the SPA only on NetBird.
   clientRoutesSource = pkgs.fetchurl {
-    url = "https://raw.githubusercontent.com/invoiceninja/invoiceninja/v5.13.29/routes/client.php";
-    hash = "sha256-Fr64yHWMEVfZqPOBreoGX765z7869U2e0S5ewsPF2zk=";
+    url = "https://raw.githubusercontent.com/invoiceninja/invoiceninja/v${appVersion}/routes/client.php";
+    hash = "sha256-2tOtUOzxCS/Liarbu+wM+sifxkN8vSbRxcz4ujJ+0jM=";
   };
   clientRoutes = pkgs.runCommand "invoiceninja-client-routes.php" { } ''
     substitute ${clientRoutesSource} "$out" \

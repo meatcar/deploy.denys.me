@@ -353,14 +353,32 @@ class Routing(unittest.TestCase):
             ("POST", "/payment_webhook/company/gateway"),
             ("GET", "/payment_notification_webhook/company/gateway/client"),
             ("POST", "/payments/process/response"),
+            ("POST", "/payments/helcim/ach/session"),
             ("POST", "/api/v1/ppcp/webhook"),
             ("GET", "/checkout/3ds_redirect/company/gateway/hash"),
+            ("GET", "/gocardless/hosted_payment_page/return/company/gateway/hash"),
+            (
+                "GET",
+                "/gocardless/hosted_payment_page/setup_return/company/gateway/context",
+            ),
             ("GET", "/.well-known/apple-developer-merchantid-domain-association"),
             ("GET", "/stripe/completed?code=test"),
             ("GET", "/square/callback?code=test"),
         ]:
             with self.subTest(method=method, path=path):
                 self.assertEqual(self.request("billing.denys.me", path, method)[0], 200)
+        for method, path in [
+            ("GET", "/payments/helcim/ach/session"),
+            ("POST", "/payments/helcim/ach/session/extra"),
+            ("POST", "/gocardless/hosted_payment_page/return/company/gateway/hash"),
+            (
+                "GET",
+                "/gocardless/hosted_payment_page/return/company/gateway/hash/extra",
+            ),
+            ("GET", "/gocardless/ibp_redirect/company/gateway/hash"),
+        ]:
+            with self.subTest(method=method, path=path):
+                self.assertEqual(self.request("billing.denys.me", path, method)[0], 404)
         for provider in ["google", "microsoft"]:
             self.assertEqual(
                 self.request("billing.denys.me", f"/auth/{provider}", "POST")[0], 404
@@ -396,7 +414,7 @@ class Routing(unittest.TestCase):
                 )
 
     def test_vendor_portal_reaches_laravel_but_missing_assets_do_not(self):
-        # Exact v5.13.29 routes/vendor.php contracts, plus the profile Blade
+        # Exact v5.13.49 routes/vendor.php contracts, plus the profile Blade
         # form's POST _method=PUT transport. Laravel keeps vendor auth/CSRF.
         routes = [
             ("GET", "/vendors"),
@@ -407,7 +425,7 @@ class Routing(unittest.TestCase):
             ("GET", "/vendor/dashboard"),
             ("GET", "/vendor/purchase_orders"),
             ("GET", "/vendor/purchase_orders/order-id"),
-            ("GET", "/vendor/showBlob/document-hash"),
+            ("GET", "/vendor/showBlob/purchase_order/invitation-key"),
             ("GET", "/vendor/profile/contact-id/edit"),
             ("PUT", "/vendor/profile/contact-id/edit"),
             ("POST", "/vendor/profile/contact-id/edit"),
@@ -458,6 +476,9 @@ class Routing(unittest.TestCase):
                 "/vendor/purchase_order/key/extra",
                 "/vendor/profile/key/edit/extra",
                 "/vendor/documents/key/extra",
+                "/vendor/showBlob/document-hash",
+                "/vendor/showBlob/invoice/invitation-key",
+                "/vendor/showBlob/purchase_order/invitation-key/extra",
             ]:
                 with self.subTest(host=host, path=path):
                     status, body = self.request(host, path, entrypoint=entrypoint)

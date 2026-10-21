@@ -1,12 +1,12 @@
 # Reviewed against usetrmnl/larapaper 0.37.1 routes/api.php and Invoice Ninja
-# v5.13.29 routes/{client,vendor,contact,shop,web,api}.php, AppServiceProvider.php,
-# portal templates and composer.lock (Livewire 3.8.3). Re-review on upgrades.
+# v5.13.49 routes/{client,vendor,contact,shop,web,api}.php, AppServiceProvider.php,
+# portal templates and composer.lock (Livewire 3.8.10). Re-review on upgrades.
 let
   read = "(Method(`GET`) || Method(`HEAD`))";
   submit = "(${read} || Method(`POST`))";
   uuid = "[0-9a-fA-F-]{36}";
   key = "[A-Za-z0-9._~-]+";
-  vendorRead = "^/(vendors|vendor/(key_login/${key}|purchase_order/${key}(/download(_e_purchase_order)?)?|dashboard|purchase_orders(/${key})?|showBlob/${key}|logout|documents(/${key}(/download(_pdf)?)?)?))$";
+  vendorRead = "^/(vendors|vendor/(key_login/${key}|purchase_order/${key}(/download(_e_purchase_order)?)?|dashboard|purchase_orders(/${key})?|showBlob/purchase_order/${key}|logout|documents(/${key}(/download(_pdf)?)?)?))$";
   vendorPost = "^/vendor/(purchase_orders/bulk|purchase_order/upload/${key}|documents/download_multiple)$";
   vendorProfile = "^/vendor/profile/${key}/edit$";
 in
@@ -48,7 +48,8 @@ in
     "(${read} && PathRegexp(`^/api/v1/shop/(products|profile|(client|invoice|product)/${key})$`))"
     "(Method(`POST`) && (Path(`/api/v1/shop/clients`) || Path(`/api/v1/shop/invoices`)))"
     "(${submit} && (Path(`/payments/process/response`) || PathRegexp(`^/payment_webhook/${key}/${key}$`) || PathRegexp(`^/payment_notification_webhook/${key}/${key}/${key}$`)))"
-    "(${read} && PathRegexp(`^/(checkout/3ds_redirect|mollie/3ds_redirect|gocardless/ibp_redirect)/${key}/${key}/${key}$`))"
+    "(Method(`POST`) && Path(`/payments/helcim/ach/session`))"
+    "(${read} && PathRegexp(`^/(checkout/3ds_redirect|mollie/3ds_redirect|gocardless/hosted_payment_page/(return|setup_return))/${key}/${key}/${key}$`))"
     "(${read} && Path(`/.well-known/apple-developer-merchantid-domain-association`))"
     # Inbound callbacks, not the admin APIs that configure these integrations.
     # SNS is deliberately absent; its dedicated exact-POST router is unchanged.
