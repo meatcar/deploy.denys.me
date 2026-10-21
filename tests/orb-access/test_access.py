@@ -370,7 +370,7 @@ PY
 
     def run_plan(self, *, success=True, **env):
         return self.run_shell(
-            "set +e; task --dir . --taskfile .agents/Taskfile.yml plan; status=$?; set -e; "
+            "set +e; task --taskfile .agents/Taskfile.yml plan; status=$?; set -e; "
             'test "$TF_VAR_digitalocean_token" = operator-digitalocean; '
             'test "$AWS_ACCESS_KEY_ID" = operator-key; exit "$status"',
             success=success,

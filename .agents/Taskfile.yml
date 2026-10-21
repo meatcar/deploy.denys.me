@@ -26,6 +26,7 @@ tasks:
 
   plan:
     desc: Plan the main root with orb read-only credentials
+    dir: "{{.TASKFILE_DIR}}/.."
     cmds:
       - bash .agents/access/bao.sh python3 .agents/plan.py
 
