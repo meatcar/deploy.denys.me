@@ -25,6 +25,7 @@
         );
         buildInputs = [
           (import ../packages/cli-proxy-api/package.nix { inherit pkgs; })
+          (import ../packages/doctl/package.nix { inherit pkgs; })
         ]
         ++ (with pkgs; [
           nil

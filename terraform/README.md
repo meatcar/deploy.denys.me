@@ -107,6 +107,9 @@ Keep secrets out of HCL, tfvars, history, and debug logs.
 
 - AWS and Bao use SSO: `aws sso login --profile "$AWS_PROFILE"`.
 - Bao also requires NetBird connectivity.
+- DigitalOcean: `doctl auth login --scopes "read write"`, then `direnv reload`.
+  `.envrc` exports the renewed session token unless `.env` sets
+  `TF_VAR_digitalocean_token`.
 - OCI: `oci session authenticate --profile-name meatcar --session-expiration-in-minutes 60`.
   Set `TF_VAR_oci_region` and `TF_VAR_oci_compartment_ocid` for the target compartment.
   `TF_VAR_oci_auth` defaults to `SecurityToken`. For a read-only API-key user, set
