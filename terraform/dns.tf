@@ -47,6 +47,15 @@ resource "cloudflare_dns_record" "A-cli-proxy-api" {
   ttl     = 1
 }
 
+resource "cloudflare_dns_record" "A-silverbullet" {
+  zone_id = data.cloudflare_zone.pvlv.id
+  type    = "A"
+  name    = "txt"
+  content = "192.18.149.148"
+  proxied = true
+  ttl     = 1
+}
+
 resource "cloudflare_dns_record" "TXT-vpn-private" {
   zone_id = cloudflare_zone.main.id
   type    = "TXT"
@@ -67,6 +76,15 @@ resource "cloudflare_ruleset" "pvlv_configuration" {
     ref         = "cpa_strict_tls"
     description = "Verify Traefik TLS for CLIProxyAPI"
     expression  = "http.host eq \"cpa.pvlv.ca\""
+    action      = "set_config"
+    enabled     = true
+    action_parameters = {
+      ssl = "strict"
+    }
+    }, {
+    ref         = "silverbullet_strict_tls"
+    description = "Verify Traefik TLS for SilverBullet"
+    expression  = "http.host eq \"txt.pvlv.ca\""
     action      = "set_config"
     enabled     = true
     action_parameters = {

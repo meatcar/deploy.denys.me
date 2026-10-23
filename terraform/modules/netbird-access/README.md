@@ -28,8 +28,9 @@ Before deployment:
 
 Existing private Cube names and `znc.denys.me` use split DNS. The Cube zone
 keeps Plex/Ombi as CNAMEs to the public VPS hostname `denys.me`, including for
-storage-only peers. Billing/TRMNL use `billing.vpn.denys.me` and
-`trmnl.vpn.denys.me` under the existing CPA administrator policy. DNS does not
+storage-only peers. Billing/TRMNL/SilverBullet use `billing.vpn.denys.me`,
+`trmnl.vpn.denys.me` and `txt.vpn.denys.me` under the existing CPA
+administrator policy. DNS does not
 authorize traffic: private HTTPS is redirected from NetBird 443 to 9443,
 and raw ingress guards reject other interfaces before VPN-managed accepts.
 Public HTTP challenge forwarding remains for existing certificate renewal.

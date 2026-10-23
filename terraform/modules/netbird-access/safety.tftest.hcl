@@ -95,12 +95,12 @@ run "private_application_dns_uses_existing_management_boundary" {
 
   assert {
     condition = alltrue([
-      for name in ["billing", "trmnl"] :
+      for name in ["billing", "trmnl", "txt"] :
       netbird_dns_zone.apps[name].domain == "${name}.vpn.denys.me" &&
       netbird_dns_zone.apps[name].distribution_groups == toset(["cpa-admins", "cpa-server"]) &&
       netbird_dns_record.apps[name].content == "10.201.92.223"
     ])
-    error_message = "Billing and TRMNL must use Chunkymonkey's administrator-only 443/9443 entrypoint, not Bao or public DNS."
+    error_message = "Billing, TRMNL and SilverBullet administration must use Chunkymonkey's administrator-only 443/9443 entrypoint, not Bao or public DNS."
   }
 }
 

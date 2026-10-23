@@ -193,7 +193,7 @@ resource "netbird_dns_record" "cpa" {
 }
 
 resource "netbird_dns_zone" "apps" {
-  for_each = toset(["billing", "trmnl"])
+  for_each = toset(["billing", "trmnl", "txt"])
 
   name                 = "Private ${each.key}"
   domain               = "${each.key}.vpn.denys.me"
