@@ -50,6 +50,7 @@ in
     ./larapaper
     ./invoiceninja
     ./cli-proxy-api
+    ./silverbullet
   ];
 
   # Dedicated, unprivileged service user that owns the rootless podman session.

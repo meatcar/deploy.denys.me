@@ -39,6 +39,7 @@ in
       ${pkgs.systemd}/bin/systemctl --machine=pod@.host --user start --wait pg-dump@larapaper.service
       ${pkgs.systemd}/bin/systemctl --machine=pod@.host --user start --wait mysql-dump@invoiceninja.service
       ${pkgs.systemd}/bin/systemctl --machine=${lib.escapeShellArg "${cliProxyApi.service_user}@.host"} --user start --wait cli-proxy-api-backup.service
+      ${pkgs.systemd}/bin/systemctl --machine=pod@.host --user start --wait silverbullet-backup.service
     '';
     # The VPS shares this restic repository and runs at the module default
     # (OnCalendar=daily, i.e. 00:00 with no jitter), so overlapping runs would
@@ -55,7 +56,7 @@ in
     # deliberately absent, because a file-level copy of a live datadir restores
     # to a torn, possibly unusable state.
     paths = lib.mkForce [
-      "${persistPath}/dumps" # Prepared database dumps and CLIProxyAPI archive
+      "${persistPath}/dumps" # Prepared database dumps, CLIProxyAPI and SilverBullet archives
       larapaperStorageData # generated TRMNL screen images (regenerated; best-effort)
       invoiceninjaStorageData # uploaded documents, logos, generated PDFs: NOT regenerable
       "${persistPath}/transit-dashboard/tailscale" # retained during the NetBird trial
@@ -65,6 +66,7 @@ in
     # Exclude everything else under the pod home (podman image graph is large).
     exclude = [
       "${persistPath}/dumps/.cli-proxy-api-*"
+      "${persistPath}/dumps/.silverbullet-*"
       "${persistPath}/pod/.local/share/containers/storage/overlay*"
       "${persistPath}/pod/.local/share/containers/storage/cache"
       "${persistPath}/pod/.local/share/containers/storage/tmp"

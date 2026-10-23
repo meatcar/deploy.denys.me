@@ -61,6 +61,14 @@ let
       }
     )
   );
+  silverbulletRoutes = pkgs.writeText "silverbullet-routes.json" (
+    builtins.toJSON (
+      import ./silverbullet/routes.nix {
+        publicHost = "txt.pvlv.ca";
+        adminHost = "txt.vpn.denys.me";
+      }
+    )
+  );
 in
 pkgs.runCommand "application-routing"
   {
@@ -81,6 +89,6 @@ pkgs.runCommand "application-routing"
       ${applicationRoutes} \
       ${invoiceMount "invoiceninja-nginx" "/etc/nginx/conf.d/default.conf"} \
       ${pkgs.nginx}/conf/fastcgi_params ${./test_invoice_front_controller.php} \
-      ${cpaRoutes} ${niks3Routes}
+      ${cpaRoutes} ${niks3Routes} ${silverbulletRoutes}
     touch "$out"
   ''

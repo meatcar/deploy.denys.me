@@ -317,6 +317,93 @@ class Routing(unittest.TestCase):
     def test_retired_paseo_relay_is_unavailable(self):
         self.assertEqual(self.request("paseo.denys.me", "/")[0], 404)
 
+    def test_silverbullet_spaces_public_server_administration_private(self):
+        for method, path in [
+            ("GET", "/"),
+            ("GET", "/denys/"),
+            ("GET", "/service_worker.js"),
+            ("GET", "/.client/client.js"),
+            ("GET", "/denys/.fs/Journal/2026-10-23.md"),
+            ("PUT", "/denys/.fs/index.md"),
+            ("GET", "/denys/.events"),
+            ("POST", "/denys/.auth"),
+            ("POST", "/.auth"),
+            ("POST", "/.auth/token"),
+            ("GET", "/denys/.proxy/api.github.com/repos/silverbulletmd/silverbullet"),
+            ("POST", "/.proxy/raw.githubusercontent.com/x/y/main/Library.md"),
+        ]:
+            with self.subTest(method=method, path=path):
+                self.assertEqual(self.request("txt.pvlv.ca", path, method)[0], 200)
+        for method, path in [
+            ("GET", "/.setup/"),
+            ("POST", "/.setup/api/complete"),
+            ("GET", "/.dashboard/"),
+            ("POST", "/.dashboard/api/login"),
+            ("GET", "/.dashboard/api/admin/users"),
+            ("GET", "/.auth/central/public"),
+            ("POST", "/.auth/central/local"),
+            ("POST", "/denys/.proxy/127.0.0.1:3000/.dashboard/api/login"),
+            ("GET", "/.proxy/localhost:3000/.dashboard/"),
+            ("GET", "/family/kids/.proxy/10.89.1.2/"),
+            ("GET", "/denys/.proxy/host.docker.internal:3000/"),
+            ("GET", "/denys/.proxy/%31%32%37.0.0.1:3000/"),
+            # Fullwidth digits: SilverBullet picks HTTP, then IDNA maps to 127.0.0.1.
+            (
+                "GET",
+                "/denys/.proxy/%EF%BC%91%EF%BC%92%EF%BC%97.%EF%BC%90.%EF%BC%90.%EF%BC%91:3000/",
+            ),
+            ("GET", "/./.dashboard/"),
+            ("GET", "//.dashboard/"),
+            ("GET", "/denys/../.dashboard/"),
+            ("GET", "/%2Edashboard/"),
+            ("POST", "/%2Esetup/api/complete"),
+        ]:
+            with self.subTest(method=method, path=path):
+                status, body = self.request("txt.pvlv.ca", path, method)
+                self.assertNotEqual(body, b"backend reached")
+                self.assertGreaterEqual(status, 400)
+        for path in ["/.dashboard/", "/.setup/", "/denys/"]:
+            with self.subTest(path=path):
+                self.assertEqual(
+                    self.request("txt.vpn.denys.me", path, entrypoint="netbird")[0],
+                    200,
+                )
+                self.assertEqual(self.request("txt.vpn.denys.me", path)[0], 404)
+                self.assertEqual(
+                    self.request("txt.pvlv.ca", path, entrypoint="netbird")[0], 404
+                )
+
+    def test_silverbullet_login_attempts_are_limited_per_client(self):
+        def login(client, path="/denys/.auth"):
+            return self.request(
+                "txt.pvlv.ca",
+                path,
+                "POST",
+                headers={"Cf-Connecting-Ip": client},
+            )[0]
+
+        statuses = [login("192.0.2.10") for _ in range(12)]
+        self.assertEqual(statuses[0], 200)
+        self.assertEqual(statuses[-1], 429)
+        for path in [
+            "/.auth",
+            "/.auth/token",
+            "/family/.auth",
+            "/family/kids/.auth",
+            "/denys/%2Eauth",
+        ]:
+            with self.subTest(path=path):
+                self.assertEqual(login("192.0.2.10", path), 429)
+        self.assertEqual(login("192.0.2.11"), 200)
+        self.assertEqual(
+            self.request(
+                "txt.pvlv.ca",
+                "/denys/.fs/index.md",
+                headers={"Cf-Connecting-Ip": "192.0.2.10"},
+            )[0],
+            200,
+        )
+
     def test_nix_cache_hides_metrics_and_forbids_edge_caching(self):
         self.assertEqual(self.request("cache.denys.me", "/metrics")[0], 404)
         connection = http.client.HTTPSConnection(
