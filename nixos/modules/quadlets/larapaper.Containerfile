@@ -6,5 +6,11 @@ COPY --from=app /usr/local/bin/trmnl-liquid-cli /usr/local/bin/trmnl-liquid-cli
 
 ENV APP_VERSION=0.37.1 AUTORUN_ENABLED=true TRMNL_LIQUID_ENABLED=1
 
+# TODO: Drop this CVE-2026-111497 upgrade once the base image ships brotli-libs >= 1.2.1.
+# see https://hub.docker.com/r/bnussbau/serversideup-php/tags?name=8.4-fpm-nginx-alpine-imagick-chromium
+USER root
+RUN apk add --no-cache --upgrade 'brotli-libs>=1.2.1'
+USER www-data
+
 RUN php -r 'exit(PHP_VERSION_ID >= 80427 && PHP_VERSION_ID < 80500 ? 0 : 1);' \
     && composer check-platform-reqs --no-dev
