@@ -100,20 +100,6 @@ resource "cloudflare_dns_record" "A-billing-sns" {
   ttl     = 1
 }
 
-moved {
-  from = cloudflare_dns_record.CNAME-paseo
-  to   = cloudflare_dns_record.A-paseo
-}
-
-resource "cloudflare_dns_record" "A-paseo" {
-  zone_id = cloudflare_zone.main.id
-  type    = "A"
-  name    = "paseo"
-  content = "192.18.149.148"
-  proxied = true
-  ttl     = 1
-}
-
 ## Amazon SES (ca-central-1) - outbound mail for Invoice Ninja
 #
 # Explicit records are required here because the CNAME-www-wildcard record above

@@ -56,15 +56,6 @@ let
       }
     )
   );
-  paseo = import ./paseo-relay {
-    inherit pkgs;
-    config = { };
-  };
-  paseoRoutes = builtins.head (
-    pkgs.lib.splitString ":" (
-      builtins.head paseo.home-manager.users.pod.virtualisation.quadlet.containers.traefik.containerConfig.volumes
-    )
-  );
 in
 pkgs.runCommand "application-routing"
   {
@@ -85,7 +76,7 @@ pkgs.runCommand "application-routing"
       ${mounted "/etc/traefik/dynamic/main.yml"} \
       ${invoiceMount "invoiceninja-nginx" "/etc/nginx/conf.d/default.conf"} \
       ${pkgs.nginx}/conf/fastcgi_params ${./test_invoice_front_controller.php} \
-      ${cpaRoutes} ${paseoRoutes} ${niks3Routes}
+      ${cpaRoutes} ${niks3Routes}
     php ${./test_invoice_fallback.php} ${invoiceMount "invoiceninja-app" "/var/www/html/routes/client.php"}
     touch "$out"
   ''

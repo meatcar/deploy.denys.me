@@ -59,7 +59,6 @@ in
     ./larapaper.nix
     ./invoiceninja.nix
     ./cli-proxy-api
-    ./paseo-relay
   ];
 
   # Dedicated, unprivileged service user that owns the rootless podman session.

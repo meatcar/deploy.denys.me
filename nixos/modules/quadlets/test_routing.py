@@ -586,7 +586,7 @@ class Routing(unittest.TestCase):
                     self.assertNotIn(b"front controller", body)
                     self.assertNotIn(b"executed PHP", body)
 
-    def test_existing_cpa_clients_and_paseo_remain_public(self):
+    def test_existing_cpa_clients_remain_public(self):
         for method, path in [
             ("GET", "/v1/models"),
             ("POST", "/v1/chat/completions"),
@@ -615,7 +615,9 @@ class Routing(unittest.TestCase):
         self.assertEqual(
             self.request("cpa.vpn.denys.me", "/", entrypoint="netbird")[0], 200
         )
-        self.assertEqual(self.request("paseo.denys.me", "/")[0], 200)
+
+    def test_retired_paseo_relay_is_unavailable(self):
+        self.assertEqual(self.request("paseo.denys.me", "/")[0], 404)
 
     def test_nix_cache_hides_metrics_and_forbids_edge_caching(self):
         self.assertEqual(self.request("cache.denys.me", "/metrics")[0], 404)

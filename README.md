@@ -30,4 +30,3 @@ nix flake check
 - [Amp orbs](.agents/README.md): lifecycle and shared NetBird/Bao template
 - [CLIProxyAPI](packages/cli-proxy-api/README.md): keys and recovery
 - [OpenBao](nixos/systems/bao/README.md): installation and recovery
-- [Paseo](nixos/modules/quadlets/paseo-relay/README.md): relay deployment and clients

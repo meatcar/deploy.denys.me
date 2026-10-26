@@ -96,7 +96,10 @@ in
           tag = "localhost/cli-proxy-api:${packages.api.version}-pi-${packages.bridge.version}";
         };
         images.cpa-manager-plus.imageConfig.image = managerImage;
-        networks.cli-proxy-api.networkConfig.name = "cli-proxy-api";
+        networks.cli-proxy-api.networkConfig = {
+          name = "cli-proxy-api";
+          subnets = [ "10.89.4.0/24" ];
+        };
         containers.traefik.containerConfig = {
           networks = [ quadlet.networks.cli-proxy-api.ref ];
           volumes = [ "${routes}:/etc/traefik/dynamic/cli-proxy-api.yml:ro" ];

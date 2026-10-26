@@ -30,6 +30,15 @@
           application-routing = import ../nixos/modules/quadlets/routing-test.nix {
             inherit pkgs;
           };
+          container-network-subnets =
+            let
+              networks =
+                self.nixosConfigurations.chunkymonkey.config.home-manager.users.pod.virtualisation.quadlet.networks;
+              subnets = lib.concatMap (network: network.networkConfig.subnets) (builtins.attrValues networks);
+            in
+            assert builtins.all (network: network.networkConfig.subnets != [ ]) (builtins.attrValues networks);
+            assert builtins.length subnets == builtins.length (lib.unique subnets);
+            pkgs.runCommand "container-network-subnets" { } "touch $out";
           private-access-isolation = import ../nixos/modules/private-access/isolation-test.nix {
             inherit pkgs;
             sambaSettings = self.nixosConfigurations.cube.config.services.samba.settings;
