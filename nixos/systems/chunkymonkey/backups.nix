@@ -3,7 +3,7 @@
 # config excluded /persist/docker/overlay2.
 # DB dumps land in /persist/dumps and are refreshed synchronously by
 # backupPrepareCommand below, immediately before the snapshot is taken.
-# (The pg-dump@ timers in larapaper.nix still run on their own schedule as a
+# (The pg-dump@ timers in larapaper/ still run on their own schedule as a
 # safety net, but the backup no longer depends on that ordering.)
 {
   config,

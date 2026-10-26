@@ -1,10 +1,9 @@
-# Reviewed against usetrmnl/larapaper 0.37.1 routes/api.php and Invoice Ninja
-# v5.13.49 routes/{client,vendor,contact,shop,web,api}.php, AppServiceProvider.php,
-# portal templates and composer.lock (Livewire 3.8.10). Re-review on upgrades.
+# Reviewed against Invoice Ninja v5.13.49 routes/{client,vendor,contact,shop,web,api}.php,
+# AppServiceProvider.php, portal templates and composer.lock (Livewire 3.8.10).
+# Re-review on upgrades.
 let
   read = "(Method(`GET`) || Method(`HEAD`))";
   submit = "(${read} || Method(`POST`))";
-  uuid = "[0-9a-fA-F-]{36}";
   key = "[A-Za-z0-9._~-]+";
   vendorRead = "^/(vendors|vendor/(key_login/${key}|purchase_order/${key}(/download(_e_purchase_order)?)?|dashboard|purchase_orders(/${key})?|showBlob/purchase_order/${key}|logout|documents(/${key}(/download(_pdf)?)?)?))$";
   vendorPost = "^/vendor/(purchase_orders/bulk|purchase_order/upload/${key}|documents/download_multiple)$";
@@ -13,23 +12,13 @@ in
 {
   # nginx must pass these dynamic routes to Laravel before its /vendor/ asset
   # location. Share the paths so adding a public route cannot leave it static.
-  invoiceninjaVendorPaths = [
+  vendorPaths = [
     vendorRead
     vendorPost
     vendorProfile
   ];
 
-  larapaper = builtins.concatStringsSep " || " [
-    "(${read} && (Path(`/api/setup`) || Path(`/api/display`) || Path(`/api/current_screen`)))"
-    "(Method(`POST`) && (Path(`/api/log`) || Path(`/api/screens`)))"
-    "(${read} && PathRegexp(`^/storage/(images|firmwares)/.+$`))"
-    # Existing public integrations use UUIDs, not the Sanctum admin routes.
-    "((${read} || Method(`POST`)) && PathRegexp(`^/api/custom_plugins/${uuid}$`))"
-    "(Method(`POST`) && PathRegexp(`^/api/(plugins/${uuid}/webhook|plugin_settings/${uuid}/image)$`))"
-    "(${read} && PathRegexp(`^/api/display/${uuid}/alias$`))"
-  ];
-
-  invoiceninja = builtins.concatStringsSep " || " [
+  rule = builtins.concatStringsSep " || " [
     # The client namespace contains no admin routes, including method-spoofed
     # forms. Upstream explicitly aborts its fallback for /client and /client/*.
     "Path(`/client`) || PathPrefix(`/client/`)"

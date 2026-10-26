@@ -22,7 +22,7 @@ let
       )
     );
   invoice =
-    (import ./invoiceninja.nix {
+    (import ./invoiceninja {
       inherit pkgs;
       config.home-manager.users.pod.virtualisation.quadlet.volumes = {
         invoiceninja-public.ref = "public.volume";
@@ -40,6 +40,11 @@ let
         )
       )
     );
+  applicationRoutes = pkgs.writeText "application-routes.json" (
+    builtins.toJSON (
+      pkgs.lib.recursiveUpdate (import ./larapaper/routes.nix) (import ./invoiceninja/routes.nix)
+    )
+  );
   cpaRoutes = pkgs.writeText "cpa-routes.json" (
     builtins.toJSON (
       import ./cli-proxy-api/routes.nix {
@@ -61,7 +66,7 @@ pkgs.runCommand "application-routing"
   {
     passthru = {
       staticConfig = mounted "/etc/traefik/traefik.yml";
-      dynamicConfig = mounted "/etc/traefik/dynamic/main.yml";
+      dynamicConfig = applicationRoutes;
     };
     nativeBuildInputs = [
       pkgs.traefik
@@ -73,7 +78,7 @@ pkgs.runCommand "application-routing"
   ''
     python ${./test_routing.py} \
       ${mounted "/etc/traefik/traefik.yml"} \
-      ${mounted "/etc/traefik/dynamic/main.yml"} \
+      ${applicationRoutes} \
       ${invoiceMount "invoiceninja-nginx" "/etc/nginx/conf.d/default.conf"} \
       ${pkgs.nginx}/conf/fastcgi_params ${./test_invoice_front_controller.php} \
       ${cpaRoutes} ${niks3Routes}

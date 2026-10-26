@@ -38,6 +38,7 @@ let
   dbSubnet = "10.89.3.0/24";
 
   podCfg = config.home-manager.users.pod.virtualisation.quadlet;
+  routes = pkgs.writeText "invoiceninja-routes.yml" (builtins.toJSON (import ./routes.nix));
 
   envFile = config.age.secrets.invoiceninjaEnv.path;
   sesEnvFile = config.age.secrets.invoiceninjaSesEnv.path;
@@ -239,7 +240,7 @@ let
       # /vendor/ contains both static libraries and the purchase-order portal.
       # Only its explicit dynamic paths may reach Laravel; auth, invitation
       # validation and CSRF stay upstream. Unknown assets still return 404.
-      location ~ ${builtins.concatStringsSep "|" publicRoutes.invoiceninjaVendorPaths} {
+      location ~ ${builtins.concatStringsSep "|" publicRoutes.vendorPaths} {
         rewrite ^ /index.php last;
       }
       location ~ ^/(build|css|js|images|fonts|vendor|gateway-card-images|storage)/ {
@@ -412,6 +413,10 @@ in
       };
     };
 
+    containers.traefik.containerConfig.volumes = [
+      "${routes}:/etc/traefik/dynamic/invoiceninja.yml:ro"
+    ];
+
     containers.invoiceninja-nginx = {
       autoStart = true;
       unitConfig = {
@@ -434,8 +439,6 @@ in
           podCfg.networks.invoiceninja.ref
           podCfg.networks.proxy.ref
         ];
-        # Routed by traefik's file provider (see traefik.nix), not by labels:
-        # traefik no longer has access to the podman API.
       };
       serviceConfig = {
         Restart = "on-failure";

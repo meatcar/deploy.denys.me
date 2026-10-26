@@ -5,7 +5,7 @@
 # via `podman exec postgres ...` from user services in the pod session.
 #
 # Per-app role+DB provisioning: add an initdb quadlet container in
-# the consuming service module (see larapaper.nix for the pattern).
+# the consuming service module (see larapaper/ for the pattern).
 { config, ... }:
 let
   pgversion = "18";

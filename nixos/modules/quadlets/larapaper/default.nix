@@ -6,7 +6,7 @@
 # Secrets required in agenix.nix (owner=pod): larapaperEnv, larapaperPgPass.
 { config, pkgs, ... }:
 let
-  buildContext = pkgs.writeTextDir "Containerfile" (builtins.readFile ./larapaper.Containerfile);
+  buildContext = pkgs.writeTextDir "Containerfile" (builtins.readFile ./Containerfile);
   dataDir = "${config.mine.persistPath}/larapaper";
 
   # Provisioning script: creates the larapaper pg role + db idempotently.
@@ -35,6 +35,7 @@ let
   '';
 
   podCfg = config.home-manager.users.pod.virtualisation.quadlet;
+  routes = pkgs.writeText "larapaper-routes.yml" (builtins.toJSON (import ./routes.nix));
 in
 {
   systemd.tmpfiles.rules = [
@@ -54,6 +55,10 @@ in
     # Named volume for generated screen images. Starts empty on first deploy;
     # larapaper regenerates screens periodically so this is acceptable.
     volumes.larapaper-storage.volumeConfig = { };
+
+    containers.traefik.containerConfig.volumes = [
+      "${routes}:/etc/traefik/dynamic/larapaper.yml:ro"
+    ];
 
     # Init container: provisions the larapaper role+DB.
     # RemainAfterExit=yes keeps the service "active" after the script exits so
@@ -126,9 +131,6 @@ in
           podCfg.networks.postgres.ref
           podCfg.networks.proxy.ref
         ];
-        # Routed by traefik's file provider (see traefik.nix) as
-        # http://larapaper:8080. Traefik no longer reads container labels,
-        # because it no longer has access to the podman API.
       };
       serviceConfig = {
         Restart = "on-failure";

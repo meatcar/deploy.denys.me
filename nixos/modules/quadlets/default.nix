@@ -56,8 +56,8 @@ in
     ./mysql-dump.nix
     ./traefik.nix
     ./postgres.nix
-    ./larapaper.nix
-    ./invoiceninja.nix
+    ./larapaper
+    ./invoiceninja
     ./cli-proxy-api
   ];
 
