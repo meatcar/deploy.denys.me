@@ -61,16 +61,6 @@ variable "private_server_ips" {
   default     = {}
 }
 
-variable "private_access_peer_ids" {
-  type = object({
-    administrators = set(string)
-  })
-  description = "Complete administrator membership."
-  default = {
-    administrators = ["dag13hqfadhs739d7rg0", "daq0iarl0ubs738l4770"]
-  }
-}
-
 variable "repository_root" {
   type        = string
   description = "Original repository directory containing the niks3 deployment profile."

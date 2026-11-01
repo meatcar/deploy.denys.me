@@ -90,7 +90,7 @@ aws iam delete-role-policy --role-name tofu-plan --policy-name main-root-refresh
 ```
 
 Also revoke the setup key in NetBird; the static `NETBIRD_SETUP_KEY` enrolls
-new orbs into `amp--orbs`. Amp-side identity revocation can lag up to 24 hours.
+new orbs into `role-agent-vms`. Amp-side identity revocation can lag up to 24 hours.
 
 Run only the main root, never the Terragrunt bulk runner or
 `terraform/bao-config`, whose plans read CLIProxyAPI secrets.

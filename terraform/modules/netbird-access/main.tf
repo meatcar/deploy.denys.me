@@ -38,17 +38,28 @@ resource "netbird_peer" "chunkymonkey" {
   }
 }
 
-resource "netbird_group" "bao_admins" {
-  name  = "bao-admins"
-  peers = sort(tolist(var.bao_admin_peer_ids))
+resource "netbird_group" "role_admins" {
+  name = "role-admins"
 
   lifecycle {
     prevent_destroy = true
+    # NOTE: User auto-groups set membership through propagation.
+    ignore_changes = [peers]
   }
 }
 
-resource "netbird_group" "bao_server" {
-  name  = "bao-server"
+resource "netbird_group" "role_agent_vms" {
+  name = "role-agent-vms"
+
+  lifecycle {
+    prevent_destroy = true
+    # NOTE: Ephemeral agent VM peers join through the setup key.
+    ignore_changes = [peers]
+  }
+}
+
+resource "netbird_group" "server_bao" {
+  name  = "server-bao"
   peers = [netbird_peer.bao.id]
 
   lifecycle {
@@ -56,26 +67,8 @@ resource "netbird_group" "bao_server" {
   }
 }
 
-resource "netbird_group" "deploy_orbs" {
-  name = "amp--orbs"
-
-  lifecycle {
-    prevent_destroy = true
-    ignore_changes  = [peers]
-  }
-}
-
-resource "netbird_group" "cpa_admins" {
-  name  = "cpa-admins"
-  peers = sort(tolist(var.cpa_admin_peer_ids))
-
-  lifecycle {
-    prevent_destroy = true
-  }
-}
-
-resource "netbird_group" "cpa_server" {
-  name  = "cpa-server"
+resource "netbird_group" "server_chunkymonkey" {
+  name  = "server-chunkymonkey"
   peers = [netbird_peer.chunkymonkey.id]
 
   lifecycle {
@@ -94,8 +87,8 @@ resource "netbird_policy" "bao" {
     bidirectional = false
     protocol      = "tcp"
     ports         = ["443"]
-    sources       = [netbird_group.bao_admins.id]
-    destinations  = [netbird_group.bao_server.id]
+    sources       = [netbird_group.role_admins.id]
+    destinations  = [netbird_group.server_bao.id]
   }
 
   lifecycle {
@@ -115,8 +108,8 @@ resource "netbird_policy" "cpa" {
     protocol      = "tcp"
     # NOTE: NetBird checks ingress before and after the host redirects 443 to 9443.
     ports        = ["443", "9443"]
-    sources      = [netbird_group.cpa_admins.id]
-    destinations = [netbird_group.cpa_server.id]
+    sources      = [netbird_group.role_admins.id]
+    destinations = [netbird_group.server_chunkymonkey.id]
   }
 
   lifecycle {
@@ -124,19 +117,19 @@ resource "netbird_policy" "cpa" {
   }
 }
 
-resource "netbird_policy" "deploy_orbs_bao" {
-  name    = "amp--orbs--bao"
+resource "netbird_policy" "agent_vms_bao" {
+  name    = "agent-vms-bao"
   enabled = true
 
   rule {
-    name          = "Orb OpenBao HTTPS"
+    name          = "Agent VM OpenBao HTTPS"
     enabled       = true
     action        = "accept"
     bidirectional = false
     protocol      = "tcp"
     ports         = ["443"]
-    sources       = [netbird_group.deploy_orbs.id]
-    destinations  = [netbird_group.bao_server.id]
+    sources       = [netbird_group.role_agent_vms.id]
+    destinations  = [netbird_group.server_bao.id]
   }
 
   lifecycle {
@@ -149,7 +142,7 @@ resource "netbird_dns_zone" "bao" {
   domain               = "bao.vpn.denys.me"
   enabled              = true
   enable_search_domain = false
-  distribution_groups  = [netbird_group.bao_admins.id, netbird_group.bao_server.id, netbird_group.deploy_orbs.id]
+  distribution_groups  = [netbird_group.role_admins.id, netbird_group.server_bao.id, netbird_group.role_agent_vms.id]
 
   lifecycle {
     prevent_destroy = true
@@ -173,7 +166,7 @@ resource "netbird_dns_zone" "cpa" {
   domain               = "cpa.vpn.denys.me"
   enabled              = true
   enable_search_domain = false
-  distribution_groups  = [netbird_group.cpa_admins.id, netbird_group.cpa_server.id]
+  distribution_groups  = [netbird_group.role_admins.id, netbird_group.server_chunkymonkey.id]
 
   lifecycle {
     prevent_destroy = true
@@ -199,7 +192,7 @@ resource "netbird_dns_zone" "apps" {
   domain               = "${each.key}.vpn.denys.me"
   enabled              = true
   enable_search_domain = false
-  distribution_groups  = [netbird_group.cpa_admins.id, netbird_group.cpa_server.id]
+  distribution_groups  = [netbird_group.role_admins.id, netbird_group.server_chunkymonkey.id]
 
   lifecycle {
     prevent_destroy = true

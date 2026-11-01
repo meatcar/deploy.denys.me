@@ -3,20 +3,23 @@ data "netbird_peer" "private" {
   ip       = each.value
 }
 
-resource "netbird_group" "access" {
-  for_each = var.private_access_peer_ids
-  name     = "private-${each.key}"
-  peers    = sort(tolist(each.value))
+resource "netbird_peer" "private" {
+  for_each                      = var.private_server_ips
+  id                            = data.netbird_peer.private[each.key].id
+  name                          = each.key
+  ssh_enabled                   = false
+  login_expiration_enabled      = false
+  inactivity_expiration_enabled = false
 
   lifecycle {
     prevent_destroy = true
   }
 }
 
-resource "netbird_group" "private_server" {
+resource "netbird_group" "server" {
   for_each = var.private_server_ips
-  name     = "${each.key}-server"
-  peers    = [data.netbird_peer.private[each.key].id]
+  name     = "server-${each.key}"
+  peers    = [netbird_peer.private[each.key].id]
 
   lifecycle {
     prevent_destroy = true
@@ -26,17 +29,17 @@ resource "netbird_group" "private_server" {
 locals {
   private_rules = merge(
     { for name in keys(var.private_server_ips) : "${name}-ssh" => {
-      host = name, sources = ["administrators"], protocol = "tcp", ports = ["22"], port_ranges = []
+      host = name, protocol = "tcp", ports = ["22"], port_ranges = []
     } },
     { for name in keys(var.private_server_ips) : "${name}-mosh" => {
-      host = name, sources = ["administrators"], protocol = "udp", ports = [], port_ranges = [{ start = 60000, end = 61000 }]
+      host = name, protocol = "udp", ports = [], port_ranges = [{ start = 60000, end = 61000 }]
     } },
     contains(keys(var.private_server_ips), "vps") ? {
       vps-web = {
-        host = "vps", sources = ["administrators"], protocol = "tcp", ports = ["443", "9443"], port_ranges = []
+        host = "vps", protocol = "tcp", ports = ["443", "9443"], port_ranges = []
       }
       vps-irc = {
-        host = "vps", sources = ["administrators"], protocol = "tcp", ports = ["7000"], port_ranges = []
+        host = "vps", protocol = "tcp", ports = ["7000"], port_ranges = []
       }
     } : {},
   )
@@ -56,8 +59,8 @@ resource "netbird_policy" "private" {
     protocol      = each.value.protocol
     ports         = length(each.value.ports) == 0 ? null : each.value.ports
     port_ranges   = length(each.value.port_ranges) == 0 ? null : each.value.port_ranges
-    sources       = [for role in each.value.sources : netbird_group.access[role].id]
-    destinations  = [netbird_group.private_server[each.value.host].id]
+    sources       = [netbird_group.role_admins.id]
+    destinations  = [netbird_group.server[each.value.host].id]
   }
 
   lifecycle {
@@ -71,7 +74,7 @@ resource "netbird_dns_zone" "private" {
   domain               = "znc.denys.me"
   enabled              = true
   enable_search_domain = false
-  distribution_groups  = [netbird_group.private_server[each.key].id, netbird_group.access["administrators"].id]
+  distribution_groups  = [netbird_group.server[each.key].id, netbird_group.role_admins.id]
 
   lifecycle {
     prevent_destroy = true
@@ -83,7 +86,7 @@ resource "netbird_dns_record" "private" {
   zone_id  = netbird_dns_zone.private[each.value].id
   name     = each.key
   type     = "A"
-  content  = data.netbird_peer.private[each.value].ip
+  content  = netbird_peer.private[each.value].ip
   ttl      = 60
 
   lifecycle {

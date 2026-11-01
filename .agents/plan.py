@@ -109,7 +109,6 @@ def main():
             "TF_VAR_parked_domains",
             "TF_VAR_oci_compartment_ocid",
             "TF_VAR_private_server_ips",
-            "TF_VAR_private_access_peer_ids",
             "TF_VAR_repository_root",
         }
         env = {k: v for k, v in os.environ.items() if k in passthrough}
