@@ -141,6 +141,9 @@ in
     };
   };
 
+  # NOTE: A postgres stop/start leaves larapaper stopped (Requires=); restart it with postgres.
+  home-manager.users.pod.systemd.user.services.larapaper.Install.WantedBy = [ "postgres.service" ];
+
   # Instantiate the pg-dump timer for larapaper (template defined in pg-dump.nix).
   home-manager.users.pod.systemd.user.timers."pg-dump@larapaper" = {
     Unit.Description = "Daily larapaper PostgreSQL dump";
