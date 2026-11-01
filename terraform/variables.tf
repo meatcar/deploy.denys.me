@@ -57,21 +57,17 @@ variable "oci_compartment_ocid" {
 
 variable "private_server_ips" {
   type        = map(string)
-  description = "Verified Cube/VPS NetBird IPv4 addresses after enrollment; no destination access is created while empty."
+  description = "Verified VPS NetBird IPv4 address after enrollment; no destination access is created while empty."
   default     = {}
 }
 
 variable "private_access_peer_ids" {
   type = object({
     administrators = set(string)
-    household      = set(string)
-    storage        = set(string)
   })
-  description = "Complete administrator, Cube household HTTPS and SMB client memberships, managed independently."
+  description = "Complete administrator membership."
   default = {
     administrators = ["dag13hqfadhs739d7rg0", "daq0iarl0ubs738l4770"]
-    household      = []
-    storage        = []
   }
 }
 

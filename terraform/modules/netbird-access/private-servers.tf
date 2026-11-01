@@ -31,14 +31,6 @@ locals {
     { for name in keys(var.private_server_ips) : "${name}-mosh" => {
       host = name, sources = ["administrators"], protocol = "udp", ports = [], port_ranges = [{ start = 60000, end = 61000 }]
     } },
-    contains(keys(var.private_server_ips), "cube") ? {
-      cube-web = {
-        host = "cube", sources = ["administrators", "household"], protocol = "tcp", ports = ["443", "9443"], port_ranges = []
-      }
-      cube-storage = {
-        host = "cube", sources = ["storage"], protocol = "tcp", ports = ["445"], port_ranges = []
-      }
-    } : {},
     contains(keys(var.private_server_ips), "vps") ? {
       vps-web = {
         host = "vps", sources = ["administrators"], protocol = "tcp", ports = ["443", "9443"], port_ranges = []
@@ -48,17 +40,7 @@ locals {
       }
     } : {},
   )
-  private_dns = merge(
-    contains(keys(var.private_server_ips), "cube") ? {
-      for name in [
-        "cube.denys.me", "organizr.cube.denys.me", "sonarr.cube.denys.me",
-        "radarr.cube.denys.me", "bazarr.cube.denys.me", "transmission.cube.denys.me",
-        "jackett.cube.denys.me", "tautulli.cube.denys.me", "scrutiny.cube.denys.me",
-        "books.cube.denys.me", "rss.cube.denys.me"
-      ] : name => "cube"
-    } : {},
-    contains(keys(var.private_server_ips), "vps") ? { "znc.denys.me" = "vps" } : {},
-  )
+  private_dns = contains(keys(var.private_server_ips), "vps") ? { "znc.denys.me" = "vps" } : {}
 }
 
 resource "netbird_policy" "private" {
@@ -86,13 +68,10 @@ resource "netbird_policy" "private" {
 resource "netbird_dns_zone" "private" {
   for_each             = var.private_server_ips
   name                 = "Private ${each.key}"
-  domain               = each.key == "cube" ? "cube.denys.me" : "znc.denys.me"
+  domain               = "znc.denys.me"
   enabled              = true
   enable_search_domain = false
-  distribution_groups = concat(
-    [netbird_group.private_server[each.key].id, netbird_group.access["administrators"].id],
-    each.key == "cube" ? [netbird_group.access["household"].id, netbird_group.access["storage"].id] : [],
-  )
+  distribution_groups  = [netbird_group.private_server[each.key].id, netbird_group.access["administrators"].id]
 
   lifecycle {
     prevent_destroy = true
@@ -112,16 +91,3 @@ resource "netbird_dns_record" "private" {
   }
 }
 
-# The split zone must not shadow Plex/Ombi's public edge for storage-only peers.
-resource "netbird_dns_record" "public_cube" {
-  for_each = contains(keys(var.private_server_ips), "cube") ? toset(["plex", "ombi"]) : toset([])
-  zone_id  = netbird_dns_zone.private["cube"].id
-  name     = "${each.key}.cube.denys.me"
-  type     = "CNAME"
-  content  = "denys.me"
-  ttl      = 60
-
-  lifecycle {
-    prevent_destroy = true
-  }
-}

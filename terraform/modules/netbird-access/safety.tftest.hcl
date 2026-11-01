@@ -114,18 +114,16 @@ run "unenrolled_servers_are_not_granted_access" {
       length(netbird_policy.private) == 0 &&
       length(netbird_dns_zone.private) == 0
     )
-    error_message = "Without explicit enrolled Cube/VPS addresses, no lookup, destination, policy or private DNS may be created."
+    error_message = "Without an explicit enrolled VPS address, no lookup, destination, policy or private DNS may be created."
   }
 }
 
 run "enrolled_servers_get_only_declared_access" {
   command = plan
   variables {
-    private_server_ips = { cube = "10.201.0.10", vps = "10.201.0.20" }
+    private_server_ips = { vps = "10.201.0.20" }
     private_access_peer_ids = {
       administrators = ["administrator-fixture"]
-      household      = ["household-fixture"]
-      storage        = ["storage-fixture"]
     }
   }
 
@@ -149,41 +147,33 @@ run "enrolled_servers_get_only_declared_access" {
         !contains(rule.sources, "deploy-orbs") && !contains(rule.destinations, "deploy-orbs")
       ])
     ])
-    error_message = "Deploy orbs must not participate in administrator, CPA, Cube or VPS policies in either direction."
+    error_message = "Deploy orbs must not participate in administrator, CPA or VPS policies in either direction."
   }
   assert {
     condition = alltrue([
       for zone in concat([netbird_dns_zone.cpa], values(netbird_dns_zone.apps), values(netbird_dns_zone.private)) :
       !contains(zone.distribution_groups, "deploy-orbs")
     ])
-    error_message = "Deploy orbs must not receive CPA, application, Cube or VPS DNS zones."
+    error_message = "Deploy orbs must not receive CPA, application or VPS DNS zones."
   }
 
   assert {
-    condition = alltrue([
-      for role, peers in {
-        administrators = ["administrator-fixture"], household = ["household-fixture"], storage = ["storage-fixture"]
-      } : toset(netbird_group.access[role].peers) == toset(peers)
-    ])
-    error_message = "The three roles must have independent, complete, explicitly supplied memberships."
+    condition     = toset(netbird_group.access["administrators"].peers) == toset(["administrator-fixture"])
+    error_message = "Administrators must have a complete, explicitly supplied membership."
   }
   assert {
     condition = (
-      toset(netbird_group.private_server["cube"].peers) == toset([data.netbird_peer.private["cube"].id]) &&
       toset(netbird_group.private_server["vps"].peers) == toset([data.netbird_peer.private["vps"].id]) &&
-      toset(keys(netbird_policy.private)) == toset(["cube-web", "cube-storage", "vps-web", "vps-irc", "cube-ssh", "cube-mosh", "vps-ssh", "vps-mosh"])
+      toset(keys(netbird_policy.private)) == toset(["vps-web", "vps-irc", "vps-ssh", "vps-mosh"])
     )
     error_message = "Each destination must contain only its verified peer; no full-mesh or extra service policies are allowed."
   }
   assert {
     condition = alltrue([
       for name, expected in {
-        cube-web     = { sources = ["administrators", "household"], destination = "cube", ports = ["443", "9443"] }
-        cube-storage = { sources = ["storage"], destination = "cube", ports = ["445"] }
-        vps-web      = { sources = ["administrators"], destination = "vps", ports = ["443", "9443"] }
-        vps-irc      = { sources = ["administrators"], destination = "vps", ports = ["7000"] }
-        cube-ssh     = { sources = ["administrators"], destination = "cube", ports = ["22"] }
-        vps-ssh      = { sources = ["administrators"], destination = "vps", ports = ["22"] }
+        vps-web = { sources = ["administrators"], destination = "vps", ports = ["443", "9443"] }
+        vps-irc = { sources = ["administrators"], destination = "vps", ports = ["7000"] }
+        vps-ssh = { sources = ["administrators"], destination = "vps", ports = ["22"] }
         } : alltrue([for rule in netbird_policy.private[name].rule :
           rule.enabled && rule.action == "accept" && !rule.bidirectional && rule.protocol == "tcp" &&
           toset(rule.sources) == toset([for role in expected.sources : netbird_group.access[role].id]) &&
@@ -191,10 +181,10 @@ run "enrolled_servers_get_only_declared_access" {
           toset(rule.ports) == toset(expected.ports) && length(coalesce(rule.port_ranges, [])) == 0
       ])
     ])
-    error_message = "HTTP, SMB, IRC and SSH must have exact directional sources, destinations and ports."
+    error_message = "HTTP, IRC and SSH must have exact directional sources, destinations and ports."
   }
   assert {
-    condition = alltrue([for host in ["cube", "vps"] : alltrue([
+    condition = alltrue([for host in ["vps"] : alltrue([
       for rule in netbird_policy.private["${host}-mosh"].rule :
       rule.enabled && rule.action == "accept" && !rule.bidirectional && rule.protocol == "udp" &&
       toset(rule.sources) == toset([netbird_group.access["administrators"].id]) &&
@@ -205,11 +195,7 @@ run "enrolled_servers_get_only_declared_access" {
     error_message = "Mosh must be administrator-only UDP/60000-61000, never all UDP or bidirectional."
   }
   assert {
-    condition = (
-      netbird_dns_record.private["sonarr.cube.denys.me"].content == "10.201.0.10" &&
-      netbird_dns_record.private["znc.denys.me"].content == "10.201.0.20" &&
-      alltrue([for record in netbird_dns_record.public_cube : record.type == "CNAME" && record.content == "denys.me"])
-    )
-    error_message = "Split DNS must target enrolled private servers while preserving public Plex/Ombi routing."
+    condition     = netbird_dns_record.private["znc.denys.me"].content == "10.201.0.20"
+    error_message = "Split DNS must target the enrolled VPS."
   }
 }

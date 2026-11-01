@@ -1,46 +1,33 @@
 # Private access cutover
 
-Cube and VPS have no enrolled NetBird peers yet. `private_server_ips = {}`
-creates no destination groups, server policies or split DNS. Never substitute
-Bao, Chunkymonkey, a public IP or an invented peer ID.
+`private_server_ips` holds verified NetBird addresses keyed by host; only `vps`
+is allowed. An empty map creates no destination groups, server policies or
+split DNS. Never substitute Bao, Chunkymonkey, a public IP or an invented peer ID.
 
 Before deployment:
 
 1. Confirm administrator SSH over the existing Tailscale targets. Keep that
    route until NetBird SSH and recovery have been tested. Bao's public recovery
-   SSH is unchanged. Cube/VPS public SSH and Mosh are closed by this change.
-2. Enroll Cube/VPS through the existing NetBird client. Read back each overlay
-   IPv4 address and identity, then supply `private_server_ips` keyed by `cube`
-   and `vps`. The provider resolves each address to exactly one enrolled peer.
-3. Supply complete `private_access_peer_ids` memberships. Administrators get
-   host management and SSH/Mosh; household peers get Cube HTTPS; storage peers
-   get Cube SMB only. Household/storage default empty. Membership is not
-   additive and roles do not imply each other. Do not enable the default
+   SSH is unchanged. VPS public SSH and Mosh are closed by this change.
+2. Enroll the VPS through the existing NetBird client. Read back its overlay
+   IPv4 address and identity, then supply it as `private_server_ips.vps`. The
+   provider resolves the address to exactly one enrolled peer.
+3. Supply the complete `private_access_peer_ids.administrators` membership.
+   Administrators get host management and SSH/Mosh. Do not enable the default
    allow-all policy or broad overlapping policies.
-4. Select trusted Cube LAN interfaces explicitly in
-   `mine.privateAccess.trustedLANInterfaces`. The empty default closes LAN SMB
-   and disables WSD. Do not infer trust from DHCP or private address ranges.
-   Provision Samba passwords interactively with `smbpasswd -a` for selected
-   Unix members of `storage`. Anonymous shares no longer work.
-5. Review a normal OpenTofu plan before an approved apply, then deploy through
+4. Review a normal OpenTofu plan before an approved apply, then deploy through
    the existing recovery path. Client devices must accept NetBird DNS. Host
    clients intentionally retain `DisableDNS = true`.
 
-Existing private Cube names and `znc.denys.me` use split DNS. The Cube zone
-keeps Plex/Ombi as CNAMEs to the public VPS hostname `denys.me`, including for
-storage-only peers. Billing/TRMNL/SilverBullet use `billing.vpn.denys.me`,
-`trmnl.vpn.denys.me` and `txt.vpn.denys.me` under the existing CPA
-administrator policy. DNS does not
-authorize traffic: private HTTPS is redirected from NetBird 443 to 9443,
-and raw ingress guards reject other interfaces before VPN-managed accepts.
-Public HTTP challenge forwarding remains for existing certificate renewal.
+`znc.denys.me` uses split DNS. Billing/TRMNL/SilverBullet use
+`billing.vpn.denys.me`, `trmnl.vpn.denys.me` and `txt.vpn.denys.me` under the
+existing CPA administrator policy. DNS does not authorize traffic: private HTTPS
+is redirected from NetBird 443 to 9443, and raw ingress guards reject other
+interfaces before VPN-managed accepts.
 
-After deployment, test an allowed and denied peer for each role, both public
-Plex/Ombi URLs, VPS website/Mumble, certificate renewal, SMB anonymous denial,
-and public SNI with a private HTTP Host. Confirm the media integrations still
-use reachable container endpoints after removing host networking. Never
-configure Plex network-based authentication bypass for the proxy network.
-Run `private-access-isolation` on a KVM-capable builder before deployment.
+After deployment, test an allowed and denied peer, the VPS website/Mumble, and
+public SNI with a private HTTP Host. Run `private-access-isolation` on a
+KVM-capable builder before deployment.
 
 ## Orb plan access
 
@@ -93,7 +80,7 @@ See [setup-key behavior](https://docs.netbird.io/manage/peers/register-machines-
 After orb enrollment is configured, test both a fresh and resumed orb. Confirm
 ephemeral status and membership in only this project group, with no extra DNS
 labels. Verify `bao.vpn.denys.me` resolves and HTTPS validates its certificate.
-Check that Bao SSH and other ports, CPA, Cube, VPS, other peers, and inbound
+Check that Bao SSH and other ports, CPA, VPS, other peers, and inbound
 connections are denied. Test that an expired/revoked key fails fresh enrollment;
 delete test peers separately. Mocked tests verify only this module's declared
 rules, not live overlapping policies, routes, membership, DNS, or connectivity.
