@@ -16,7 +16,6 @@ On failure, retry the same generation. Delivery-only retry uses
 Finish pending rotations before endpoint changes. A new public endpoint needs a new generation.
 
 Keep ephemeral reads and write-only fields to avoid secrets in state.
-OIDC trust and orb connectivity are not installed.
 
 ## Manager Plus admin key
 
@@ -30,7 +29,7 @@ cli-proxy-api-rotate-admin 1
 ```
 
 - Start at 1. Retry the same generation after failure. Advance only for a new rotation.
-- Keep `-no-print`. OpenBao CLI 2.5.4 lacks AWS login. Terraform still uses SSO.
+- Keep `-no-print`. The OpenBao CLI lacks AWS login. Terraform still uses SSO.
 - The old key expires before publication. Retry to publish the pending candidate.
 - Leave pending Bao documents and bootstrap keys untouched.
 - Avoid concurrent inference-key changes during the restart.

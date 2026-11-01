@@ -12,8 +12,7 @@ nix flake init -t github:meatcar/deploy.denys.me#orb-access
 chmod +x .agents/setup .agents/resume
 ```
 
-The template is an interim home in deploy.denys.me. Template export does not
-preserve executable bits. Reconcile existing `.agents` files before installation.
+Template export does not preserve executable bits. Reconcile existing `.agents` files before installation.
 It adds no root Taskfile, flake input, or `.envrc`.
 
 Supply `netbird`, `openbao`, `jq`, and `go-task` in the project's Linux devshell.
@@ -28,7 +27,7 @@ updating shared behavior. `sandbox/` derives from
 
 ## Lifecycle
 
-- `.agents/setup` bootstraps checksum-verified Task 3.48.0, Nix and direnv,
+- `.agents/setup` bootstraps checksum-verified Task, Nix and direnv,
   installs login-shell activation, and configures a dedicated NetBird daemon.
   It never enrolls or logs into Bao. Put credential-free dependency preparation
   in `work`, which also runs on resume.
@@ -67,7 +66,4 @@ and provider credential scope enforce access. Key expiry/revocation does not
 evict enrolled peers.
 
 See Amp's [lifecycle](https://ampcode.com/docs/orbs/customizing) and
-[OIDC](https://ampcode.com/docs/orbs/handling-secrets) documentation. Before use,
-verify fresh and resumed orb enrollment, DNS/TLS and proxy bypass, access denials,
-OIDC claims, token expiry, and clean snapshot restoration. Offline fixtures do
-not prove these. Provisioning and a plan task are separate.
+[OIDC](https://ampcode.com/docs/orbs/handling-secrets) documentation.

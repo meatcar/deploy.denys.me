@@ -30,34 +30,17 @@ Revoke: remove the group from `auto_groups`, or remove the user. New kind of
 access: add a `role-*` group with `ignore_changes = [peers]` and a policy. Do not
 widen `role-admins`.
 
-## VPS
+## Agent VMs
 
-`private_server_ips` holds verified NetBird addresses keyed by host; only `vps`
-is allowed. An empty map creates no server group, policies or split DNS. Never
-substitute Bao, Chunkymonkey, a public IP or an invented peer ID.
-`znc.denys.me` uses split DNS. Host clients keep `DisableDNS = true`.
+`role-agent-vms` holds agent VM peers (Amp orbs) of every project that needs
+Bao. Its only policy, `agent-vms-bao`, grants TCP/443 to `server-bao`; each
+project's Bao JWT role limits reads. Only the Bao DNS zone includes it. The
+setup key owns its membership.
 
-DNS does not authorize traffic: private HTTPS is redirected from NetBird 443 to
-9443, and raw ingress guards reject other interfaces before VPN-managed accepts.
-Run `private-access-isolation` on a KVM-capable builder before deployment.
+NetBird policies only grant. Keep `Default` disabled and keep `server-bao`
+exclusive to Bao.
 
-## Agent VM plan access
-
-`role-agent-vms` holds agent VM peers (today: Amp orbs) of every project that
-needs Bao. Network access
-is shared; each project's Bao JWT role limits what it can read.
-Its only policy grants one-way TCP/443 to `server-bao`. Only the Bao DNS zone
-adds this group, so orbs can resolve `bao.vpn.denys.me` for TLS. Setup-key
-enrollment owns its peer membership; Terraform does not reconcile that list.
-
-After reviewing and applying this module, review every live policy and route
-that includes `role-agent-vms` or `All`. NetBird policies only grant access; this
-narrow rule cannot override broader grants. The default `All` to `All` policy
-must not remain enabled. Preserve legitimate device access with explicit groups
-before narrowing broad policies. Do not grant agent VMs SSH, routed networks, other
-groups, or inbound access. Keep `server-bao` exclusive to Bao.
-
-### Enrollment key
+## Enrollment key
 
 `netbird_setup_key.agent_vms` is imported, never created: create or replace
 writes the plaintext key to state, which plan agents can read. Any change that
@@ -78,19 +61,11 @@ rotate:
 
 2. `tofu state rm module.netbird_access.netbird_setup_key.agent_vms`, add a
    temporary `import` block for the printed ID in `terraform/`, update the
-   resource, and apply. Delete the block after apply.
+   resource, and apply. Delete the block after apply. `nix flake check` fails
+   while the block exists.
 3. Revoke the old key: `PUT /api/setup-keys/<old id>` with `revoked: true`.
 
-Anyone holding this reusable key can enroll until expiration or revocation. It does not prove Amp identity. Bao authentication remains a
-separate requirement. Revoking or expiring the key does not disconnect enrolled
-peers; disable `agent-vms-bao` or remove those peers to revoke current access.
-Ephemeral peers are normally removed after more than ten minutes offline.
-See [setup-key behavior](https://docs.netbird.io/manage/peers/register-machines-using-setup-keys).
-
-After orb enrollment is configured, test both a fresh and resumed orb. Confirm
-ephemeral status and membership in only this project group, with no extra DNS
-labels. Verify `bao.vpn.denys.me` resolves and HTTPS validates its certificate.
-Check that Bao SSH and other ports, CPA, VPS, other peers, and inbound
-connections are denied. Test that an expired/revoked key fails fresh enrollment;
-delete test peers separately. Mocked tests verify only this module's declared
-rules, not live overlapping policies, routes, membership, DNS, or connectivity.
+Anyone holding the key can enroll until it expires or is revoked; Bao login is
+a separate check. Revoking the key does not evict enrolled peers: disable
+`agent-vms-bao` or delete the peers. See
+[setup keys](https://docs.netbird.io/manage/peers/register-machines-using-setup-keys).

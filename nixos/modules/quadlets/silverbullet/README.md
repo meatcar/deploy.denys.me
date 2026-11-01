@@ -39,5 +39,4 @@ off-site copy.
 
 ## Upgrade
 
-Change the image tag and digest in `default.nix`, deploy, then reload clients
-twice.
+After an image bump, deploy, then reload clients twice.

@@ -1,7 +1,7 @@
-# Historical self-hosted VPN
+# Retired NetBird server
 
-Hosted NetBird replaced this deployment. Do not run `bootstrap.py` or deploy
-the `vpn` host. The shared Bao bootstrap helpers remain in this directory.
+Hosted NetBird replaced this host. Do not deploy `vpn` or run its NetBird
+bootstrap. [Bao](../bao/README.md) still imports `common.nix`, `firewall.nix`,
+`bootstrap.py` and `backup.py` from here.
 
-- [Manage hosted NetBird and Terraform](../../../terraform/README.md)
-- [Install and recover the OpenBao host](../bao/README.md)
+TODO: move the shared Bao helpers to `../bao` and delete this host.
