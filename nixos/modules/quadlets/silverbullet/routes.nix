@@ -10,6 +10,8 @@ let
     "PathPrefix(`/.dashboard`)"
     "PathPrefix(`/.auth/central`)"
     "PathRegexp(`^(/[^/]+)*/\\.proxy/(localhost|\\p{Nd}+\\.\\p{Nd}+\\.\\p{Nd}+\\.\\p{Nd}+|host\\.docker\\.internal)`)"
+    # NOTE: Traefik forwards encoded slashes; the rules above see one segment.
+    "PathRegexp(`(?i)%(2f|5c)`)"
   ];
 in
 {

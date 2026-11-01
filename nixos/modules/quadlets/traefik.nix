@@ -23,19 +23,6 @@ let
         };
         websecure = {
           address = ":443";
-          http = {
-            # NOTE: Reject double encoding before nginx or Laravel decode the path again.
-            sanitizePath = true;
-            encodedCharacters = {
-              allowEncodedSlash = false;
-              allowEncodedBackSlash = false;
-              allowEncodedNullCharacter = false;
-              allowEncodedSemicolon = false;
-              allowEncodedPercent = false;
-              allowEncodedQuestionMark = false;
-              allowEncodedHash = false;
-            };
-          };
           # NOTE: Rootlessport hides Cloudflare's address. The host firewall authenticates the path.
           forwardedHeaders.trustedIPs = [ "10.89.1.0/24" ];
         };

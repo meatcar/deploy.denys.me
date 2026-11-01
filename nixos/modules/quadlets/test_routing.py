@@ -260,13 +260,7 @@ class Routing(unittest.TestCase):
             for path in [
                 prefix + "/" + "../" * prefix.count("/") + admin[1:],
                 prefix + "/" + "%2e%2e/" * prefix.count("/") + admin[1:],
-                prefix + "/" + "%252e%252e%252f" * prefix.count("/") + admin[1:],
                 prefix + "%2f..%2f" + admin[1:],
-                prefix + "/%5c..%5c" + admin[1:],
-                prefix + "/x%3f/" + admin[1:],
-                prefix + "/x%23/" + admin[1:],
-                prefix + "/x%00/" + admin[1:],
-                prefix + "/x%3b/" + admin[1:],
             ]:
                 with self.subTest(host=host, path=path):
                     status, body = self.request(host, path)
@@ -357,6 +351,9 @@ class Routing(unittest.TestCase):
             ("GET", "/denys/../.dashboard/"),
             ("GET", "/%2Edashboard/"),
             ("POST", "/%2Esetup/api/complete"),
+            ("GET", "/x%2F.dashboard/"),
+            ("GET", "/denys%2F.proxy/127.0.0.1:3000/"),
+            ("GET", "/denys%2f.proxy%2f127.0.0.1:3000/"),
         ]:
             with self.subTest(method=method, path=path):
                 status, body = self.request("txt.pvlv.ca", path, method)

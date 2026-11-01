@@ -25,9 +25,8 @@ off-site copy.
 
 ## Limits
 
-- Traefik rejects encoded `?`, `%`, `;`, `#` and `/` in paths for every
-  public site, so page names cannot contain `?`, `%` or `;`. Rename such
-  Obsidian files before import.
+- The public router rejects encoded `/` and `\` in paths, so public page
+  names cannot contain `\`.
 - Account settings and password changes need the dashboard, so only over
   NetBird.
 - Publicly, the space proxy (`net.proxyFetch`) reaches HTTPS hostnames such
