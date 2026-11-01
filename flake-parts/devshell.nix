@@ -11,7 +11,7 @@
       devShells.default = pkgs.mkShell {
         name = "deploy.denys.me";
         inputsFrom = [ config.treefmt.build.devShell ];
-        # NOTE: Watson's home cache is on a noexec filesystem.
+        # NOTE: Some home directories are mounted noexec.
         shellHook = ''
           export TG_PROVIDER_CACHE_DIR="''${TG_PROVIDER_CACHE_DIR:-$PWD/.terragrunt-cache/providers}"
         '';

@@ -1,37 +1,16 @@
-# Invoice Ninja (https://github.com/invoiceninja/dockerfiles, debian branch).
-# Runs rootless under the pod user via Podman Quadlet.
-#
-# Four containers, all on networks private to this app:
-#   invoiceninja-mysql   dedicated MySQL 8.4 LTS. Not the shared postgres
-#                        instance: Invoice Ninja only supports MySQL/MariaDB.
-#   invoiceninja-initdb  idempotent init container. Waits for MySQL to accept
-#                        real queries, then provisions the app DB role from the
-#                        same DB_PASSWORD the app itself uses.
-#   invoiceninja-app     upstream image: php-fpm + Laravel scheduler + 2 queue
-#                        workers under supervisord. Speaks FastCGI only.
-#   invoiceninja-nginx   serves the public/storage volumes and fastcgi_passes
-#                        to the app. The only container on `proxy`, because
-#                        traefik cannot speak FastCGI.
-#
-# Secrets required in agenix.nix (owner=pod): invoiceninjaEnv,
-# invoiceninjaSesEnv, mysqlRootPass.
 { config, pkgs, ... }:
 let
-  # Pinned by exact patch, matching the traefik/postgres convention in this
-  # repo. All three verified to publish native linux/arm64 manifests.
   appImage = "invoiceninja/invoiceninja-debian:5.13.49@sha256:05efd0913eb0d72d0246ec96d6cb6adf5ac3d3e59b9b91514b9f64b892f21c92";
-  mysqlImage = "mysql:8.4.11"; # 8.4 is the current MySQL LTS series
-  nginxImage = "nginx:1.30.4-alpine3.24"; # nginx stable branch
+  # NOTE: Invoice Ninja supports only MySQL/MariaDB. 8.4 is the MySQL LTS series.
+  mysqlImage = "mysql:8.4.11";
+  nginxImage = "nginx:1.30.4-alpine3.24";
 
   hostname = "billing.vpn.denys.me";
   dbName = "invoiceninja";
   dbUser = "invoiceninja";
-  # Container name doubles as its DNS name on the podman network.
   dbHost = "invoiceninja-mysql";
 
-  # Pinned subnets so TRUSTED_PROXIES can name the proxy hop exactly instead of
-  # the "*" wildcard used elsewhere. 10.89.0.0/24 and 10.89.1.0/24 are already
-  # taken by the shared `proxy` and `postgres` networks.
+  # NOTE: Pinned for TRUSTED_PROXIES and the nginx resolver. 10.89.0.0/24 and 10.89.1.0/24 are taken.
   appSubnet = "10.89.2.0/24";
   dbSubnet = "10.89.3.0/24";
 
@@ -42,10 +21,7 @@ let
   sesEnvFile = config.age.secrets.invoiceninjaSesEnv.path;
   rootPassFile = config.age.secrets.mysqlRootPass.path;
 
-  # This is a host user service rather than a Quadlet container. `podman exec`
-  # uses MySQL's local socket, so root never needs a network-accessible grant.
-  # DB_PASSWORD is sourced from the app's own env file, so there is no second
-  # copy of the password to keep in sync.
+  # NOTE: `podman exec` uses the MySQL local socket, so root needs no network grant.
   initScript = pkgs.writeShellScript "invoiceninja-initdb" ''
     set -euo pipefail
 
@@ -94,9 +70,7 @@ let
     EOSQL
   '';
 
-  # Derived from upstream's debian/nginx/laravel.conf. Kept in the Nix store and
-  # mounted read-only. Security headers deliberately live on the traefik router
-  # instead, so there is exactly one place that sets them.
+  # NOTE: Derived from upstream debian/nginx/laravel.conf. Security headers are set on the traefik router only.
   nginxConf = pkgs.writeText "invoiceninja-nginx.conf" ''
     server {
       listen 80 default_server;
@@ -155,23 +129,18 @@ let
 in
 {
   home-manager.users.pod.virtualisation.quadlet = {
-    # FastCGI hop, nginx <-> app. Not `internal`: the app needs egress for SES,
-    # exchange rates and payment gateways.
+    # NOTE: Not `internal`: the app needs egress for SES, exchange rates, and payment gateways.
     networks.invoiceninja.networkConfig = {
       name = "invoiceninja";
       subnets = [ appSubnet ];
     };
-    # internal = no gateway, so MySQL has no route off-host at all. It only ever
-    # talks to the app; provisioning enters through its local socket.
     networks.invoiceninja-db.networkConfig = {
       name = "invoiceninja-db";
       subnets = [ dbSubnet ];
       internal = true;
     };
 
-    # public/ is rebuilt from the image by init.sh on every boot, so it is
-    # disposable. storage/ holds uploaded documents, logos and generated PDFs:
-    # not regenerable, and backed up in chunkymonkey/backups.nix.
+    # NOTE: init.sh rebuilds public/ on each boot. storage/ is not regenerable; see chunkymonkey/backups.nix.
     volumes.invoiceninja-public.volumeConfig = { };
     volumes.invoiceninja-storage.volumeConfig = { };
     volumes.invoiceninja-mysql.volumeConfig = { };
@@ -186,26 +155,16 @@ in
         ];
         environments = {
           MYSQL_ROOT_PASSWORD_FILE = rootPassFile;
-          # The init service enters through podman exec and the local socket.
-          # This is applied only while the MySQL datadir is first initialized.
+          # NOTE: Applied only on first datadir init.
           MYSQL_ROOT_HOST = "localhost";
         };
         networks = [ podCfg.networks.invoiceninja-db.ref ];
-        # No publishPorts: the DB is reachable only over the internal network.
 
-        # The mysql image ships no HEALTHCHECK, so define one and gate the
-        # unit on it. Over TCP on purpose: while the entrypoint is building the
-        # data directory it runs a temporary socket-only server, and only the
-        # real networked server should count as ready.
-        # `ping` answers even on access-denied, which is what we want here —
-        # proof the server is accepting connections. Credentials are verified
-        # for real by invoiceninja-initdb.
+        # NOTE: TCP, not socket: the entrypoint's temporary init server is socket-only.
         healthCmd = "mysqladmin ping -h 127.0.0.1 --silent";
         healthStartPeriod = "60s";
         healthInterval = "10s";
         healthRetries = 12;
-        # Hold the unit in "activating" until the healthcheck passes, so
-        # everything ordered After= this genuinely finds a usable database.
         notify = "healthy";
       };
       serviceConfig = {
@@ -226,17 +185,14 @@ in
           "invoiceninja-initdb.service"
           podCfg.containers.invoiceninja-mysql.ref
         ];
-        # Home Manager may implement a changed app as separate stop/start jobs.
-        # Pull nginx back in on the start half after PartOf= stopped it.
+        # NOTE: Home Manager can split an app restart into stop/start jobs; restart nginx after PartOf= stops it.
         Wants = [ podCfg.containers.invoiceninja-nginx.ref ];
       };
       containerConfig = {
         image = appImage;
-        # Bootstrap credentials were removed after the administrator login was
-        # verified. Only long-lived application and mail credentials remain.
         environmentFiles = [
-          envFile # APP_KEY, DB_PASSWORD
-          sesEnvFile # SES API credentials
+          envFile
+          sesEnvFile
         ];
         environments = {
           APP_URL = "https://${hostname}";
@@ -246,13 +202,12 @@ in
           APP_ENV = "production";
           APP_DEBUG = "false";
           APP_TIMEZONE = "America/Toronto";
-          REQUIRE_HTTPS = "true"; # traefik terminates TLS
-          # Only the nginx sidecar's subnet, rather than the "*" used elsewhere
-          # in this repo, so a compromised neighbour cannot spoof X-Forwarded-*.
+          REQUIRE_HTTPS = "true";
+          # NOTE: nginx subnet only, not "*": a compromised neighbour cannot spoof X-Forwarded-*.
           TRUSTED_PROXIES = appSubnet;
-          PDF_GENERATOR = "snappdf"; # image ships chromium on arm64
-          # Keeps the dependency surface to MySQL alone; the image's supervisord
-          # already runs a queue worker, and the database driver needs no redis.
+          # NOTE: The image ships chromium on arm64.
+          PDF_GENERATOR = "snappdf";
+          # NOTE: database/file drivers avoid redis; the image's supervisord runs the queue worker.
           QUEUE_CONNECTION = "database";
           CACHE_DRIVER = "file";
           SESSION_DRIVER = "file";
@@ -270,24 +225,20 @@ in
           podCfg.networks.invoiceninja-db.ref
           podCfg.networks.invoiceninja.ref
         ];
-        # No traefik labels and no proxy network: this container speaks FastCGI,
-        # not HTTP, so nginx is what gets proxied.
+        # NOTE: No proxy network: the app speaks FastCGI only; traefik routes to nginx.
 
-        # The published tag lacks its upstream Dockerfile HEALTHCHECK. Define
-        # the same FastCGI /health probe explicitly before using notify=healthy.
+        # NOTE: The published tag lacks the upstream Dockerfile HEALTHCHECK.
         healthCmd = "REMOTE_ADDR=127.0.0.1 REQUEST_URI=/health REQUEST_METHOD=GET SCRIPT_FILENAME=/var/www/html/public/index.php cgi-fcgi -bind -connect 127.0.0.1:9000 | grep '{\"status\":\"ok\",\"message\":\"API is healthy\"}'";
         healthStartPeriod = "100s";
         healthInterval = "15s";
         healthRetries = 20;
-        # Gating on it means nginx starts only once php-fpm actually answers.
         notify = "healthy";
       };
       serviceConfig = {
         Restart = "on-failure";
-        # init.sh runs migrations before supervisord starts; on a first boot
-        # (full schema + seed) that is well beyond the default start timeout.
+        # NOTE: init.sh runs migrations before supervisord; first boot exceeds the default start timeout.
         TimeoutStartSec = "15m";
-        # php-fpm + scheduler + 2 queue workers + chromium for PDF rendering.
+        # NOTE: Sized for php-fpm, scheduler, 2 queue workers, and chromium.
         MemoryHigh = "2G";
         MemoryMax = "3G";
       };
@@ -302,16 +253,13 @@ in
       unitConfig = {
         After = [ podCfg.containers.invoiceninja-app.ref ];
         Requires = [ podCfg.containers.invoiceninja-app.ref ];
-        # Stop nginx whenever the app stops; the app's Wants= then pulls it
-        # back in after Home Manager's separate start job. Runtime DNS handles
-        # ordinary container self-restarts without requiring this unit restart.
+        # NOTE: The app's Wants= restarts nginx. Podman DNS handles app self-restarts.
         PartOf = [ podCfg.containers.invoiceninja-app.ref ];
       };
       containerConfig = {
         image = nginxImage;
         volumes = [
           "${nginxConf}:/etc/nginx/conf.d/default.conf:ro"
-          # Read-only: only the app writes to these.
           "${podCfg.volumes.invoiceninja-public.ref}:/var/www/html/public:ro"
           "${podCfg.volumes.invoiceninja-storage.ref}:/var/www/html/storage:ro"
         ];
@@ -328,9 +276,7 @@ in
     };
   };
 
-  # A native user oneshot waits for successful database provisioning before
-  # the app may start. RemainAfterExit intentionally keeps its successful state
-  # as an app dependency; restart it explicitly when rotating DB credentials.
+  # NOTE: RemainAfterExit keeps the app dependency met. Restart this unit to rotate DB credentials.
   home-manager.users.pod.systemd.user.services.invoiceninja-initdb = {
     Unit = {
       Description = "Provision the Invoice Ninja MySQL database";
@@ -346,15 +292,13 @@ in
     };
   };
 
-  # Template lives in mysql-dump.nix. restic's backupPrepareCommand also runs
-  # this synchronously, so the snapshot always contains a fresh dump; the timer
-  # is the standalone safety net.
+  # NOTE: restic backupPrepareCommand also runs this dump. The timer is a fallback.
   home-manager.users.pod.systemd.user.timers."mysql-dump@${dbName}" = {
     Unit.Description = "Daily ${dbName} MySQL dump";
     Timer = {
       OnCalendar = "daily";
       RandomizedDelaySec = "30min";
-      Persistent = true; # catch up missed runs after downtime
+      Persistent = true;
     };
     Install.WantedBy = [ "timers.target" ];
   };

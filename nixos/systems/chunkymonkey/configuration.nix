@@ -1,6 +1,3 @@
-# Edit this configuration file to define what should be installed on
-# your system. Help is available in the configuration.nix(5) man page, on
-# https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 {
   config,
   ...
@@ -13,8 +10,8 @@
     ../../modules/base.nix
     ../../modules/tailscale.nix
     ../../modules/netbird.nix
-    ../../modules/docker.nix # still needed: transit-dashboard runs on docker
-    ../../modules/quadlets # default.nix wires pod user + all quadlet services
+    ../../modules/docker.nix
+    ../../modules/quadlets
     ../../modules/zfs.nix
     ../../modules/docker-transit-dashboard.nix
     ../../modules/backups.nix
@@ -40,7 +37,6 @@
   networking.hostId = "9f0d1484";
   networking.domain = "denys.me";
 
-  # Set your time zone.
   time.timeZone = "America/Toronto";
 
   boot.initrd.systemd.enable = true;
@@ -52,23 +48,18 @@
   networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ 22 ];
   networking.firewall.interfaces.wt0.allowedTCPPorts = [ 22 ];
 
-  # No swap device on this host, so a memory spike goes straight to earlyoom
-  # picking a victim. Compressed swap gives the kernel somewhere to put cold
-  # pages first. Bounded well under RAM so it cannot itself cause pressure.
+  # NOTE: No swap device; zram holds cold pages before earlyoom acts.
   zramSwap = {
     enable = true;
     memoryPercent = 15;
-    memoryMax = 4 * 1024 * 1024 * 1024; # 4 GiB ceiling
+    memoryMax = 4 * 1024 * 1024 * 1024;
   };
-  # Rootless user services cannot lower OOMScoreAdjust. Ask earlyoom itself to
-  # avoid the database processes while their MemoryHigh/MemoryMax limits bound
-  # their footprint.
+  # NOTE: Rootless user services cannot lower OOMScoreAdjust.
   services.earlyoom.extraArgs = [
     "--avoid"
     "(^|/)(mysqld|postgres)$"
   ];
 
-  # Route unattended-service failures through the production SES account.
   mine.failureNotify = {
     enable = true;
     to = "billing@denys.me";
@@ -79,14 +70,11 @@
     ];
   };
 
-  # Define a user account. Don't forget to set a password with 'passwd'.
   users.users."${config.mine.username}" = {
     isNormalUser = true;
     extraGroups = [
       "wheel"
-      # Deliberately NOT in "docker": membership is root-equivalent (it can bind
-      # mount / into a container), and this host also runs interactive agent
-      # sessions as this user. Use `sudo docker` instead.
+      # NOTE: Not "docker": root-equivalent, and agent sessions run as this user. Use `sudo docker`.
       "nginx"
     ];
     hashedPasswordFile = config.age.secrets.hashedPassword.path;

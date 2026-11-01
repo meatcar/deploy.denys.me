@@ -79,7 +79,7 @@ in
         znc = {
           requires = [ "znc-backend-guard.service" ];
           after = [ "znc-backend-guard.service" ];
-          # Run after nixpkgs retains or creates the mutable config, before ZNC reads it.
+          # NOTE: mkAfter: run after nixpkgs writes the mutable config, before ZNC reads it.
           preStart = lib.mkAfter ''
             ${pkgs.python3}/bin/python3 ${./znc/loopback.py} ${lib.escapeShellArg "${config.services.znc.dataDir}/configs/znc.conf"} ${toString internalPort}
           '';
@@ -91,7 +91,7 @@ in
             RemainAfterExit = true;
           };
           path = [ pkgs.iptables ];
-          # No stop hook: keep this guard when the ordinary firewall is stopped.
+          # NOTE: No stop hook: keep this guard when the firewall stops.
           script = builtins.replaceStrings [ "@port@" ] [ (toString internalPort) ] (
             builtins.readFile ./znc/firewall.sh
           );
@@ -225,8 +225,7 @@ in
           '';
         };
       };
-      # virualHosts doesn't generate streams. Let's do it by hand.
-      # Streaming is nescessary because znc does both HTTP _and_ IRC.
+      # NOTE: virtualHosts generates no stream config; ZNC serves both HTTP and IRC on one port.
       streamConfig = ''
         upstream znc-irc {
           server 127.0.0.1:${toString internalPort};

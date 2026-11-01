@@ -1,21 +1,11 @@
-# Reusable MySQL dump template for the pod user's rootless podman session.
-# Mirrors pg-dump.nix: systemd user service template mysql-dump@<instance>.
-#
-# Unlike postgres, which is one shared instance here, each MySQL app owns a
-# dedicated server. The instance name is therefore both the database name and
-# the container name suffix: mysql-dump@invoiceninja dumps database
-# `invoiceninja` out of container `invoiceninja-mysql`.
-#
-# Dumps land in ${persistPath}/dumps/<instance>.sql alongside the pg_dump
-# output, which is the directory restic backs up from chunkymonkey/backups.nix.
+# NOTE: Each MySQL app owns its server: mysql-dump@<db> dumps <db> from container <db>-mysql.
 { config, pkgs, ... }:
 let
   persistPath = config.mine.persistPath;
   dumpsDir = "${persistPath}/dumps";
 in
 {
-  # Dumps directory owned by pod so the user service can write to it.
-  # Declared in pg-dump.nix too; tmpfiles rules are idempotent and identical.
+  # NOTE: Also declared in pg-dump.nix; identical tmpfiles rules are idempotent.
   systemd.tmpfiles.rules = [
     "d ${dumpsDir} 0750 pod pod - -"
   ];
@@ -26,12 +16,9 @@ in
       Unit.After = [ "%i-mysql.service" ];
       Service = {
         Type = "oneshot";
-        # Units here inherit TimeoutStartSec=infinity, so a wedged mysqldump or
-        # `podman exec` would hang forever. restic's backupPrepareCommand blocks
-        # on this unit, so an unbounded dump would stall the backup too.
+        # NOTE: Default is TimeoutStartSec=infinity, and restic backupPrepareCommand blocks on this unit.
         TimeoutStartSec = "15m";
-        # %i only expands in unit directives, never inside a referenced script
-        # body, so pass it to dumpScript as $1.
+        # NOTE: %i expands only in unit directives, not in the script body.
         ExecStart =
           let
             dumpScript = pkgs.writeShellScript "mysql-dump-instance" ''

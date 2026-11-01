@@ -1,34 +1,23 @@
-# Reusable PostgreSQL dump template for the pod user's rootless podman session.
-# Defines a systemd user service+timer template pg-dump@<db>.
-# Each DB-backed service instantiates the timer (e.g. pg-dump@larapaper.timer)
-# in its own module file. Dumps land in ${persistPath}/dumps/<db>.sql,
-# which restic backs up from chunkymonkey/backups.nix.
 { config, pkgs, ... }:
 let
   persistPath = config.mine.persistPath;
   dumpsDir = "${persistPath}/dumps";
 in
 {
-  # Dumps directory owned by pod so the user service can write to it.
   systemd.tmpfiles.rules = [
     "d ${dumpsDir} 0750 pod pod - -"
   ];
 
   home-manager.users.pod.systemd.user = {
-    # Template service: instantiate with pg-dump@<db>.
-    # %i is the database name; pg_dump runs in the shared `postgres` container
-    # (app and DB are separate containers, so %i is NOT a container name).
+    # NOTE: %i is the database name, not a container; all databases share the `postgres` container.
     services."pg-dump@" = {
       Unit.Description = "PostgreSQL dump for %i";
       Unit.After = [ "postgres.service" ];
       Service = {
         Type = "oneshot";
-        # Units here inherit TimeoutStartSec=infinity, so a wedged pg_dump or
-        # `podman exec` would hang forever. restic's backupPrepareCommand blocks
-        # on this unit, so an unbounded dump would stall the backup too.
+        # NOTE: Default is TimeoutStartSec=infinity, and restic backupPrepareCommand blocks on this unit.
         TimeoutStartSec = "15m";
-        # %i (systemd specifier) only expands in unit directives, never inside a
-        # referenced script body, so pass it to dumpScript as $1.
+        # NOTE: %i expands only in unit directives, not in the script body.
         ExecStart =
           let
             dumpScript = pkgs.writeShellScript "pg-dump-instance" ''
