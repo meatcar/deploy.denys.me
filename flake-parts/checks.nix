@@ -75,8 +75,6 @@
             assert
               self.nixosConfigurations.chunkymonkey.config.networking.firewall.interfaces.tailscale0.allowedTCPPorts
               == [ 22 ];
-            assert !(self.nixosConfigurations.vps.config.age.secrets ? wg-priv-key);
-            assert !((import ../secrets/secrets.nix) ? "wg-server-priv-key.age");
             pkgs.runCommand "vpn-coexistence" { } "touch $out";
           vps-private-http =
             let

@@ -45,7 +45,6 @@
 
   boot.initrd.systemd.enable = true;
 
-  # NOTE: Keep both VPN access paths during the NetBird trial.
   services.openssh = {
     openFirewall = false;
     settings.PermitRootLogin = "no";
