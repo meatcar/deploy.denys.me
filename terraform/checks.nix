@@ -63,7 +63,6 @@ in
         nativeBuildInputs = [
           pkgs.opentofu
           pkgs.terragrunt
-          pkgs.python3
         ];
         TF_CLI_CONFIG_FILE = cliConfig;
         TG_NON_INTERACTIVE = "true";
@@ -90,11 +89,8 @@ in
           fi
           tofu -chdir="$root" init -backend=false -input=false
           tofu -chdir="$root" validate -no-color
-          # NOTE: OpenTofu 1.11 crashes when mock providers process import blocks.
-          rm -f "$root/imports.tf" "$root/oci_imports.tf"
           tofu -chdir="$root" test -no-color
         done
-        python3 -m unittest discover -s terraform/migrations -q
         touch "$out"
       '';
 }

@@ -76,8 +76,8 @@ rotate:
      amp secrets set NETBIRD_SETUP_KEY --project meatcar/deploy.denys.me --secret --data-file -
    ```
 
-2. `tofu state rm module.netbird_access.netbird_setup_key.agent_vms`, add an
-   `import` block for the printed ID in `terraform/imports.tf`, update the
+2. `tofu state rm module.netbird_access.netbird_setup_key.agent_vms`, add a
+   temporary `import` block for the printed ID in `terraform/`, update the
    resource, and apply. Delete the block after apply.
 3. Revoke the old key: `PUT /api/setup-keys/<old id>` with `revoked: true`.
 

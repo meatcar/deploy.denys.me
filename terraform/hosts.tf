@@ -21,11 +21,3 @@ resource "ovh_vps" "bao" {
     prevent_destroy = true
   }
 }
-
-removed {
-  from = null_resource.nixos_set_channel
-
-  lifecycle {
-    destroy = false
-  }
-}

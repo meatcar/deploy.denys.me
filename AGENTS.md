@@ -12,7 +12,6 @@ packages/cli-proxy-api/       # credential operations, backups, and tests
 terraform/                   # primary infrastructure state; native OpenTofu composition
   modules/                   # child modules, not separate deployment states
   bao-config/                # OpenBao auth, policies, and project secrets
-  migrations/                # reviewed state-consolidation procedure and offline helper
 secrets/                     # encrypted provisioning inputs, see README
 output/                      # ignored local provisioning artifacts
 ```

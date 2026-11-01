@@ -1,8 +1,6 @@
 # Infrastructure
 
-The live configuration uses the two state roots below. The one-time
-[state migration](migrations/README.md) completed on 2026-09-22.
-Do not apply pre-consolidation checkouts against these backends.
+The live configuration uses the two state roots below.
 
 ## Plan and apply
 
