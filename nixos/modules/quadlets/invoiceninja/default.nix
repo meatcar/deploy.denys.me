@@ -24,8 +24,7 @@ let
   mysqlImage = "mysql:8.4.11"; # 8.4 is the current MySQL LTS series
   nginxImage = "nginx:1.30.4-alpine3.24"; # nginx stable branch
 
-  publicRoutes = import ./public-routes.nix;
-  hostname = "billing.denys.me";
+  hostname = "billing.vpn.denys.me";
   dbName = "invoiceninja";
   dbUser = "invoiceninja";
   # Container name doubles as its DNS name on the podman network.
@@ -96,111 +95,6 @@ let
     EOSQL
   '';
 
-  # 5.13.49 has several SNS boundary defects: confirmation signatures are not
-  # checked, verifier exceptions fall back to structural validation, the signed
-  # field list handles notifications only, normal confirmation tokens can exceed
-  # 200 bytes, and ca-central-1 is missing from the certificate hosts. It also
-  # retries valid host-alert feedback forever. Keep this exact-version patch
-  # narrow and fail the build if an upstream fragment changes under us.
-  snsControllerSource = pkgs.fetchurl {
-    url = "https://raw.githubusercontent.com/invoiceninja/invoiceninja/v${appVersion}/app/Http/Controllers/SNSController.php";
-    hash = "sha256-raCsRqQRRDNJYwgdiC8M7fABAKakVvCXRbGBNN9EYf0=";
-  };
-  snsController =
-    pkgs.runCommand "invoiceninja-sns-controller.php" { nativeBuildInputs = [ pkgs.python3 ]; }
-      ''
-        cp ${snsControllerSource} "$out"
-        chmod u+w "$out"
-        python - "$out" <<'PY'
-        from pathlib import Path
-        import sys
-
-        path = Path(sys.argv[1])
-        source = path.read_text()
-        regions = """        // Check if it's an AWS domain
-                $validDomains = [
-                    'sns.us-east-1.amazonaws.com',
-                    'sns.us-east-2.amazonaws.com',
-                    'sns.us-west-1.amazonaws.com',
-                    'sns.us-west-2.amazonaws.com',
-                    'sns.eu-west-1.amazonaws.com',
-                    'sns.eu-central-1.amazonaws.com',
-                    'sns.ap-southeast-1.amazonaws.com',
-                    'sns.ap-southeast-2.amazonaws.com',
-                    'sns.ap-northeast-1.amazonaws.com',
-                    'sns.sa-east-1.amazonaws.com',
-                ];
-
-                return in_array($parsedUrl['host'], $validDomains);
-        """
-        regional_host = """        return isset($parsedUrl['scheme']) && $parsedUrl['scheme'] === 'https'
-                    && preg_match('/^sns\\.[a-z0-9-]+\\.amazonaws\\.com$/', $parsedUrl['host']) === 1;
-        """
-        signature_comment = "// Verify SNS signature for security (skip for subscription confirmation)"
-        signed_comment = "// Verify every SNS message type before handling it."
-        notification_only = "if ($snsMessageType === 'Notification')"
-        signed_types = "if (in_array($snsMessageType, ['Notification', 'SubscriptionConfirmation', 'UnsubscribeConfirmation'], true))"
-        signature_dispatch = signature_comment + "\n            $snsMessageType = $headers['x-amz-sns-message-type'][0] ?? null;\n\n            " + notification_only
-        signed_dispatch = signature_dispatch.replace(signature_comment, signed_comment).replace(notification_only, signed_types)
-        notification_fields = """        $fields = [
-                    'Message',
-                    'MessageId',
-                    'Subject',
-                    'Timestamp',
-                    'TopicArn',
-                    'Type',
-                ];
-        """
-        type_fields = """        $fields = match ($snsData['Type'] ?? null) {
-                    'Notification' => [
-                        'Message',
-                        'MessageId',
-                        'Subject',
-                        'Timestamp',
-                        'TopicArn',
-                        'Type',
-                    ],
-                    'SubscriptionConfirmation', 'UnsubscribeConfirmation' => [
-                        'Message',
-                        'MessageId',
-                        'SubscribeURL',
-                        'Timestamp',
-                        'Token',
-                        'TopicArn',
-                        'Type',
-                    ],
-                    default => [],
-                };
-        """
-        fail_open = "return $this->fallbackBasicValidation($request, $payload);"
-        token_limit = "if (strlen($token) < 20 || strlen($token) > 200)"
-        missing_company = "return response()->json(['error' => 'No company key found'], 400);"
-        fragments = (regions, signature_dispatch, notification_fields, fail_open, token_limit, missing_company)
-        if any(source.count(fragment) != 1 for fragment in fragments):
-            raise SystemExit("upstream SNSController.php changed; refresh the compatibility patch")
-        source = source.replace(regions, regional_host)
-        source = source.replace(signature_dispatch, signed_dispatch)
-        source = source.replace(notification_fields, type_fields)
-        source = source.replace(fail_open, "return false;")
-        source = source.replace(token_limit, "if (strlen($token) < 20 || strlen($token) > 1024)")
-        source = source.replace(missing_company, "return response()->json(['status' => 'ignored'], 200);")
-        path.write_text(source)
-        PY
-      '';
-
-  # The SPA fallback otherwise serves administration for unknown public paths,
-  # including a POST callback changed to GET by Laravel's _method handling.
-  # Keep the upstream client-prefix guard and permit the SPA only on NetBird.
-  clientRoutesSource = pkgs.fetchurl {
-    url = "https://raw.githubusercontent.com/invoiceninja/invoiceninja/v${appVersion}/routes/client.php";
-    hash = "sha256-2tOtUOzxCS/Liarbu+wM+sifxkN8vSbRxcz4ujJ+0jM=";
-  };
-  clientRoutes = pkgs.runCommand "invoiceninja-client-routes.php" { } ''
-    substitute ${clientRoutesSource} "$out" \
-      --replace-fail "if (request()->is('client') || request()->is('client/*'))" \
-      "if (request()->getHost() !== 'billing.vpn.denys.me' || request()->is('client') || request()->is('client/*'))"
-  '';
-
   # Derived from upstream's debian/nginx/laravel.conf. Kept in the Nix store and
   # mounted read-only. Security headers deliberately live on the traefik router
   # instead, so there is exactly one place that sets them.
@@ -229,22 +123,12 @@ let
       location = /favicon.ico { access_log off; log_not_found off; }
       location = /robots.txt  { access_log off; log_not_found off; }
 
-      # Public asset routes cannot fall through to the admin SPA. Never execute
-      # an uploaded PHP file either; index.php is the sole front controller.
+      # NOTE: index.php is the sole front controller. Never execute uploaded PHP.
       location ~ \.php(?:/|$) {
         return 404;
       }
       location ~ /\.(?!well-known).* {
         deny all;
-      }
-      # /vendor/ contains both static libraries and the purchase-order portal.
-      # Only its explicit dynamic paths may reach Laravel; auth, invitation
-      # validation and CSRF stay upstream. Unknown assets still return 404.
-      location ~ ${builtins.concatStringsSep "|" publicRoutes.vendorPaths} {
-        rewrite ^ /index.php last;
-      }
-      location ~ ^/(build|css|js|images|fonts|vendor|gateway-card-images|storage)/ {
-        try_files $uri =404;
       }
 
       location = /index.php {
@@ -357,8 +241,7 @@ in
         ];
         environments = {
           APP_URL = "https://${hostname}";
-          REACT_URL = "https://billing.vpn.denys.me";
-          # Host-only cookies work independently on the customer/admin origins.
+          REACT_URL = "https://${hostname}";
           SESSION_DOMAIN = "null";
           SESSION_SECURE_COOKIE = "true";
           APP_ENV = "production";
@@ -383,8 +266,6 @@ in
         volumes = [
           "${podCfg.volumes.invoiceninja-public.ref}:/var/www/html/public"
           "${podCfg.volumes.invoiceninja-storage.ref}:/var/www/html/storage"
-          "${snsController}:/var/www/html/app/Http/Controllers/SNSController.php:ro"
-          "${clientRoutes}:/var/www/html/routes/client.php:ro"
         ];
         networks = [
           podCfg.networks.invoiceninja-db.ref

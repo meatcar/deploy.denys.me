@@ -75,31 +75,6 @@ resource "cloudflare_ruleset" "pvlv_configuration" {
   }]
 }
 
-# Both services on chunkymonkey are proxied. The host firewall admits only
-# Cloudflare source ranges to the shared origin ports, so the known origin IP
-# cannot bypass edge policy. Certificates use Cloudflare DNS-01.
-resource "cloudflare_dns_record" "A-billing" {
-  zone_id = cloudflare_zone.main.id
-  type    = "A"
-  name    = "billing"
-  content = "192.18.149.148"
-  proxied = true
-  ttl     = 1
-}
-
-# SNS delivery through Cloudflare is unreliable for signed notification bodies.
-# This direct hostname exposes only the exact webhook route, while the host
-# firewall admits AWS's non-EC2 ca-central-1 service prefix and rejects everyone
-# else. The application still verifies each SNS signature and TopicArn.
-resource "cloudflare_dns_record" "A-billing-sns" {
-  zone_id = cloudflare_zone.main.id
-  type    = "A"
-  name    = "billing-sns"
-  content = "192.18.149.148"
-  proxied = false
-  ttl     = 1
-}
-
 ## Amazon SES (ca-central-1) - outbound mail for Invoice Ninja
 #
 # Explicit records are required here because the CNAME-www-wildcard record above

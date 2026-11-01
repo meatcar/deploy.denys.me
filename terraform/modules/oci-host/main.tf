@@ -19,18 +19,10 @@ locals {
     "172.64.0.0/13",
     "131.0.72.0/22",
   ]
-  # AWS-owned, non-EC2 ca-central-1 service prefix used by SNS HTTPS delivery.
-  chunkymonkey_sns_sources = ["52.94.80.0/20"]
-  chunkymonkey_proxy_ingress = merge(
-    {
-      for pair in setproduct(toset(local.chunkymonkey_cloudflare_sources), toset([80, 443])) :
-      "${pair[0]}:${pair[1]}" => { source = pair[0], port = pair[1] }
-    },
-    {
-      for source in toset(local.chunkymonkey_sns_sources) :
-      "${source}:443" => { source = source, port = 443 }
-    },
-  )
+  chunkymonkey_proxy_ingress = {
+    for pair in setproduct(toset(local.chunkymonkey_cloudflare_sources), toset([80, 443])) :
+    "${pair[0]}:${pair[1]}" => { source = pair[0], port = pair[1] }
+  }
 }
 
 # __generated__ by OpenTofu from "ocid1.vcn.oc1.ca-toronto-1.amaaaaaanvwzxkqajgltohabkxvuk3skooqmllqve3vxsokezi4ingzclrta"
@@ -142,9 +134,8 @@ resource "oci_core_security_list" "chunkymonkey" {
       max = 51822
     }
   }
-  # Defense in depth for the matching NixOS host firewall. Public browser
-  # traffic must traverse Cloudflare; the only direct route is the exact,
-  # signature-verified SNS webhook from AWS's service-owned prefix.
+  # Defense in depth for the matching NixOS host firewall. Public traffic must
+  # traverse Cloudflare.
   dynamic "ingress_security_rules" {
     for_each = local.chunkymonkey_proxy_ingress
     content {

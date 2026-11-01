@@ -83,10 +83,8 @@ run "host_and_backend_contracts" {
   assert {
     condition = (
       cloudflare_dns_record.A-www.content == "203.0.113.17" &&
-      cloudflare_dns_record.A-billing.proxied &&
-      !cloudflare_dns_record.A-billing-sns.proxied &&
       cloudflare_dns_record.TXT-vpn-private.content == "private-netbird-only"
     )
-    error_message = "Composition must preserve host routing, the direct SNS endpoint, and the private VPN wildcard guard."
+    error_message = "Composition must preserve host routing and the private VPN wildcard guard."
   }
 }

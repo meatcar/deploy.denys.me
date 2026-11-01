@@ -107,8 +107,8 @@ pkgs.testers.runNixOSTest {
             response = server.succeed(request("public", "173.245.48.1", 443, host, path))
             assert response.strip().endswith("404"), (host, path, response)
             assert "management\n" not in response
-    for host, path, marker in [("billing.denys.me", "/client", "portal"), ("trmnl.denys.me", "/api/display", "device")]:
-        assert marker in server.succeed(request("public", "173.245.48.1", 443, host, path))
+    assert "device" in server.succeed(request("public", "173.245.48.1", 443, "trmnl.denys.me", "/api/display"))
+    assert server.succeed(request("public", "173.245.48.1", 443, "billing.denys.me", "/client")).strip().endswith("404")
     for public, private, path in [("billing.denys.me", "billing.vpn.denys.me", "/login"), ("trmnl.denys.me", "trmnl.vpn.denys.me", "/dashboard")]:
         for host in [public, private]:
             for port in [443, 8443]:

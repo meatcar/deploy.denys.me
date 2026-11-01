@@ -10,11 +10,8 @@ import tempfile
 import threading
 import time
 import unittest
-from http.cookiejar import CookieJar
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, urlencode, urlsplit
-from urllib.request import Request
 
 import yaml
 
@@ -87,11 +84,7 @@ class Routing(unittest.TestCase):
                     timeout=1,
                     context=ssl._create_unverified_context(),
                 )
-                connection.request(
-                    "POST",
-                    "/api/v1/sns_webhook",
-                    headers={"Host": "billing-sns.denys.me"},
-                )
+                connection.request("GET", "/v1/models", headers={"Host": "cpa.pvlv.ca"})
                 ready = connection.getresponse().status == 200
                 connection.close()
                 if ready:
@@ -109,15 +102,8 @@ class Routing(unittest.TestCase):
         root = directory / "public"
         root.mkdir()
         (root / "index.php").write_text(Path(sys.argv[5]).read_text())
-        for asset in [
-            "build/app.css",
-            "build/assets/app.css",
-            "vendor/cookieconsent@3/cookieconsent.min.js",
-            "storage/company/logo.png",
-        ]:
-            path = root / asset
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text("portal asset")
+        (root / "build").mkdir()
+        (root / "build" / "app.css").write_text("portal asset")
         (root / "build" / "unexpected.php").write_text('<?php echo "executed PHP";')
         config = Path(sys.argv[3]).read_text()
         config = config.replace(
@@ -188,119 +174,6 @@ class Routing(unittest.TestCase):
         finally:
             connection.close()
 
-    def browser_request(self, jar, url, method="GET"):
-        """Keep real cookie origins while connecting only to the test listeners."""
-        parts = urlsplit(url)
-        entrypoint = {
-            "billing.denys.me": "websecure",
-            "billing.vpn.denys.me": "netbird",
-        }[parts.hostname]
-        request = Request(url, method=method)
-        jar.add_cookie_header(request)
-        connection = http.client.HTTPSConnection(
-            "127.0.0.1",
-            self.ports[entrypoint],
-            context=ssl._create_unverified_context(),
-        )
-        try:
-            path = parts.path + (f"?{parts.query}" if parts.query else "")
-            connection.request(
-                method,
-                path,
-                headers={"Host": parts.hostname, **dict(request.header_items())},
-            )
-            response = connection.getresponse()
-            jar.extract_cookies(response, request)
-            return response.status, response.read(), response.headers
-        finally:
-            connection.close()
-
-    def test_mailer_oauth_state_round_trip_uses_public_host_only_cookie(self):
-        # PHP models Socialite's session state, not provider/token verification.
-        # Neither the private session nor a bearer token is needed to initiate.
-        for provider in ["google", "microsoft"]:
-            with self.subTest(provider=provider):
-                jar = CookieJar()
-                self.browser_request(jar, "https://billing.vpn.denys.me/login")
-                private_cookie = next(iter(jar))
-                initiation = f"/auth/{provider}?react=true&marker=a%2Bb"
-                public_url = "https://billing.denys.me" + initiation
-                status, _, headers = self.browser_request(
-                    jar, "https://billing.vpn.denys.me" + initiation
-                )
-                self.assertEqual(status, 302)
-                self.assertEqual(headers["Location"], public_url)
-                self.assertIsNone(
-                    headers["Set-Cookie"],
-                    "redirect must precede Laravel session creation",
-                )
-                self.assertEqual(len(jar), 1)
-
-                status, _, headers = self.browser_request(jar, public_url)
-                self.assertEqual(status, 302)
-                provider_url = urlsplit(headers["Location"])
-                self.assertEqual(provider_url.hostname, "provider.invalid")
-                params = parse_qs(provider_url.query)
-                self.assertEqual(
-                    params["redirect_uri"],
-                    [f"https://billing.denys.me/auth/{provider}"],
-                )
-                self.assertTrue(params["state"][0])
-                cookies = {cookie.domain: cookie for cookie in jar}
-                self.assertEqual(
-                    set(cookies), {"billing.denys.me", "billing.vpn.denys.me"}
-                )
-                self.assertNotEqual(
-                    cookies["billing.denys.me"].value, private_cookie.value
-                )
-                self.assertTrue(
-                    all(not cookie.domain_specified and cookie.secure for cookie in jar)
-                )
-
-                callback = (
-                    params["redirect_uri"][0]
-                    + "?"
-                    + urlencode(
-                        {
-                            "code": "modeled-provider-code",
-                            "state": params["state"][0],
-                        }
-                    )
-                )
-                status, _, _ = self.browser_request(CookieJar(), callback)
-                self.assertEqual(
-                    status, 400, "a callback without its session must fail"
-                )
-                status, _, headers = self.browser_request(jar, callback)
-                self.assertEqual(status, 302)
-                self.assertEqual(
-                    headers["Location"],
-                    "https://billing.vpn.denys.me/#/settings/user_details/connect",
-                )
-                self.assertEqual(
-                    self.browser_request(jar, callback)[0],
-                    400,
-                    "state must be consumed",
-                )
-
-                _, _, headers = self.browser_request(jar, public_url)
-                params = parse_qs(urlsplit(headers["Location"]).query)
-                wrong_state = (
-                    params["redirect_uri"][0]
-                    + "?code=modeled-provider-code&state=wrong"
-                )
-                self.assertEqual(self.browser_request(jar, wrong_state)[0], 400)
-                # HEAD follows the same exact redirect, without widening the route.
-                self.assertEqual(
-                    self.browser_request(
-                        jar, "https://billing.vpn.denys.me" + initiation, "HEAD"
-                    )[2]["Location"],
-                    public_url,
-                )
-                self.assertEqual(
-                    self.request("billing.vpn.denys.me", initiation)[0], 404
-                )
-
     def test_larapaper_devices_public_administration_private(self):
         for method, path in [
             ("GET", "/api/setup"),
@@ -332,187 +205,56 @@ class Routing(unittest.TestCase):
                 )
         self.assertEqual(self.request("trmnl.denys.me", "/api/display", "POST")[0], 404)
 
-    def test_invoice_customers_and_callbacks_public_admin_private(self):
-        for method, path in [
-            ("GET", "/client"),
-            ("GET", "/client/invoice/invitation-key"),
-            ("GET", "/client/pay/invitation-key"),
-            ("PUT", "/client/profile/contact/edit"),
-            ("POST", "/client/payment_methods/token"),
-            ("POST", "/livewire/update"),
-            ("POST", "/livewire/upload-file?signature=test"),
-            ("GET", "/livewire/preview-file/file.png?signature=test"),
-            ("GET", "/build/assets/app.css"),
-            ("GET", "/vendor/cookieconsent@3/cookieconsent.min.js"),
-            ("GET", "/storage/company/logo.png"),
-            ("GET", "/documents/document-hash"),
-            ("POST", "/api/v1/contact/login"),
-            ("GET", "/api/v1/contact/invoices"),
-            ("GET", "/api/v1/shop/products"),
-            ("POST", "/api/v1/shop/invoices"),
-            ("POST", "/payment_webhook/company/gateway"),
-            ("GET", "/payment_notification_webhook/company/gateway/client"),
-            ("POST", "/payments/process/response"),
-            ("POST", "/payments/helcim/ach/session"),
-            ("POST", "/api/v1/ppcp/webhook"),
-            ("GET", "/checkout/3ds_redirect/company/gateway/hash"),
-            ("GET", "/gocardless/hosted_payment_page/return/company/gateway/hash"),
-            (
-                "GET",
-                "/gocardless/hosted_payment_page/setup_return/company/gateway/context",
-            ),
-            ("GET", "/.well-known/apple-developer-merchantid-domain-association"),
-            ("GET", "/stripe/completed?code=test"),
-            ("GET", "/square/callback?code=test"),
-        ]:
-            with self.subTest(method=method, path=path):
-                self.assertEqual(self.request("billing.denys.me", path, method)[0], 200)
-        for method, path in [
-            ("GET", "/payments/helcim/ach/session"),
-            ("POST", "/payments/helcim/ach/session/extra"),
-            ("POST", "/gocardless/hosted_payment_page/return/company/gateway/hash"),
-            (
-                "GET",
-                "/gocardless/hosted_payment_page/return/company/gateway/hash/extra",
-            ),
-            ("GET", "/gocardless/ibp_redirect/company/gateway/hash"),
-        ]:
-            with self.subTest(method=method, path=path):
-                self.assertEqual(self.request("billing.denys.me", path, method)[0], 404)
-        for provider in ["google", "microsoft"]:
-            self.assertEqual(
-                self.request("billing.denys.me", f"/auth/{provider}", "POST")[0], 404
-            )
-        for path in [
-            "/",
-            "/login",
-            "/setup",
-            "/update",
-            "/api/v1/login",
-            "/api/v1/invoices",
-            "/api/v1/users",
-            "/api/v1/tokens",
-            "/token_hash_router",
-            "/build-admin/app.js",
-            "/index.php",
-            "/clientele",
-            "/auth/apple",
-            "/auth/google/extra",
-        ]:
-            with self.subTest(path=path):
-                for method in ["GET", "POST"]:
-                    self.assertEqual(
-                        self.request("billing.denys.me", path, method)[0], 404
-                    )
-                    self.assertEqual(
-                        self.request("billing.vpn.denys.me", path, method)[0], 404
-                    )
-                expected_private = 404 if path == "/index.php" else 200
-                self.assertEqual(
-                    self.request("billing.vpn.denys.me", path, entrypoint="netbird")[0],
-                    expected_private,
-                )
-
-    def test_vendor_portal_reaches_laravel_but_missing_assets_do_not(self):
-        # Exact v5.13.49 routes/vendor.php contracts, plus the profile Blade
-        # form's POST _method=PUT transport. Laravel keeps vendor auth/CSRF.
+    def test_invoice_is_netbird_only(self):
         routes = [
-            ("GET", "/vendors"),
-            ("GET", "/vendor/key_login/contact-key"),
-            ("GET", "/vendor/purchase_order/invitation-key"),
-            ("GET", "/vendor/purchase_order/invitation-key/download"),
-            ("GET", "/vendor/purchase_order/invitation-key/download_e_purchase_order"),
+            ("GET", "/"),
+            ("GET", "/login"),
+            ("GET", "/client/invoice/invitation-key"),
             ("GET", "/vendor/dashboard"),
-            ("GET", "/vendor/purchase_orders"),
-            ("GET", "/vendor/purchase_orders/order-id"),
-            ("GET", "/vendor/showBlob/purchase_order/invitation-key"),
-            ("GET", "/vendor/profile/contact-id/edit"),
-            ("PUT", "/vendor/profile/contact-id/edit"),
-            ("POST", "/vendor/profile/contact-id/edit"),
-            ("GET", "/vendor/logout"),
-            ("GET", "/vendor/documents"),
-            ("GET", "/vendor/documents/document-id"),
-            ("GET", "/vendor/documents/document-id/download"),
-            ("GET", "/vendor/documents/document-id/download_pdf"),
-            ("POST", "/vendor/documents/download_multiple"),
-            ("POST", "/vendor/purchase_orders/bulk"),
-            ("POST", "/vendor/purchase_order/upload/order-id"),
+            ("GET", "/auth/google"),
+            ("POST", "/api/v1/login"),
+            ("POST", "/api/v1/sns_webhook"),
+            ("POST", "/payment_webhook/company/gateway"),
         ]
-        for host, entrypoint in [
-            ("billing.denys.me", "websecure"),
-            ("billing.vpn.denys.me", "netbird"),
+        for host in [
+            "billing.denys.me",
+            "billing-sns.denys.me",
+            "billing.vpn.denys.me",
         ]:
             for method, path in routes:
-                methods = ["GET", "HEAD"] if method == "GET" else [method]
-                for verb in methods:
-                    with self.subTest(host=host, method=verb, path=path):
-                        status, body = self.request(
-                            host,
-                            path + "?portal=test%2Bquery",
-                            verb,
-                            entrypoint,
-                            headers={
-                                "Content-Type": "application/x-www-form-urlencoded"
-                            },
-                            body="_method=PUT"
-                            if verb == "POST" and "/profile/" in path
-                            else None,
-                        )
-                        self.assertEqual(status, 200)
-                        if verb == "HEAD":
-                            self.assertEqual(body, b"")
-                        else:
-                            received = json.loads(body)
-                            self.assertEqual(
-                                received["uri"], path + "?portal=test%2Bquery"
-                            )
-                            self.assertEqual(received["method"], verb)
-                            if verb == "POST" and "/profile/" in path:
-                                self.assertEqual(received["form"], {"_method": "PUT"})
-            for path in [
-                "/vendor/missing.js",
-                "/vendor/cookieconsent@3/missing.js",
-                "/vendor/admin",
-                "/vendor/purchase_order/key/extra",
-                "/vendor/profile/key/edit/extra",
-                "/vendor/documents/key/extra",
-                "/vendor/showBlob/document-hash",
-                "/vendor/showBlob/invoice/invitation-key",
-                "/vendor/showBlob/purchase_order/invitation-key/extra",
-            ]:
-                with self.subTest(host=host, path=path):
-                    status, body = self.request(host, path, entrypoint=entrypoint)
-                    self.assertEqual(status, 404)
-                    self.assertNotIn(b"front controller", body)
-            self.assertEqual(
-                self.request(
-                    host,
-                    "/vendor/cookieconsent@3/cookieconsent.min.js",
-                    entrypoint=entrypoint,
-                ),
-                (200, b"portal asset"),
-            )
-        for method, path in [
-            ("POST", "/vendors"),
-            ("POST", "/vendor/key_login/key"),
-            ("POST", "/vendor/purchase_order/key/download"),
-            ("POST", "/vendor/documents"),
-            ("PUT", "/vendor/documents/key"),
-            ("DELETE", "/vendor/profile/key/edit"),
-            ("POST", "/vendor/cookieconsent@3/cookieconsent.min.js"),
-            ("GET", "/api/v1/vendors"),
-            ("POST", "/api/v1/purchase_orders"),
+                with self.subTest(host=host, method=method, path=path):
+                    self.assertEqual(self.request(host, path, method)[0], 404)
+        for method, path in routes:
+            with self.subTest(entrypoint="netbird", method=method, path=path):
+                self.assertEqual(
+                    self.request("billing.vpn.denys.me", path, method, "netbird"),
+                    (200, b"front controller"),
+                )
+
+    def test_invoice_nginx_never_executes_other_php(self):
+        for path, expected_status, expected_body in [
+            ("/client/invoice/key", 200, b"front controller"),
+            ("/build/app.css", 200, b"portal asset"),
+            ("/build/unexpected.php", 404, None),
+            ("/index.php", 404, None),
         ]:
-            with self.subTest(method=method, path=path):
-                self.assertEqual(self.request("billing.denys.me", path, method)[0], 404)
-        self.assertEqual(
-            self.request("billing.vpn.denys.me", "/vendor/dashboard")[0], 404
-        )
+            with self.subTest(path=path):
+                connection = http.client.HTTPConnection("127.0.0.1", self.nginx_port)
+                connection.request(
+                    "GET", path, headers={"Host": "billing.vpn.denys.me"}
+                )
+                response = connection.getresponse()
+                body = response.read()
+                connection.close()
+                self.assertEqual(response.status, expected_status)
+                if expected_body is not None:
+                    self.assertEqual(body, expected_body)
+                else:
+                    self.assertNotIn(b"front controller", body)
+                    self.assertNotIn(b"executed PHP", body)
 
     def test_public_paths_cannot_be_reinterpreted_as_administration(self):
         for host, prefix, admin in [
-            ("billing.denys.me", "/client", "/api/v1/users"),
-            ("billing.denys.me", "/vendor", "/api/v1/vendors"),
             ("trmnl.denys.me", "/storage/images", "/dashboard"),
         ]:
             for path in [
@@ -541,50 +283,6 @@ class Routing(unittest.TestCase):
                 },
             )
             self.assertEqual(status, 404)
-
-    def test_sns_remains_dedicated_exact_post(self):
-        for host in [
-            "billing.denys.me",
-            "billing-sns.denys.me",
-            "billing.vpn.denys.me",
-        ]:
-            for method in ["GET", "POST", "PUT"]:
-                for path in [
-                    "/api/v1/sns_webhook",
-                    "/api/v1/sns_webhook/",
-                    "/api/v1/sns_webhook/extra",
-                    "/api/v1/sns_webhook-other",
-                ]:
-                    with self.subTest(host=host, method=method, path=path):
-                        expected = (
-                            200
-                            if host == "billing-sns.denys.me"
-                            and method == "POST"
-                            and path == "/api/v1/sns_webhook"
-                            else 404
-                        )
-                        self.assertEqual(self.request(host, path, method)[0], expected)
-
-    def test_invoice_static_files_never_fall_through_to_php(self):
-        for path, expected_status, expected_body in [
-            ("/client/invoice/key", 200, b"front controller"),
-            ("/build/app.css", 200, b"portal asset"),
-            ("/build/missing.css", 404, None),
-            ("/build/unexpected.php", 404, None),
-            ("/storage/missing.png", 404, None),
-        ]:
-            with self.subTest(path=path):
-                connection = http.client.HTTPConnection("127.0.0.1", self.nginx_port)
-                connection.request("GET", path, headers={"Host": "billing.denys.me"})
-                response = connection.getresponse()
-                body = response.read()
-                connection.close()
-                self.assertEqual(response.status, expected_status)
-                if expected_body is not None:
-                    self.assertEqual(body, expected_body)
-                else:
-                    self.assertNotIn(b"front controller", body)
-                    self.assertNotIn(b"executed PHP", body)
 
     def test_existing_cpa_clients_remain_public(self):
         for method, path in [

@@ -82,6 +82,5 @@ pkgs.runCommand "application-routing"
       ${invoiceMount "invoiceninja-nginx" "/etc/nginx/conf.d/default.conf"} \
       ${pkgs.nginx}/conf/fastcgi_params ${./test_invoice_front_controller.php} \
       ${cpaRoutes} ${niks3Routes}
-    php ${./test_invoice_fallback.php} ${invoiceMount "invoiceninja-app" "/var/www/html/routes/client.php"}
     touch "$out"
   ''

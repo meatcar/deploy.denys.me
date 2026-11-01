@@ -29,19 +29,10 @@ let
     "172.64.0.0/13"
     "131.0.72.0/22"
   ];
-  # SNS HTTPS delivery currently originates from this AWS-owned, non-EC2
-  # ca-central-1 service prefix. The dedicated router accepts only the signed
-  # webhook path and validates the configured TopicArn inside Invoice Ninja.
-  awsSnsIpv4 = [ "52.94.80.0/20" ];
-  proxySourceRules =
-    map (cidr: {
-      inherit cidr;
-      ports = "8080,8443";
-    }) cloudflareIpv4
-    ++ map (cidr: {
-      inherit cidr;
-      ports = "8443";
-    }) awsSnsIpv4;
+  proxySourceRules = map (cidr: {
+    inherit cidr;
+    ports = "8080,8443";
+  }) cloudflareIpv4;
   proxyAllowRules = lib.concatMapStringsSep "\n" (rule: ''
     iptables -w -C nixos-fw -s ${rule.cidr} -p tcp -m multiport --dports ${rule.ports} -j nixos-fw-accept 2>/dev/null || \
       iptables -w -I nixos-fw 1 -s ${rule.cidr} -p tcp -m multiport --dports ${rule.ports} -j nixos-fw-accept
@@ -131,7 +122,7 @@ in
 
   # DNAT: redirect privileged 80/443 to the rootless Traefik high ports.
   # The ports are not globally opened: source-specific rules admit Cloudflare
-  # and the AWS SNS delivery prefix before the standard NixOS reject rule. This
+  # before the standard NixOS reject rule. This
   # preserves the peer IP until policy enforcement even though rootlessport
   # hides it from Traefik.
   networking.firewall.extraCommands = ''
