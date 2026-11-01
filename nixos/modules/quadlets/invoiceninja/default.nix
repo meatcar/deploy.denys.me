@@ -19,8 +19,7 @@
 let
   # Pinned by exact patch, matching the traefik/postgres convention in this
   # repo. All three verified to publish native linux/arm64 manifests.
-  appVersion = "5.13.49";
-  appImage = "invoiceninja/invoiceninja-debian:${appVersion}@sha256:05efd0913eb0d72d0246ec96d6cb6adf5ac3d3e59b9b91514b9f64b892f21c92";
+  appImage = "invoiceninja/invoiceninja-debian:5.13.49@sha256:05efd0913eb0d72d0246ec96d6cb6adf5ac3d3e59b9b91514b9f64b892f21c92";
   mysqlImage = "mysql:8.4.11"; # 8.4 is the current MySQL LTS series
   nginxImage = "nginx:1.30.4-alpine3.24"; # nginx stable branch
 

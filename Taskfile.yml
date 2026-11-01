@@ -1,6 +1,11 @@
 version: "3"
 
 tasks:
+  deps:
+    desc: "Dependencies: `task deps -- list|outdated|upgrade [--major] [flake|opentofu|images|sources]`"
+    cmds:
+      - nix run .#deps -- {{.CLI_ARGS}}
+
   login:
     desc: Renew expired AWS/Bao, DigitalOcean and OCI sessions
     cmds:

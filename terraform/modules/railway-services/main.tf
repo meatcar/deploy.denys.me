@@ -7,7 +7,7 @@ locals {
     redis = {
       name    = "Redis"
       project = "rsshub"
-      image   = "bitnami/redis"
+      image   = "bitnami/redis:latest@sha256:37c559e3894161f1b1122353a54938e30299383ae801417debda7d3e7d69490a"
       volume  = { name = "redis-volume", mount_path = "/bitnami" }
     }
     uptime_kuma = {

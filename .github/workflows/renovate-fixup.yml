@@ -1,0 +1,28 @@
+name: Renovate fixup
+
+# NOTE: Renovate bumps versions but cannot compute Nix hashes or relock flake.nix refs.
+on:
+  push:
+    branches: ["renovate/**"]
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  fixup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: cachix/install-nix-action@75c75c31ebece974e48ebc36b4ad125bd97bd97b # v31.11.3
+      - run: nix run .#deps -- fixup
+      - name: Commit refreshed locks and hashes
+        run: |
+          git diff --quiet && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "chore(deps): refresh locks and hashes"
+          git push

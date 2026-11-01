@@ -7,9 +7,6 @@
 # Per-app role+DB provisioning: add an initdb quadlet container in
 # the consuming service module (see larapaper/ for the pattern).
 { config, ... }:
-let
-  pgversion = "18";
-in
 {
   home-manager.users.pod.virtualisation.quadlet = {
     volumes.postgres-data.volumeConfig = { }; # plain named volume, podman manages ownership
@@ -17,7 +14,7 @@ in
     containers.postgres = {
       autoStart = true;
       containerConfig = {
-        image = "postgres:${pgversion}.4-alpine";
+        image = "postgres:18.4-alpine";
         volumes = [
           "${config.home-manager.users.pod.virtualisation.quadlet.volumes.postgres-data.ref}:/var/lib/postgresql"
           # Mount the secret file so POSTGRES_PASSWORD_FILE can reference it.

@@ -243,6 +243,12 @@
               ];
             pkgs.runCommand "cube-vps-private-services" { } "touch $out";
           cli-proxy-api = config.packages.cli-proxy-api-ops;
+          deps = config.packages.deps;
+          deps-lint = pkgs.runCommand "deps-lint" { nativeBuildInputs = [ config.packages.deps ]; } ''
+            cd ${self}
+            find . -type f -printf '%P\n' | xargs deps lint
+            touch "$out"
+          '';
           bao-operations =
             pkgs.runCommand "bao-operations"
               {

@@ -22,6 +22,18 @@ nix flake check
 
 [Plan and apply with Terragrunt](terraform/README.md#plan-and-apply).
 
+[Renovate](renovate.json) tracks every pinned version. The same lookup runs locally:
+
+```sh
+task deps -- list                 # detected versions
+task deps -- outdated             # available updates
+task deps -- upgrade [--major] [flake|opentofu|images|sources|actions|other]
+task deps -- lint                 # pins Renovate cannot see; also a flake check
+```
+
+Pin new images as literal `name:tag@digest` strings, and annotate other versions with
+`# renovate: datasource=… depName=…`. Add hash-bearing sources to `legacyPackages.sources`.
+
 ## Where to look
 
 - [flake-parts/](flake-parts/): tools, checks, and flake outputs

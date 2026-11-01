@@ -37,6 +37,7 @@ output/                      # ignored local provisioning artifacts
     - Format/lint: `nix fmt` (required for commit)
     - Add new lint/checks when tech stack shifts, ensuring fast runtime.
 - List outputs: `nix flake show`
+- Dependencies: `task deps -- list|outdated|upgrade|lint`. Every added or changed version, image, input, or source must appear in `task deps -- list`; pin it per the [Workflow conventions](README.md#workflow). The `deps-lint` check catches pins Renovate cannot see.
 - Update input: `nix flake lock --override-input <input> <url+rev>`
 - Plan and apply through `tofu`; Terragrunt is an optional bulk runner (see `./terraform/README.md`).
 

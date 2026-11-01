@@ -3,6 +3,7 @@ let
   buildGoModule = pkgs.buildGoModule.override { go = pkgs.go_1_26; };
   api = buildGoModule rec {
     pname = "cli-proxy-api";
+    # renovate: datasource=github-releases depName=router-for-me/CLIProxyAPI
     version = "8.0.28";
     src = pkgs.fetchFromGitHub {
       owner = "router-for-me";
@@ -20,13 +21,14 @@ let
     ];
     postInstall = "mv $out/bin/server $out/bin/cli-proxy-api";
   };
-  bridge = buildGoModule {
+  bridge = buildGoModule rec {
     pname = "pi-bridge";
+    # renovate: datasource=github-tags depName=abix5/pi-cliproxyapi-bridge
     version = "0.9.1";
     src = pkgs.fetchFromGitHub {
       owner = "abix5";
       repo = "pi-cliproxyapi-bridge";
-      rev = "039c28b23abcc2e475252a92cd115a7eb943a251";
+      tag = "v${version}";
       hash = "sha256-CYrZv/zcPJEgpNPMeemZ7kZepPU1IRG76g636DdwnS4=";
     };
     postPatch = ''
@@ -34,11 +36,11 @@ let
       go mod edit -droprequire=github.com/router-for-me/CLIProxyAPI/v7 \
         -require=github.com/router-for-me/CLIProxyAPI/v8@v${api.version}
       sed -i '\|^github.com/router-for-me/CLIProxyAPI/v7 |d' go.sum
-      printf '%s\n' \
-        'github.com/router-for-me/CLIProxyAPI/v8 v8.0.28 h1:02Rxbbf/cjW4Mxoik6I63ZDOx57JvbGxv6be2EiOjWU=' \
-        'github.com/router-for-me/CLIProxyAPI/v8 v8.0.28/go.mod h1:j1Mtcj0TrC66O1JwbSBB03lY3uYPx4J7yHNvU6nDBCo=' >> go.sum
     '';
-    vendorHash = "sha256-ZnFeB6BMpjBEZvG5ZlpTYyfwic7eWJO73eEHNib5ZTU=";
+    # NOTE: The proxy vendor lets the offline build tidy against the fetched modules.
+    proxyVendor = true;
+    preBuild = "go mod tidy";
+    vendorHash = "sha256-K9i5mtye+OZMbzM0oQIlvomtcNkjlOgZ/5u0PRtv0v0=";
     env.CGO_ENABLED = 1;
     buildPhase = ''
       runHook preBuild
@@ -46,7 +48,7 @@ let
       runHook postBuild
     '';
     installPhase = ''
-      install -Dm755 pi-bridge.so $out/lib/cli-proxy-api/plugins/pi-bridge-v0.9.1.so
+      install -Dm755 pi-bridge.so $out/lib/cli-proxy-api/plugins/pi-bridge-v${version}.so
     '';
   };
 in
@@ -63,7 +65,7 @@ in
     # NOTE: CLIProxyAPI discovers regular files only, not buildEnv symlinks.
     extraCommands = ''
       mkdir -p plugins
-      cp ${bridge}/lib/cli-proxy-api/plugins/pi-bridge-v0.9.1.so plugins/
+      cp ${bridge}/lib/cli-proxy-api/plugins/pi-bridge-v${bridge.version}.so plugins/
     '';
     config = {
       Entrypoint = [ "/bin/cli-proxy-api" ];

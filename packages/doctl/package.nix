@@ -2,6 +2,7 @@
 { pkgs }:
 pkgs.doctl.overrideAttrs (
   finalAttrs: _: {
+    # renovate: datasource=github-releases depName=digitalocean/doctl
     version = "2.0.0";
     src = pkgs.fetchFromGitHub {
       owner = "digitalocean";

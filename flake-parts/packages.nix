@@ -3,9 +3,23 @@
   perSystem =
     { pkgs, system, ... }:
     {
+      # NOTE: Sources whose hashes `deps upgrade` refreshes with nix-update.
+      legacyPackages.sources = lib.optionalAttrs (system == "x86_64-linux") (
+        let
+          cliProxyApi = import ../nixos/modules/quadlets/cli-proxy-api/images.nix { inherit pkgs; };
+        in
+        {
+          doctl = import ../packages/doctl/package.nix { inherit pkgs; };
+          cli-proxy-api = cliProxyApi.api;
+          pi-bridge = cliProxyApi.bridge;
+          openbao-auth-aws = import ../nixos/systems/bao/aws-auth-plugin.nix { inherit pkgs; };
+        }
+      );
+
       packages =
         lib.optionalAttrs pkgs.stdenv.isLinux {
           cli-proxy-api-ops = import ../packages/cli-proxy-api/package.nix { inherit pkgs; };
+          deps = import ../packages/deps/package.nix { inherit pkgs; };
         }
         // lib.optionalAttrs (system == "x86_64-linux") {
           doImage = self.nixosConfigurations.doImage.config.system.build.image;

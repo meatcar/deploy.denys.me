@@ -1,0 +1,160 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "ignorePaths": [
+    "**/node_modules/**",
+    "nixos/systems/cube/**",
+    "packages/deps/tests/**"
+  ],
+  "gitIgnoredAuthors": [
+    "41898282+github-actions[bot]@users.noreply.github.com"
+  ],
+  "nix": {
+    "enabled": true
+  },
+  "lockFileMaintenance": {
+    "enabled": true
+  },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Container images in Nix and OpenTofu",
+      "managerFilePatterns": [
+        "/\\.nix$/",
+        "/\\.tf$/"
+      ],
+      "matchStrings": [
+        "[A-Za-z]*[iI]mage\\s*=\\s*\"(?<depName>[^\"\\s:@$]+):(?<currentValue>[^\"\\s@$]+)(?:@(?<currentDigest>sha256:[a-f0-9]{64}))?\""
+      ],
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "description": "Container images in tests",
+      "managerFilePatterns": [
+        "/\\.py$/"
+      ],
+      "matchStrings": [
+        "\"(?<depName>docker\\.io/[^\"\\s:@]+):(?<currentValue>[^\"\\s@]+)(?:@(?<currentDigest>sha256:[a-f0-9]{64}))?\""
+      ],
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "description": "Versions annotated with `# renovate: datasource=… depName=…`",
+      "managerFilePatterns": [
+        "/\\.nix$/"
+      ],
+      "matchStrings": [
+        "#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)(?:\\s+extractVersion=(?<extractVersion>\\S+))?\\s*\\n\\s*version\\s*=\\s*\"(?<currentValue>[^\"]+)\""
+      ],
+      "extractVersionTemplate": "{{#if extractVersion}}{{{extractVersion}}}{{else}}^v?(?<version>.+)${{/if}}"
+    },
+    {
+      "customType": "regex",
+      "description": "Tagged flake inputs",
+      "managerFilePatterns": [
+        "/^flake\\.nix$/"
+      ],
+      "matchStrings": [
+        "url\\s*=\\s*\"github:(?<depName>[^/\"]+/[^/\"]+)/(?<currentValue>v\\d[^\"]*)\""
+      ],
+      "datasourceTemplate": "github-tags"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Group by upgrade piece; `deps` reads these groups",
+      "matchManagers": [
+        "nix"
+      ],
+      "groupName": "flake"
+    },
+    {
+      "matchManagers": [
+        "custom.regex"
+      ],
+      "matchFileNames": [
+        "flake.nix"
+      ],
+      "groupName": "flake"
+    },
+    {
+      "matchManagers": [
+        "terraform",
+        "tflint-plugin"
+      ],
+      "groupName": "opentofu"
+    },
+    {
+      "matchDatasources": [
+        "docker"
+      ],
+      "groupName": "images"
+    },
+    {
+      "matchManagers": [
+        "custom.regex"
+      ],
+      "matchDatasources": [
+        "github-releases",
+        "github-tags"
+      ],
+      "matchFileNames": [
+        "!flake.nix"
+      ],
+      "groupName": "sources"
+    },
+    {
+      "matchManagers": [
+        "github-actions"
+      ],
+      "groupName": "actions"
+    },
+    {
+      "description": "Stateful databases change on-disk formats across majors; bump these by hand",
+      "matchDepNames": [
+        "postgres"
+      ],
+      "matchFileNames": [
+        "nixos/modules/quadlets/**"
+      ],
+      "allowedVersions": "/^18\\./"
+    },
+    {
+      "matchDepNames": [
+        "mysql"
+      ],
+      "matchFileNames": [
+        "terraform/modules/railway-services/**"
+      ],
+      "allowedVersions": "/^9\\./"
+    },
+    {
+      "description": "Invoice Ninja stays on the MySQL LTS series",
+      "matchDepNames": [
+        "mysql"
+      ],
+      "matchFileNames": [
+        "nixos/modules/quadlets/invoiceninja/**"
+      ],
+      "allowedVersions": "/^8\\.4\\./"
+    },
+    {
+      "description": "LaraPaper's Containerfile asserts PHP 8.4",
+      "matchDepNames": [
+        "bnussbau/serversideup-php"
+      ],
+      "allowedVersions": "/^8\\.4-/"
+    },
+    {
+      "description": "nginx stable releases use even minor versions",
+      "matchDepNames": [
+        "nginx"
+      ],
+      "allowedVersions": "/^\\d+\\.\\d*[02468]\\./"
+    }
+  ]
+}
