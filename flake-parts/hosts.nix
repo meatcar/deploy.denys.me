@@ -57,17 +57,5 @@ in
         ../nixos/systems/vps/configuration.nix
       ];
     };
-    cube = inputs.nixpkgs.lib.nixosSystem {
-      inherit specialArgs;
-      system = "x86_64-linux";
-      modules = [
-        {
-          inherit nixpkgs;
-          system.stateVersion = "25.05";
-        }
-        inputs.agenix.nixosModules.default
-        ../nixos/systems/cube/configuration.nix
-      ];
-    };
   };
 }

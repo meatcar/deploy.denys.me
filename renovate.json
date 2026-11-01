@@ -5,7 +5,6 @@
   ],
   "ignorePaths": [
     "**/node_modules/**",
-    "nixos/systems/cube/**",
     "packages/deps/tests/**"
   ],
   "gitIgnoredAuthors": [

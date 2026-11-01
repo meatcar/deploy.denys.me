@@ -14,11 +14,6 @@ in
       default = [ ];
       description = "Additional TCP listeners restricted to NetBird ingress.";
     };
-    trustedLANInterfaces = lib.mkOption {
-      type = lib.types.listOf (lib.types.strMatching "[a-zA-Z0-9_.-]+");
-      default = [ ];
-      description = "Explicitly trusted LAN interfaces for SMB and WSD. Empty until verified.";
-    };
   };
 
   config.services.openssh.openFirewall = false;
@@ -50,16 +45,8 @@ in
     };
     extraCommands =
       builtins.replaceStrings
-        [ "@privateTCPPorts@" "@storageLANRules@" "@discoveryLANRules@" ]
-        [
-          (lib.concatMapStringsSep "," toString ([ 9443 ] ++ cfg.tcpPorts))
-          (lib.concatMapStringsSep "\n" (
-            interface: "-A private-storage -i ${interface} -j RETURN"
-          ) cfg.trustedLANInterfaces)
-          (lib.concatMapStringsSep "\n" (
-            interface: "-A private-discovery -i ${interface} -j RETURN"
-          ) cfg.trustedLANInterfaces)
-        ]
+        [ "@privateTCPPorts@" ]
+        [ (lib.concatMapStringsSep "," toString ([ 9443 ] ++ cfg.tcpPorts)) ]
         (builtins.readFile ./firewall.sh);
   };
 

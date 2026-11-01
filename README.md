@@ -7,9 +7,7 @@ NixOS hosts and Terragrunt-managed infrastructure.
 1. Install Nix with flakes and direnv. Review and approve `.envrc`.
 2. For infrastructure access, copy `.env.example` to `.env` with mode `0600`.
    See [credentials](terraform/README.md#access).
-3. Download these 1Password Documents from the Private vault to their ignored paths:
-   - `secrets/secrets.crypt.nix`
-   - `nixos/systems/cube/secrets.crypt.nix`
+3. Download the 1Password Document `secrets/secrets.crypt.nix` from the Private vault to its ignored path.
 
 ## Workflow
 

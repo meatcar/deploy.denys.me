@@ -28,10 +28,6 @@
         profiles.system.path = inputs.deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.vps;
         remoteBuild = false;
       };
-      cube = {
-        hostname = "cube.fish-hydra.ts.net";
-        profiles.system.path = inputs.deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.cube;
-      };
     };
   };
 }

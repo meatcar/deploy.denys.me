@@ -3,7 +3,6 @@ let
   users = [ meatcar ];
   machines = {
     to = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIi9aWHbQY0fgmzJsT5JgTikgzwcR+iOB6tVLCSep8rL";
-    cube = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH7aKNMDTXhMoruZYYAqbGY2XBY4Uy81zXHYxs7w6UoR";
     chunkymonkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIA37SIeI0osaeDoehCQ/SbNowUhygnS5PgdJf+majWkI";
   };
   keys = builtins.mapAttrs (_machine: keys: {
@@ -19,18 +18,6 @@ in
   "restic-password.age".publicKeys = keys.to.publicKeys ++ keys.chunkymonkey.publicKeys;
   "restic-env.age".publicKeys = keys.to.publicKeys ++ keys.chunkymonkey.publicKeys;
   "restic-repo.age".publicKeys = keys.to.publicKeys ++ keys.chunkymonkey.publicKeys;
-
-  # cube
-  "smtp-user.age" = { inherit (keys.cube) publicKeys; };
-  "wg-config.age" = { inherit (keys.cube) publicKeys; };
-  "transmission-user.age" = { inherit (keys.cube) publicKeys; };
-  "transmission-pass.age" = { inherit (keys.cube) publicKeys; };
-  "cloudflare-key.age" = { inherit (keys.cube) publicKeys; };
-  "postgres-pass.age" = { inherit (keys.cube) publicKeys; };
-  "redis-conf.age" = { inherit (keys.cube) publicKeys; };
-  "redis-pass.age" = { inherit (keys.cube) publicKeys; };
-  "nextcloudPgPass.age" = { inherit (keys.cube) publicKeys; };
-  "freshrssPgPass.age" = { inherit (keys.cube) publicKeys; };
 
   # chunkymonkey
   "transitDashboardEnv.age" = { inherit (keys.chunkymonkey) publicKeys; };
