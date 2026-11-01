@@ -53,8 +53,6 @@
       url = "github:meatcar/denys.me";
       flake = false;
     };
-
-    transit-dashboard.url = "git+ssh://git@github.com/meatcar/transit-dashboard";
   };
 
   outputs = inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } ./flake-parts;
