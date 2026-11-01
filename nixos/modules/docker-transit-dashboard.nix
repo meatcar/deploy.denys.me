@@ -17,6 +17,7 @@ in
       "d ${volumes} 0755 - - - -"
     ];
     virtualisation.oci-containers.containers.transit-dashboard = {
+      # NOTE: Private image; Renovate cannot track it.
       image = "meatcar/transit-dashboard:latest";
       hostname = "transit-dashboard"; # for tailscale
       volumes = [

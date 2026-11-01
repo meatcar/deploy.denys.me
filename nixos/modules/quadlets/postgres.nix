@@ -14,7 +14,7 @@
     containers.postgres = {
       autoStart = true;
       containerConfig = {
-        image = "postgres:18.4-alpine";
+        image = "postgres:18.4-alpine@sha256:9a8afca54e7861fd90fab5fdf4c42477a6b1cb7d293595148e674e0a3181de15";
         volumes = [
           "${config.home-manager.users.pod.virtualisation.quadlet.volumes.postgres-data.ref}:/var/lib/postgresql"
           # Mount the secret file so POSTGRES_PASSWORD_FILE can reference it.

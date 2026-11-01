@@ -46,7 +46,7 @@ in
   home-manager.users.pod.virtualisation.quadlet.containers.traefik = {
     autoStart = true;
     containerConfig = {
-      image = "traefik:v3.7.5";
+      image = "traefik:v3.7.5@sha256:e4d98158c01ad752fc1071d4e9573788747230d902cdde00a772516e692d07c9";
       publishPorts = [
         "8080:80"
         "8443:443"
