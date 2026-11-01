@@ -15,8 +15,6 @@
           "StrictHostKeyChecking=yes"
           "-o"
           "IdentityAgent=~/.1password/agent.sock"
-          "-o"
-          "UserKnownHostsFile=output/ovh-bao-vps/bao-known_hosts"
         ];
         profiles.system.path = inputs.deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.baoVps;
         remoteBuild = false;
