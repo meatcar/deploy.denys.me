@@ -63,3 +63,7 @@ versions with `# renovate: datasource=… depName=…`. Add hash-bearing sources
 - [NetBird](terraform/modules/netbird-access/README.md): groups, sharing access, key rotation
 - [SilverBullet](nixos/modules/quadlets/silverbullet/README.md): first deploy and limits
 - [Amp orbs](.agents/README.md): orb lifecycle and agent plans
+
+## License
+
+[MIT](LICENSE)
