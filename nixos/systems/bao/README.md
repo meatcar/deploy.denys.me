@@ -34,5 +34,7 @@ In the 1Password Private vault:
 - Create runtime IAM credentials outside Terraform. Keep recovery material independent of this host.
 - Preserve KMS and backup-bucket destruction protection. Recovery shares cannot replace a lost KMS key.
 - After a backup outage longer than 72 hours, replace the backup token.
+- bao-sync token: `bao token create -orphan -period=72h -policy=bao-sync -no-default-policy`,
+  saved to `/etc/vpn/bao-sync-token` (0600 root). It renews itself; replace it after an outage over 72 hours.
 - Test a Raft restore in an isolated, loopback-only Bao instance with KMS access. Verify unseal and admin login.
 - Keep the repository's broader Cloudflare token off this host.

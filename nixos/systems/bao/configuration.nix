@@ -11,6 +11,7 @@ in
   imports = [
     ../vpn/common.nix
     ../vpn/firewall.nix
+    ./sync.nix
   ];
   networking.hostName = "bao";
   services.netbird = {
