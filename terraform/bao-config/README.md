@@ -6,8 +6,23 @@ This root requires human authority and must not run under agent plan credentials
 
 ## Project access
 
-Add one entry to `projects` in [projects.tf](projects.tf). The
-[child module](modules/project-layout) creates a protected KV v2 mount,
+This repository is public, so it names only itself in `projects`
+([projects.tf](projects.tf)). Every other project is one record in the
+`registry` KV v2 mount, read at plan time. A record holds the same fields as a
+`projects` entry plus `project` (its name) and the
+[bao-sync](../../packages/bao-sync) `destinations` and `syncs`. Write the record,
+then plan and apply. First apply only: `-target=vault_kv_secret_v2.registry_keep`.
+
+The `bao-sync` policy grants list on each synced folder's `detailed-metadata`
+and read on each synced source and its destination credential. A sync grants
+nothing unless both documents are declared and the credential is `prod/admin/`.
+bao-sync reads the registry every run. A sync or destination change within
+documents it can already read (keys, targets, `adopt`, Vercel IDs) applies on
+its next run without a plan, so writing a record is the approval. New sources
+or credentials need an apply for the policy first. Remove a record with
+`kv metadata delete`; a soft-deleted record fails every plan.
+
+The [child module](modules/project-layout) creates a protected KV v2 mount,
 exact-path read policies for non-empty credential sets, and only explicitly
 granted Amp roles. It does not create or read secret values.
 

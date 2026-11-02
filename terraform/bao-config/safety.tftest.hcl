@@ -1,4 +1,8 @@
-mock_provider "vault" {}
+mock_provider "vault" {
+  mock_data "vault_kv_secrets_list_v2" {
+    defaults = { names = [] }
+  }
+}
 
 run "amp_project_namespace_is_explicit" {
   command = plan

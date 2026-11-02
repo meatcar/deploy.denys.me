@@ -1,5 +1,5 @@
 variable "projects" {
-  description = "Project credential locations and reviewed Amp grants. No secret values."
+  description = "Public project credential locations and reviewed Amp grants. No secret values. Private projects live in the registry."
   type = map(object({
     amp = object({
       project_id = string
@@ -26,11 +26,11 @@ variable "projects" {
 }
 
 locals {
-  project_mounts  = [for project in keys(var.projects) : "projects/${project}"]
-  policy_prefixes = [for project in keys(var.projects) : "project--${replace(project, "/", "--")}"]
-  amp_project_ids = [for project in values(var.projects) : project.amp.project_id]
+  project_mounts  = [for project in keys(local.projects) : "projects/${project}"]
+  policy_prefixes = [for project in keys(local.projects) : "project--${replace(project, "/", "--")}"]
+  amp_project_ids = [for project in values(local.projects) : project.amp.project_id]
   project_policies = flatten([
-    for project, config in var.projects : concat(
+    for project, config in local.projects : concat(
       [
         for environment, classes in config.environments : [
           for class, credentials in classes :
@@ -44,7 +44,7 @@ locals {
     )
   ])
   amp_roles = flatten([
-    for project, config in var.projects : [
+    for project, config in local.projects : [
       for grant in config.amp_grants : "amp/project--${replace(project, "/", "--")}--${replace(grant, "/", "--")}--read"
     ]
   ])
@@ -65,12 +65,20 @@ resource "terraform_data" "project_namespace_guard" {
       condition     = length(distinct(local.amp_project_ids)) == length(local.amp_project_ids)
       error_message = "Each project must have a unique Amp project ID."
     }
+    precondition {
+      condition     = length(setintersection(keys(var.projects), keys(local.registry_projects))) == 0
+      error_message = "A project is defined in projects or the registry, not both."
+    }
+    precondition {
+      condition     = length(local.registry_deleted) == 0
+      error_message = "Soft-deleted registry records: ${join(", ", local.registry_deleted)}. Undelete, or remove with kv metadata delete."
+    }
   }
 }
 
 module "project" {
   source   = "./modules/project-layout"
-  for_each = var.projects
+  for_each = local.projects
 
   project          = each.key
   amp              = each.value.amp
