@@ -18,6 +18,7 @@
 
       packages =
         lib.optionalAttrs pkgs.stdenv.isLinux {
+          bao-sync = import ../packages/bao-sync/package.nix { inherit pkgs; };
           cli-proxy-api-ops = import ../packages/cli-proxy-api/package.nix { inherit pkgs; };
           deps = import ../packages/deps/package.nix { inherit pkgs; };
         }

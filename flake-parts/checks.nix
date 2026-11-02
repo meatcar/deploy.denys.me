@@ -106,6 +106,7 @@
                 64738
               ];
             pkgs.runCommand "vps-private-services" { } "touch $out";
+          bao-sync = config.packages.bao-sync;
           cli-proxy-api = config.packages.cli-proxy-api-ops;
           deps = config.packages.deps;
           deps-lint = pkgs.runCommand "deps-lint" { nativeBuildInputs = [ config.packages.deps ]; } ''
