@@ -44,7 +44,7 @@ resource "vault_policy" "read" {
   ])
 }
 
-resource "vault_jwt_auth_backend_role" "plan" {
+resource "vault_jwt_auth_backend_role" "amp" {
   for_each = var.amp_grants
 
   backend         = var.amp_auth_backend
@@ -66,4 +66,9 @@ resource "vault_jwt_auth_backend_role" "plan" {
   token_explicit_max_ttl  = 300
   token_no_default_policy = true
   verbose_oidc_logging    = false
+}
+
+moved {
+  from = vault_jwt_auth_backend_role.plan
+  to   = vault_jwt_auth_backend_role.amp
 }

@@ -73,26 +73,26 @@ run "exact_project_permissions_and_ap01_binding" {
 
   assert {
     condition = (
-      length(vault_jwt_auth_backend_role.plan) == 1 &&
-      vault_jwt_auth_backend_role.plan["prod/plan"].backend == "amp" &&
-      vault_jwt_auth_backend_role.plan["prod/plan"].role_name == "project--meatcar--deploy.denys.me--prod--plan--read" &&
-      vault_jwt_auth_backend_role.plan["prod/plan"].role_type == "jwt" &&
-      toset(vault_jwt_auth_backend_role.plan["prod/plan"].bound_audiences) == toset(["bao"]) &&
-      vault_jwt_auth_backend_role.plan["prod/plan"].bound_subject == "user:user_01K8F9XNBP340JTA7EXNMV9QW3:project:d652cd02-f7c9-4fd9-ad79-3eb9c935736e" &&
-      vault_jwt_auth_backend_role.plan["prod/plan"].bound_claims_type == "glob" &&
-      vault_jwt_auth_backend_role.plan["prod/plan"].bound_claims == tomap({
+      length(vault_jwt_auth_backend_role.amp) == 1 &&
+      vault_jwt_auth_backend_role.amp["prod/plan"].backend == "amp" &&
+      vault_jwt_auth_backend_role.amp["prod/plan"].role_name == "project--meatcar--deploy.denys.me--prod--plan--read" &&
+      vault_jwt_auth_backend_role.amp["prod/plan"].role_type == "jwt" &&
+      toset(vault_jwt_auth_backend_role.amp["prod/plan"].bound_audiences) == toset(["bao"]) &&
+      vault_jwt_auth_backend_role.amp["prod/plan"].bound_subject == "user:user_01K8F9XNBP340JTA7EXNMV9QW3:project:d652cd02-f7c9-4fd9-ad79-3eb9c935736e" &&
+      vault_jwt_auth_backend_role.amp["prod/plan"].bound_claims_type == "glob" &&
+      vault_jwt_auth_backend_role.amp["prod/plan"].bound_claims == tomap({
         project_id = "d652cd02-f7c9-4fd9-ad79-3eb9c935736e"
         thread_id  = "*"
         token_use  = "exchanged"
       }) &&
-      vault_jwt_auth_backend_role.plan["prod/plan"].user_claim == "sub" &&
-      toset(vault_jwt_auth_backend_role.plan["prod/plan"].token_policies) == toset(["project--meatcar--deploy.denys.me--prod--plan--read"]) &&
-      vault_jwt_auth_backend_role.plan["prod/plan"].token_ttl == 300 &&
-      vault_jwt_auth_backend_role.plan["prod/plan"].token_max_ttl == 300 &&
-      vault_jwt_auth_backend_role.plan["prod/plan"].token_explicit_max_ttl == 300 &&
-      vault_jwt_auth_backend_role.plan["prod/plan"].token_no_default_policy &&
-      vault_jwt_auth_backend_role.plan["prod/plan"].groups_claim == null &&
-      vault_jwt_auth_backend_role.plan["prod/plan"].verbose_oidc_logging == false
+      vault_jwt_auth_backend_role.amp["prod/plan"].user_claim == "sub" &&
+      toset(vault_jwt_auth_backend_role.amp["prod/plan"].token_policies) == toset(["project--meatcar--deploy.denys.me--prod--plan--read"]) &&
+      vault_jwt_auth_backend_role.amp["prod/plan"].token_ttl == 300 &&
+      vault_jwt_auth_backend_role.amp["prod/plan"].token_max_ttl == 300 &&
+      vault_jwt_auth_backend_role.amp["prod/plan"].token_explicit_max_ttl == 300 &&
+      vault_jwt_auth_backend_role.amp["prod/plan"].token_no_default_policy &&
+      vault_jwt_auth_backend_role.amp["prod/plan"].groups_claim == null &&
+      vault_jwt_auth_backend_role.amp["prod/plan"].verbose_oidc_logging == false
     )
     error_message = "Only exchanged project tokens with audience bao may receive the one plan policy, for at most five minutes. No workspace, setup, group or default grant."
   }
@@ -123,16 +123,16 @@ run "second_project_does_not_reuse_the_first_scope" {
         }
       EOT
       ) &&
-      length(vault_jwt_auth_backend_role.plan) == 1 &&
-      vault_jwt_auth_backend_role.plan["dev/plan"].role_name == "project--other--worker--dev--plan--read" &&
-      toset(vault_jwt_auth_backend_role.plan["dev/plan"].token_policies) == toset(["project--other--worker--dev--plan--read"]) &&
-      vault_jwt_auth_backend_role.plan["dev/plan"].bound_subject == "user:user_other:project:4a4c6e0a-d0f0-4c1e-a9b6-fcfce93bf729" &&
-      vault_jwt_auth_backend_role.plan["dev/plan"].bound_claims == tomap({ project_id = "4a4c6e0a-d0f0-4c1e-a9b6-fcfce93bf729", thread_id = "*", token_use = "exchanged" }) &&
-      toset(vault_jwt_auth_backend_role.plan["dev/plan"].bound_audiences) == toset(["bao"]) &&
-      vault_jwt_auth_backend_role.plan["dev/plan"].token_no_default_policy &&
-      vault_jwt_auth_backend_role.plan["dev/plan"].token_ttl == 300 &&
-      vault_jwt_auth_backend_role.plan["dev/plan"].token_max_ttl == 300 &&
-      vault_jwt_auth_backend_role.plan["dev/plan"].token_explicit_max_ttl == 300
+      length(vault_jwt_auth_backend_role.amp) == 1 &&
+      vault_jwt_auth_backend_role.amp["dev/plan"].role_name == "project--other--worker--dev--plan--read" &&
+      toset(vault_jwt_auth_backend_role.amp["dev/plan"].token_policies) == toset(["project--other--worker--dev--plan--read"]) &&
+      vault_jwt_auth_backend_role.amp["dev/plan"].bound_subject == "user:user_other:project:4a4c6e0a-d0f0-4c1e-a9b6-fcfce93bf729" &&
+      vault_jwt_auth_backend_role.amp["dev/plan"].bound_claims == tomap({ project_id = "4a4c6e0a-d0f0-4c1e-a9b6-fcfce93bf729", thread_id = "*", token_use = "exchanged" }) &&
+      toset(vault_jwt_auth_backend_role.amp["dev/plan"].bound_audiences) == toset(["bao"]) &&
+      vault_jwt_auth_backend_role.amp["dev/plan"].token_no_default_policy &&
+      vault_jwt_auth_backend_role.amp["dev/plan"].token_ttl == 300 &&
+      vault_jwt_auth_backend_role.amp["dev/plan"].token_max_ttl == 300 &&
+      vault_jwt_auth_backend_role.amp["dev/plan"].token_explicit_max_ttl == 300
     )
     error_message = "The second project's dev grant must not reuse the first project's paths or identity."
   }
@@ -153,7 +153,7 @@ run "empty_project_has_no_permissions" {
   assert {
     condition = (
       vault_mount.project.path == "projects/other/empty" &&
-      length(vault_policy.read) == 0 && length(vault_jwt_auth_backend_role.plan) == 0 &&
+      length(vault_policy.read) == 0 && length(vault_jwt_auth_backend_role.amp) == 0 &&
       length(output.secret_keys) == 0 && length(output.policy_names) == 0 && length(output.role_names) == 0
     )
     error_message = "Onboarding an empty project creates a mount, not speculative permissions."

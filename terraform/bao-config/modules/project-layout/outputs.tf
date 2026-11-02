@@ -17,6 +17,6 @@ output "policy_names" {
 }
 
 output "role_names" {
-  description = "Amp plan roles by environment/class."
-  value       = { for scope, role in vault_jwt_auth_backend_role.plan : scope => role.role_name }
+  description = "Amp roles by environment/class."
+  value       = { for scope, role in vault_jwt_auth_backend_role.amp : scope => role.role_name }
 }
