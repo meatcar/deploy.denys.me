@@ -85,3 +85,28 @@ run "duplicate_amp_project_ids" {
   }
   expect_failures = [terraform_data.project_namespace_guard]
 }
+
+run "document_grant_policy_collides_with_class_policy" {
+  command = plan
+  variables {
+    projects = {
+      "a/b" = {
+        amp = {
+          project_id = "d652cd02-f7c9-4fd9-ad79-3eb9c935736e"
+          subject    = "user:user_one:project:d652cd02-f7c9-4fd9-ad79-3eb9c935736e"
+        }
+        environments = { dev = { app = ["x/dev/plan"] } }
+        amp_grants   = ["dev/app/x/dev/plan"]
+      }
+      "a/b--dev--app--x" = {
+        amp = {
+          project_id = "4a4c6e0a-d0f0-4c1e-a9b6-fcfce93bf729"
+          subject    = "user:user_two:project:4a4c6e0a-d0f0-4c1e-a9b6-fcfce93bf729"
+        }
+        environments = { dev = { plan = ["oci"] } }
+        amp_grants   = []
+      }
+    }
+  }
+  expect_failures = [terraform_data.project_namespace_guard]
+}

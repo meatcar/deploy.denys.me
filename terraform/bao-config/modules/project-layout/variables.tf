@@ -30,7 +30,7 @@ variable "amp" {
 }
 
 variable "environments" {
-  description = "Exact credential names grouped by dev/prod and plan/inference/admin. Omitted classes are empty."
+  description = "Exact credential names grouped by dev/prod and plan/app/inference/admin. Omitted classes are empty."
   type        = map(map(set(string)))
   nullable    = false
 
@@ -39,7 +39,7 @@ variable "environments" {
       for environment, classes in var.environments :
       contains(["dev", "prod"], environment) && alltrue([
         for class, credentials in classes :
-        contains(["plan", "inference", "admin"], class) && alltrue([
+        contains(["plan", "app", "inference", "admin"], class) && alltrue([
           for credential in credentials : alltrue([
             for segment in split("/", credential) :
             can(regex("^[a-z0-9][a-z0-9._-]*$", segment)) && !contains([".", ".."], segment)
@@ -47,12 +47,12 @@ variable "environments" {
         ])
       ])
     ])
-    error_message = "Use dev/prod, plan/inference/admin, and literal ASCII credential segments matching [a-z0-9][a-z0-9._-]*. Empty, . and .. segments and ACL/template syntax are forbidden."
+    error_message = "Use dev/prod, plan/app/inference/admin, and literal ASCII credential segments matching [a-z0-9][a-z0-9._-]*. Empty, . and .. segments and ACL/template syntax are forbidden."
   }
 }
 
 variable "amp_grants" {
-  description = "Explicit environment/plan grants with declared, non-empty credential sets."
+  description = "Explicit dev/plan or prod/plan class grants, or dev/app/<credential> document grants, all declared and non-empty."
   type        = set(string)
   default     = []
   nullable    = false
@@ -60,10 +60,11 @@ variable "amp_grants" {
   validation {
     condition = alltrue([
       for grant in var.amp_grants :
-      contains(["dev/plan", "prod/plan"], grant) &&
-      try(length(var.environments[split("/", grant)[0]]["plan"]) > 0, false)
+      contains(["dev/plan", "prod/plan"], grant) ?
+      try(length(var.environments[split("/", grant)[0]]["plan"]) > 0, false) :
+      startswith(grant, "dev/app/") && contains(try(var.environments.dev.app, []), trimprefix(grant, "dev/app/"))
     ])
-    error_message = "Amp grants must be dev/plan or prod/plan and reference a declared, non-empty plan set. No inference, admin or setup grants."
+    error_message = "Amp grants must be dev/plan or prod/plan with a non-empty plan set, or dev/app/<declared credential>. No dev/app class, prod/app, inference, admin or setup grants."
   }
 }
 

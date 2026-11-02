@@ -310,6 +310,66 @@ run "inference_grant" {
   expect_failures = [var.amp_grants]
 }
 
+run "prod_app_grant" {
+  command = plan
+  module { source = "./modules/project-layout" }
+  variables {
+    environments = { prod = { app = ["payload"] } }
+    amp_grants   = ["prod/app"]
+  }
+  expect_failures = [var.amp_grants]
+}
+
+run "dev_app_class_grant" {
+  command = plan
+  module { source = "./modules/project-layout" }
+  variables {
+    environments = { dev = { app = ["public"] } }
+    amp_grants   = ["dev/app"]
+  }
+  expect_failures = [var.amp_grants]
+}
+
+run "undeclared_dev_app_credential_grant" {
+  command = plan
+  module { source = "./modules/project-layout" }
+  variables {
+    environments = { dev = { app = ["public"] } }
+    amp_grants   = ["dev/app/payload"]
+  }
+  expect_failures = [var.amp_grants]
+}
+
+run "prod_app_credential_grant" {
+  command = plan
+  module { source = "./modules/project-layout" }
+  variables {
+    environments = { prod = { app = ["payload"] } }
+    amp_grants   = ["prod/app/payload"]
+  }
+  expect_failures = [var.amp_grants]
+}
+
+run "dev_admin_credential_grant" {
+  command = plan
+  module { source = "./modules/project-layout" }
+  variables {
+    environments = { dev = { admin = ["oci"] } }
+    amp_grants   = ["dev/admin/oci", "dev/admin"]
+  }
+  expect_failures = [var.amp_grants]
+}
+
+run "dev_inference_grant" {
+  command = plan
+  module { source = "./modules/project-layout" }
+  variables {
+    environments = { dev = { inference = ["cli-proxy-api"] } }
+    amp_grants   = ["dev/inference"]
+  }
+  expect_failures = [var.amp_grants]
+}
+
 run "setup_grant" {
   command = plan
   module { source = "./modules/project-layout" }

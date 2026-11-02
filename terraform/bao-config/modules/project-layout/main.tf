@@ -18,6 +18,11 @@ locals {
     for scope in keys(local.credential_sets) :
     scope => "project--${replace(var.project, "/", "--")}--${replace(scope, "/", "--")}--read"
   }
+  grant_policies = merge(
+    { for grant in var.amp_grants : grant => try(vault_policy.read[grant].name, null) if !startswith(grant, "dev/app/") },
+    { for grant, policy in vault_policy.grant : grant => policy.name },
+  )
+  document_grants = toset([for grant in var.amp_grants : grant if startswith(grant, "dev/app/")])
 }
 
 resource "vault_mount" "project" {
@@ -44,11 +49,23 @@ resource "vault_policy" "read" {
   ])
 }
 
+resource "vault_policy" "grant" {
+  for_each = local.document_grants
+
+  name            = "project--${replace(var.project, "/", "--")}--${replace(each.key, "/", "--")}--read"
+  allow_overwrite = false
+  policy          = <<-EOT
+    path "${vault_mount.project.path}/data/${each.key}" {
+      capabilities = ["read"]
+    }
+  EOT
+}
+
 resource "vault_jwt_auth_backend_role" "amp" {
   for_each = var.amp_grants
 
   backend         = var.amp_auth_backend
-  role_name       = vault_policy.read[each.key].name
+  role_name       = local.grant_policies[each.key]
   role_type       = "jwt"
   bound_audiences = ["bao"]
   bound_subject   = var.amp.subject
@@ -60,7 +77,7 @@ resource "vault_jwt_auth_backend_role" "amp" {
     token_use  = "exchanged"
   }
   user_claim              = "sub"
-  token_policies          = [vault_policy.read[each.key].name]
+  token_policies          = [local.grant_policies[each.key]]
   token_ttl               = 300
   token_max_ttl           = 300
   token_explicit_max_ttl  = 300

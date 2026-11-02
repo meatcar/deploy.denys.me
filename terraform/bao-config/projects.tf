@@ -1,5 +1,5 @@
 variable "projects" {
-  description = "Project credential locations and reviewed Amp plan grants. No secret values."
+  description = "Project credential locations and reviewed Amp grants. No secret values."
   type = map(object({
     amp = object({
       project_id = string
@@ -30,12 +30,18 @@ locals {
   policy_prefixes = [for project in keys(var.projects) : "project--${replace(project, "/", "--")}"]
   amp_project_ids = [for project in values(var.projects) : project.amp.project_id]
   project_policies = flatten([
-    for project, config in var.projects : [
-      for environment, classes in config.environments : [
-        for class, credentials in classes :
-        "project--${replace(project, "/", "--")}--${environment}--${class}--read" if length(credentials) > 0
-      ]
-    ]
+    for project, config in var.projects : concat(
+      [
+        for environment, classes in config.environments : [
+          for class, credentials in classes :
+          "project--${replace(project, "/", "--")}--${environment}--${class}--read" if length(credentials) > 0
+        ]
+      ],
+      [
+        for grant in config.amp_grants :
+        "project--${replace(project, "/", "--")}--${replace(grant, "/", "--")}--read" if startswith(grant, "dev/app/")
+      ],
+    )
   ])
   amp_roles = flatten([
     for project, config in var.projects : [

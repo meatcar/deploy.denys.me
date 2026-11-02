@@ -138,6 +138,46 @@ run "second_project_does_not_reuse_the_first_scope" {
   }
 }
 
+run "dev_app_credential_grant_reads_one_document" {
+  command = plan
+  module { source = "./modules/project-layout" }
+  variables {
+    project = "other/webapp"
+    amp = {
+      project_id = "7d1e2f40-3a5b-4c6d-8e9f-0a1b2c3d4e5f"
+      subject    = "user:user_other:project:7d1e2f40-3a5b-4c6d-8e9f-0a1b2c3d4e5f"
+    }
+    environments = {
+      dev  = { app = ["public", "payload"] }
+      prod = { app = ["payload"] }
+    }
+    amp_grants = ["dev/app/public"]
+  }
+
+  assert {
+    condition = (
+      keys(vault_jwt_auth_backend_role.amp) == ["dev/app/public"] &&
+      vault_jwt_auth_backend_role.amp["dev/app/public"].role_name == "project--other--webapp--dev--app--public--read" &&
+      toset(vault_jwt_auth_backend_role.amp["dev/app/public"].token_policies) == toset(["project--other--webapp--dev--app--public--read"]) &&
+      vault_policy.grant["dev/app/public"].name == "project--other--webapp--dev--app--public--read" &&
+      !vault_policy.grant["dev/app/public"].allow_overwrite &&
+      trimspace(vault_policy.grant["dev/app/public"].policy) == trimspace(<<-EOT
+        path "projects/other/webapp/data/dev/app/public" {
+          capabilities = ["read"]
+        }
+      EOT
+      ) &&
+      vault_jwt_auth_backend_role.amp["dev/app/public"].bound_subject == "user:user_other:project:7d1e2f40-3a5b-4c6d-8e9f-0a1b2c3d4e5f" &&
+      vault_jwt_auth_backend_role.amp["dev/app/public"].bound_claims == tomap({ project_id = "7d1e2f40-3a5b-4c6d-8e9f-0a1b2c3d4e5f", thread_id = "*", token_use = "exchanged" }) &&
+      toset(vault_jwt_auth_backend_role.amp["dev/app/public"].bound_audiences) == toset(["bao"]) &&
+      vault_jwt_auth_backend_role.amp["dev/app/public"].token_no_default_policy &&
+      vault_jwt_auth_backend_role.amp["dev/app/public"].token_explicit_max_ttl == 300 &&
+      output.role_names == { "dev/app/public" = "project--other--webapp--dev--app--public--read" }
+    )
+    error_message = "A dev/app credential grant reads exactly that document; other dev/app and prod/app documents get no Amp role."
+  }
+}
+
 run "empty_project_has_no_permissions" {
   command = plan
   module { source = "./modules/project-layout" }
