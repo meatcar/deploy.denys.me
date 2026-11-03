@@ -20,7 +20,10 @@
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    age-plugin-1p.url = "github:Enzime/age-plugin-1p";
+    age-plugin-1p = {
+      url = "github:Enzime/age-plugin-1p";
+      inputs.wrapper-manager.url = "git+https://codeberg.org/viperML/wrapper-manager";
+    };
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";

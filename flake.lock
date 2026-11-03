@@ -439,24 +439,18 @@
       }
     },
     "wrapper-manager": {
-      "inputs": {
-        "nixpkgs": [
-          "age-plugin-1p",
-          "nixpkgs"
-        ]
-      },
       "locked": {
-        "lastModified": 1724503599,
-        "narHash": "sha256-WVhNq3QjnG/2mi772CkTxZCQcomKV5S03TbQKwe1Kj4=",
-        "owner": "viperML",
-        "repo": "wrapper-manager",
-        "rev": "c936f9203217e654a6074d206505c16432edbc70",
-        "type": "github"
+        "lastModified": 1788355120,
+        "narHash": "sha256-JEuM7FjlX48cpDhDrkeIch5nNYANux5o0wcw8vnwUuE=",
+        "ref": "refs/heads/master",
+        "rev": "5dbc685119c53a10c3f9a74b2716107413889796",
+        "revCount": 95,
+        "type": "git",
+        "url": "https://codeberg.org/viperML/wrapper-manager"
       },
       "original": {
-        "owner": "viperML",
-        "repo": "wrapper-manager",
-        "type": "github"
+        "type": "git",
+        "url": "https://codeberg.org/viperML/wrapper-manager"
       }
     },
     "wsdd": {
