@@ -40,8 +40,7 @@ resource "vault_mount" "project" {
 resource "vault_policy" "read" {
   for_each = local.credential_sets
 
-  name            = local.policy_names[each.key]
-  allow_overwrite = false
+  name = local.policy_names[each.key]
   policy = join("", [
     for credential in sort(tolist(each.value)) : <<-EOT
       path "${vault_mount.project.path}/data/${each.key}/${credential}" {
@@ -54,9 +53,8 @@ resource "vault_policy" "read" {
 resource "vault_policy" "grant" {
   for_each = local.document_grants
 
-  name            = "project--${replace(var.project, "/", "--")}--${replace(each.key, "/", "--")}--read"
-  allow_overwrite = false
-  policy          = <<-EOT
+  name   = "project--${replace(var.project, "/", "--")}--${replace(each.key, "/", "--")}--read"
+  policy = <<-EOT
     path "${vault_mount.project.path}/data/${each.key}" {
       capabilities = ["read"]
     }
@@ -66,8 +64,7 @@ resource "vault_policy" "grant" {
 resource "vault_policy" "write" {
   count = length(var.agent_writes) > 0 ? 1 : 0
 
-  name            = "project--${replace(var.project, "/", "--")}--write"
-  allow_overwrite = false
+  name = "project--${replace(var.project, "/", "--")}--write"
   policy = join("", concat(
     [
       for document in sort(tolist(var.agent_writes)) : <<-EOT

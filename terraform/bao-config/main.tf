@@ -1,7 +1,6 @@
 resource "vault_policy" "admin" {
-  name            = "admin"
-  allow_overwrite = false
-  policy          = <<-EOT
+  name   = "admin"
+  policy = <<-EOT
     path "*" {
       capabilities = ["create", "read", "update", "delete", "list", "sudo", "patch"]
     }
@@ -13,9 +12,8 @@ resource "vault_policy" "admin" {
 }
 
 resource "vault_policy" "backup" {
-  name            = "backup"
-  allow_overwrite = false
-  policy          = <<-EOT
+  name   = "backup"
+  policy = <<-EOT
     path "sys/storage/raft/snapshot" {
       capabilities = ["read"]
     }

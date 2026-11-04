@@ -36,8 +36,8 @@ granted Amp roles. It does not create or read secret values.
   `prod/app`: production app secrets reach their platform through sync only.
 - Root preconditions reject mount/policy/role namespace collisions and duplicate
   Amp IDs, including ambiguous `--` joins even with different credential sets.
-  Policies use `allow_overwrite = false`. Existing reserved names require review
-  and explicit import, not automatic adoption. Mount renames require migration.
+  Creating a policy overwrites a same-named live one (vault provider default
+  until v6), so check new names first. Mount renames require migration.
 - Module outputs `mount`, `secret_keys`, `policy_names`, `write_role_name` and `role_names` contain
   only locations and names. Read exact data paths, not metadata or mount listings.
 

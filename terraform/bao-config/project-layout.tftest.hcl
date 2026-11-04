@@ -30,7 +30,6 @@ run "exact_project_permissions_and_ap01_binding" {
       vault_mount.project.path == "projects/meatcar/deploy.denys.me" &&
       vault_mount.project.type == "kv" && vault_mount.project.options.version == "2" &&
       length(vault_policy.read) == 3 &&
-      alltrue([for policy in vault_policy.read : policy.allow_overwrite == false]) &&
       vault_policy.read["prod/plan"].name == "project--meatcar--deploy.denys.me--prod--plan--read" &&
       vault_policy.read["prod/inference"].name == "project--meatcar--deploy.denys.me--prod--inference--read" &&
       vault_policy.read["prod/admin"].name == "project--meatcar--deploy.denys.me--prod--admin--read"
@@ -125,7 +124,6 @@ run "second_project_does_not_reuse_the_first_scope" {
       vault_mount.project.path == "projects/other/worker" &&
       length(vault_policy.read) == 1 &&
       vault_policy.read["dev/plan"].name == "project--other--worker--dev--plan--read" &&
-      !vault_policy.read["dev/plan"].allow_overwrite &&
       trimspace(vault_policy.read["dev/plan"].policy) == trimspace(<<-EOT
         path "projects/other/worker/data/dev/plan/oci/session" {
           capabilities = ["read"]
@@ -169,7 +167,6 @@ run "dev_app_credential_grant_reads_one_document" {
       vault_jwt_auth_backend_role.amp["dev/app/public"].role_name == "project--other--webapp--dev--app--public--read" &&
       toset(vault_jwt_auth_backend_role.amp["dev/app/public"].token_policies) == toset(["project--other--webapp--dev--app--public--read"]) &&
       vault_policy.grant["dev/app/public"].name == "project--other--webapp--dev--app--public--read" &&
-      !vault_policy.grant["dev/app/public"].allow_overwrite &&
       trimspace(vault_policy.grant["dev/app/public"].policy) == trimspace(<<-EOT
         path "projects/other/webapp/data/dev/app/public" {
           capabilities = ["read"]
@@ -230,7 +227,6 @@ run "agent_writes_create_prod_and_patch_dev_documents" {
   assert {
     condition = (
       vault_policy.write[0].name == "project--other--webapp--write" &&
-      !vault_policy.write[0].allow_overwrite &&
       trimspace(vault_policy.write[0].policy) == trimspace(<<-EOT
         path "projects/other/webapp/data/dev/app/payload" {
           capabilities = ["create","patch"]

@@ -92,8 +92,7 @@ module "project" {
 }
 
 resource "vault_policy" "bao_minter" {
-  name            = "bao-minter"
-  allow_overwrite = false
+  name = "bao-minter"
   policy = join("", concat(
     [
       for role in sort(compact([for project in module.project : project.write_role_name])) : <<-EOT

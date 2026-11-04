@@ -68,8 +68,7 @@ locals {
 }
 
 resource "vault_policy" "bao_sync" {
-  name            = "bao-sync"
-  allow_overwrite = false
+  name = "bao-sync"
 
   lifecycle {
     # NOTE: Repeats module validation, which -target can skip.
