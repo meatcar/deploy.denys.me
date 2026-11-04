@@ -56,6 +56,14 @@ def parse_project(record):
         for cls, documents in classes.items()
         for document in documents
     }
+    agent_writes = record.get("agent_writes", [])
+    if not isinstance(agent_writes, list) or not all(
+        isinstance(document, str)
+        and document in declared
+        and document.split("/")[1] in ("app", "inference")
+        for document in agent_writes
+    ):
+        raise ValueError("agent_writes must list declared app or inference documents")
     destinations = {
         label: _destination(label, spec, declared)
         for label, spec in record.get("destinations", {}).items()

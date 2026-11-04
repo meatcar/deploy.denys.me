@@ -15,6 +15,7 @@ RECORD = {
         "prod": {"app": ["public", "varlock"], "admin": ["ci-e2e", "sync-vercel"]},
     },
     "amp_grants": ["dev/app/public"],
+    "agent_writes": ["dev/app/varlock", "prod/app/varlock"],
     "destinations": {
         "vercel": {
             "type": "vercel",
@@ -103,6 +104,11 @@ def test_valid_record_resolves_mount_credentials_and_syncs():
         ({"destinations__vercel__team_id": "team_abc\n"}, "team_id"),
         ({"destinations__vercel__project_id": "prj_abc/../other"}, "project_id"),
         ({"destinations__vercel__team_id": "team_abc&slug=x"}, "team_id"),
+        ({"agent_writes": "dev/app/varlock"}, "agent_writes"),
+        ({"agent_writes": ["dev/app/payload"]}, "agent_writes"),
+        ({"agent_writes": ["prod/admin/sync-vercel"]}, "agent_writes"),
+        ({"agent_writes": ["dev/app"]}, "agent_writes"),
+        ({"agent_writes": [["dev/app/varlock"]]}, "agent_writes"),
     ],
 )
 def test_invalid_records_fail_closed(changes, message):
