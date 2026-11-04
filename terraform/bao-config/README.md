@@ -38,8 +38,24 @@ granted Amp roles. It does not create or read secret values.
   Amp IDs, including ambiguous `--` joins even with different credential sets.
   Policies use `allow_overwrite = false`. Existing reserved names require review
   and explicit import, not automatic adoption. Mount renames require migration.
-- Module outputs `mount`, `secret_keys`, `policy_names` and `role_names` contain
+- Module outputs `mount`, `secret_keys`, `policy_names`, `write_role_name` and `role_names` contain
   only locations and names. Read exact data paths, not metadata or mount listings.
+
+`agent_writes` lists declared `app` or `inference` documents that local agents
+may write, never `plan`, `admin` or a whole class. The project then gets policy
+and token role `project--<owner>--<repo>--write`: create in prod, create or
+patch in dev, no read or delete. Prod is create-only because bao-sync deploys
+every new version unreviewed. Tokens are orphan, non-renewable, at most 15
+minutes, without the default policy, and may revoke themselves. Only the
+`bao-minter` userpass user can mint them. Create it with a 1Password password
+before the first apply (userpass refuses a user without one); tofu then owns its
+token settings:
+
+```sh
+op read --no-newline op://VAULT/ITEM/password | bao write auth/userpass/users/bao-minter password=-
+```
+
+Agents use the [orb-access write helper](../../templates/orb-access/.agents/README.md#local-bao-writes).
 
 `auth/amp` roles require audience `bao`, the project-scope subject, matching
 `project_id`, `token_use=exchanged` and a `thread_id`, which setup tokens lack.

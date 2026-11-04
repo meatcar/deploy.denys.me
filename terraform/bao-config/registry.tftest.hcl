@@ -19,6 +19,7 @@ mock_provider "vault" {
             "prod": { "app": ["public", "database"], "admin": ["sync-vercel", "ci"] }
           },
           "amp_grants": ["dev/app/public"],
+          "agent_writes": ["prod/app/database"],
           "destinations": {
             "vercel": { "type": "vercel", "project_id": "prj_abc", "team_id": "team_abc", "credential": "prod/admin/sync-vercel" },
             "app-credential": { "type": "vercel", "project_id": "prj_def", "team_id": "team_abc", "credential": "prod/app/database" },
@@ -48,9 +49,23 @@ run "registry_record_defines_project_and_exact_sync_access" {
   assert {
     condition = (
       module.project["acme/webapp"].mount == "projects/acme/webapp" &&
-      module.project["acme/webapp"].role_names["dev/app/public"] == "project--acme--webapp--dev--app--public--read"
+      module.project["acme/webapp"].role_names["dev/app/public"] == "project--acme--webapp--dev--app--public--read" &&
+      module.project["acme/webapp"].write_role_name == "project--acme--webapp--write"
     )
     error_message = "A registry record must create the same layout as a projects entry."
+  }
+
+  assert {
+    condition = trimspace(vault_policy.bao_minter.policy) == trimspace(<<-EOT
+      path "auth/token/create/project--acme--webapp--write" {
+        capabilities = ["update"]
+      }
+      path "auth/token/revoke-self" {
+        capabilities = ["update"]
+      }
+    EOT
+    )
+    error_message = "bao-minter mints only project write roles."
   }
 
   assert {

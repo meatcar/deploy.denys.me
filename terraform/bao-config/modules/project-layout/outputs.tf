@@ -16,6 +16,11 @@ output "policy_names" {
   value       = { for scope, policy in vault_policy.read : scope => policy.name }
 }
 
+output "write_role_name" {
+  description = "Token role for agent writes, or null without agent_writes."
+  value       = one(vault_token_auth_backend_role.write[*].role_name)
+}
+
 output "role_names" {
   description = "Amp roles by grant."
   value       = { for scope, role in vault_jwt_auth_backend_role.amp : scope => role.role_name }

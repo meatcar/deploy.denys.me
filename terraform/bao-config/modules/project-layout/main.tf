@@ -22,7 +22,9 @@ locals {
     { for grant in var.amp_grants : grant => try(vault_policy.read[grant].name, null) if !startswith(grant, "dev/app/") },
     { for grant, policy in vault_policy.grant : grant => policy.name },
   )
-  document_grants = toset([for grant in var.amp_grants : grant if startswith(grant, "dev/app/")])
+  # NOTE: Prod is create-only: agents seed values but cannot change synced production.
+  agent_capabilities = { dev = ["create", "patch"], prod = ["create"] }
+  document_grants    = toset([for grant in var.amp_grants : grant if startswith(grant, "dev/app/")])
 }
 
 resource "vault_mount" "project" {
@@ -59,6 +61,39 @@ resource "vault_policy" "grant" {
       capabilities = ["read"]
     }
   EOT
+}
+
+resource "vault_policy" "write" {
+  count = length(var.agent_writes) > 0 ? 1 : 0
+
+  name            = "project--${replace(var.project, "/", "--")}--write"
+  allow_overwrite = false
+  policy = join("", concat(
+    [
+      for document in sort(tolist(var.agent_writes)) : <<-EOT
+        path "${vault_mount.project.path}/data/${document}" {
+          capabilities = ${jsonencode(local.agent_capabilities[split("/", document)[0]])}
+        }
+      EOT
+    ],
+    [<<-EOT
+      path "auth/token/revoke-self" {
+        capabilities = ["update"]
+      }
+    EOT
+    ],
+  ))
+}
+
+resource "vault_token_auth_backend_role" "write" {
+  count = length(vault_policy.write)
+
+  role_name               = vault_policy.write[0].name
+  allowed_policies        = [vault_policy.write[0].name]
+  orphan                  = true
+  renewable               = false
+  token_explicit_max_ttl  = 900
+  token_no_default_policy = true
 }
 
 resource "vault_jwt_auth_backend_role" "amp" {

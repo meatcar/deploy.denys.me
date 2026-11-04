@@ -33,6 +33,26 @@ run "amp_project_namespace_is_explicit" {
     )
     error_message = "Amp authentication must verify the issuer using discovery, with no default role."
   }
+
+  assert {
+    condition = (
+      trimspace(vault_policy.bao_minter.policy) == trimspace(<<-EOT
+        path "auth/token/revoke-self" {
+          capabilities = ["update"]
+        }
+      EOT
+      ) &&
+      vault_generic_endpoint.bao_minter.path == "auth/userpass/users/bao-minter" &&
+      vault_generic_endpoint.bao_minter.disable_delete &&
+      jsondecode(vault_generic_endpoint.bao_minter.data_json) == {
+        token_policies          = ["bao-minter"]
+        token_no_default_policy = true
+        token_ttl               = 60
+        token_max_ttl           = 60
+      }
+    )
+    error_message = "bao-minter gets one-minute tokens with only its policy, which mints no role while no project lists agent_writes."
+  }
 }
 
 run "aws_login_trusts_only_the_resolved_sso_role" {

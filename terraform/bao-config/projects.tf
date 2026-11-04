@@ -7,6 +7,7 @@ variable "projects" {
     })
     environments = map(map(set(string)))
     amp_grants   = set(string)
+    agent_writes = optional(set(string), [])
   }))
   nullable = false
   default = {
@@ -84,7 +85,41 @@ module "project" {
   amp              = each.value.amp
   environments     = each.value.environments
   amp_grants       = each.value.amp_grants
+  agent_writes     = each.value.agent_writes
   amp_auth_backend = vault_jwt_auth_backend.amp.path
 
   depends_on = [terraform_data.project_namespace_guard]
+}
+
+resource "vault_policy" "bao_minter" {
+  name            = "bao-minter"
+  allow_overwrite = false
+  policy = join("", concat(
+    [
+      for role in sort(compact([for project in module.project : project.write_role_name])) : <<-EOT
+        path "auth/token/create/${role}" {
+          capabilities = ["update"]
+        }
+      EOT
+    ],
+    [<<-EOT
+      path "auth/token/revoke-self" {
+        capabilities = ["update"]
+      }
+    EOT
+    ],
+  ))
+}
+
+# NOTE: Create the user and its 1Password password first; tofu owns only token settings.
+resource "vault_generic_endpoint" "bao_minter" {
+  path                 = "auth/${vault_auth_backend.userpass.path}/users/bao-minter"
+  ignore_absent_fields = true
+  disable_delete       = true
+  data_json = jsonencode({
+    token_policies          = [vault_policy.bao_minter.name]
+    token_no_default_policy = true
+    token_ttl               = 60
+    token_max_ttl           = 60
+  })
 }

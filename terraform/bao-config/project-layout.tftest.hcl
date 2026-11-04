@@ -76,6 +76,11 @@ run "exact_project_permissions_and_ap01_binding" {
   }
 
   assert {
+    condition     = length(vault_policy.write) == 0 && length(vault_token_auth_backend_role.write) == 0 && output.write_role_name == null
+    error_message = "Without agent_writes a project has no write policy or role."
+  }
+
+  assert {
     condition = (
       length(vault_jwt_auth_backend_role.amp) == 1 &&
       vault_jwt_auth_backend_role.amp["prod/plan"].backend == "amp" &&
@@ -197,9 +202,66 @@ run "empty_project_has_no_permissions" {
   assert {
     condition = (
       vault_mount.project.path == "projects/other/empty" &&
-      length(vault_policy.read) == 0 && length(vault_jwt_auth_backend_role.amp) == 0 &&
-      length(output.secret_keys) == 0 && length(output.policy_names) == 0 && length(output.role_names) == 0
+      length(vault_policy.read) == 0 && length(vault_jwt_auth_backend_role.amp) == 0 && length(vault_policy.write) == 0 &&
+      length(output.secret_keys) == 0 && length(output.policy_names) == 0 && length(output.role_names) == 0 &&
+      output.write_role_name == null
     )
     error_message = "Onboarding an empty project creates a mount, not speculative permissions."
+  }
+}
+
+run "agent_writes_create_prod_and_patch_dev_documents" {
+  command = plan
+  module { source = "./modules/project-layout" }
+  variables {
+    project = "other/webapp"
+    amp = {
+      project_id = "7d1e2f40-3a5b-4c6d-8e9f-0a1b2c3d4e5f"
+      subject    = "user:user_other:project:7d1e2f40-3a5b-4c6d-8e9f-0a1b2c3d4e5f"
+    }
+    environments = {
+      dev  = { app = ["public", "payload"] }
+      prod = { app = ["payload", "resend"], inference = ["model"], admin = ["sync-vercel"] }
+    }
+    amp_grants   = []
+    agent_writes = ["prod/app/payload", "dev/app/payload", "prod/inference/model"]
+  }
+
+  assert {
+    condition = (
+      vault_policy.write[0].name == "project--other--webapp--write" &&
+      !vault_policy.write[0].allow_overwrite &&
+      trimspace(vault_policy.write[0].policy) == trimspace(<<-EOT
+        path "projects/other/webapp/data/dev/app/payload" {
+          capabilities = ["create","patch"]
+        }
+        path "projects/other/webapp/data/prod/app/payload" {
+          capabilities = ["create"]
+        }
+        path "projects/other/webapp/data/prod/inference/model" {
+          capabilities = ["create"]
+        }
+        path "auth/token/revoke-self" {
+          capabilities = ["update"]
+        }
+      EOT
+      )
+    )
+    error_message = "Agents create listed documents, patch only dev ones, and can revoke their token. Unlisted documents stay read-only to agents."
+  }
+
+  assert {
+    condition = (
+      vault_token_auth_backend_role.write[0].role_name == "project--other--webapp--write" &&
+      output.write_role_name == "project--other--webapp--write" &&
+      vault_token_auth_backend_role.write[0].allowed_policies == toset(["project--other--webapp--write"]) &&
+      vault_token_auth_backend_role.write[0].disallowed_policies == null &&
+      vault_token_auth_backend_role.write[0].token_policies == null &&
+      vault_token_auth_backend_role.write[0].orphan &&
+      !vault_token_auth_backend_role.write[0].renewable &&
+      vault_token_auth_backend_role.write[0].token_explicit_max_ttl == 900 &&
+      vault_token_auth_backend_role.write[0].token_no_default_policy
+    )
+    error_message = "The write role mints only its policy: orphan, not renewable, no default policy, at most 15 minutes."
   }
 }

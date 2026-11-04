@@ -68,6 +68,22 @@ variable "amp_grants" {
   }
 }
 
+variable "agent_writes" {
+  description = "Declared app or inference documents that local agents may write: create in prod, create or patch in dev."
+  type        = set(string)
+  default     = []
+  nullable    = false
+
+  validation {
+    condition = alltrue([
+      for document in var.agent_writes :
+      contains(["app", "inference"], try(split("/", document)[1], "")) &&
+      contains(try(var.environments[split("/", document)[0]][split("/", document)[1]], []), join("/", slice(split("/", document), 2, length(split("/", document)))))
+    ])
+    error_message = "Agent writes must be declared app or inference documents. Never plan, admin or a whole class."
+  }
+}
+
 variable "amp_auth_backend" {
   description = "Shared Amp JWT authentication mount path."
   type        = string

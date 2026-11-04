@@ -48,6 +48,7 @@ locals {
       amp          = record.amp
       environments = record.environments
       amp_grants   = record.amp_grants
+      agent_writes = try(record.agent_writes, [])
     }
   }
   projects = merge(var.projects, local.registry_projects)

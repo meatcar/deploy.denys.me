@@ -380,3 +380,41 @@ run "setup_grant" {
   variables { amp_grants = ["setup/plan"] }
   expect_failures = [var.amp_grants]
 }
+
+run "plan_agent_write" {
+  command = plan
+  module { source = "./modules/project-layout" }
+  variables {
+    agent_writes = ["prod/plan/cloudflare"]
+  }
+  expect_failures = [var.agent_writes]
+}
+
+run "admin_agent_write" {
+  command = plan
+  module { source = "./modules/project-layout" }
+  variables {
+    environments = { prod = { plan = ["cloudflare"], admin = ["sync-vercel"] } }
+    agent_writes = ["prod/admin/sync-vercel"]
+  }
+  expect_failures = [var.agent_writes]
+}
+
+run "undeclared_agent_write" {
+  command = plan
+  module { source = "./modules/project-layout" }
+  variables {
+    agent_writes = ["prod/app/payload"]
+  }
+  expect_failures = [var.agent_writes]
+}
+
+run "class_agent_write" {
+  command = plan
+  module { source = "./modules/project-layout" }
+  variables {
+    environments = { prod = { app = ["payload"] } }
+    agent_writes = ["prod/app"]
+  }
+  expect_failures = [var.agent_writes]
+}
