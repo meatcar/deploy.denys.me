@@ -60,6 +60,31 @@ cache or renewal. Invoke again after the five-minute role token expires.
 Authentication failure prevents the child command. Avoid tracing or printing
 the child's environment. This command works only in an Amp orb.
 
+## Local Bao writes
+
+Orbs only read. To write, set `BAO_PROJECT` (`owner/repository`) beside `BAO_ROLE`
+and run on a local machine with NetBird:
+
+```sh
+task --dir . --taskfile .agents/Taskfile.yml access:bao-write -- login
+{ openssl rand -hex 32; openssl rand -hex 32; } |
+  task --dir . --taskfile .agents/Taskfile.yml access:bao-write -- put dev/app/payload PAYLOAD_SECRET CRON_SECRET
+task --dir . --taskfile .agents/Taskfile.yml access:bao-write -- logout
+```
+
+`login` logs in as `bao-minter` and mints a 15-minute token with only
+`project--<owner>--<repo>--write`. The password comes from `op read
+"$BAO_MINTER_PASSWORD_REF"` (an `op://` reference in your own environment), or
+a hidden prompt. The token is stored in `$XDG_RUNTIME_DIR/bao-write--<owner>--<repo>`,
+so agents in other shells can `put` until it expires or `logout` revokes it.
+
+The token writes only the documents in the project's `agent_writes`, and never
+reads or deletes. Prod documents are create-only; dev documents can also be
+patched, which overwrites the named keys. `put` prompts for each key without
+echo, or reads one single-line value per key from a pipe, so generated secrets
+never pass through the agent. For other documents, run `put` with an admin
+`BAO_TOKEN`.
+
 These scripts provide convenience, not authorization. Any project orb can
 extract the setup key and call Bao directly. NetBird policies, Bao JWT bindings
 and provider credential scope enforce access. Key expiry/revocation does not

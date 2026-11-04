@@ -90,7 +90,7 @@ fi
         file.write_text(f"#!{shutil.which('bash')}\nset -euo pipefail\n{body}\n")
         file.chmod(0o755)
 
-    def run_shell(self, command, *, success=True, **env):
+    def run_shell(self, command, *, success=True, stdin="", **env):
         result = subprocess.run(
             [
                 "bwrap",
@@ -126,11 +126,162 @@ fi
                 "-ec",
                 command,
             ],
+            input=stdin,
             capture_output=True,
             text=True,
         )
         self.assertEqual(result.returncode == 0, success, result.stdout + result.stderr)
         return result
+
+    def stub_write_bao(self):
+        self.stub(
+            "op",
+            'printf "%s\\n" "$*" >> /run/op-calls; printf fixture-minter-password',
+        )
+        self.stub(
+            "bao",
+            """
+printf '%s|%s\\n' "${BAO_TOKEN:-}" "$*" >> /run/bao-calls
+case "$*" in
+"write -field=token auth/userpass/login/bao-minter password=-")
+  test -z "${BAO_TOKEN:-}"
+  test "$(cat)" = fixture-minter-password
+  if [ "${LOGIN_FAIL:-}" = 1 ]; then exit 2; fi
+  printf fixture-minter-token ;;
+"token create -role=project--acme--web-app--write -field=token")
+  test "$BAO_TOKEN" = fixture-minter-token
+  if [ "${CREATE_FAIL:-}" = 1 ]; then exit 2; fi
+  printf fixture-write-token ;;
+"token revoke -self") ;;
+"kv put -mount=projects/acme/web-app -cas=0 prod/app/payload -"|"kv patch -mount=projects/acme/web-app prod/app/payload -")
+  cat >> /run/bao-stdin
+  printf '\\n' >> /run/bao-stdin
+  if [ "$2" = put ] && [ -e /run/exists ]; then exit 2; fi
+  if [ "$2" = patch ] && [ -e /run/patch-fail ]; then exit 2; fi ;;
+*) exit 64 ;;
+esac
+""",
+        )
+        self.runtime = self.root / "run/user"
+        self.runtime.mkdir(mode=0o700)
+        self.token = self.runtime / "bao-write--acme--web-app"
+        self.calls = self.root / "run/bao-calls"
+        self.written = self.root / "run/bao-stdin"
+
+    def run_write(self, *args, success=True, stdin="", **env):
+        return self.run_shell(
+            "task --dir . --taskfile .agents/Taskfile.yml access:bao-write -- "
+            + " ".join(args),
+            success=success,
+            stdin=stdin,
+            **{"BAO_PROJECT": "acme/web-app", "XDG_RUNTIME_DIR": "/run/user", **env},
+        )
+
+    def take_calls(self):
+        calls = self.calls.read_text().splitlines() if self.calls.exists() else []
+        self.calls.unlink(missing_ok=True)
+        return calls
+
+    def test_write_login_mints_only_through_the_minter_and_replaces_old_tokens(self):
+        self.stub_write_bao()
+        login = "|write -field=token auth/userpass/login/bao-minter password=-"
+        mint = "fixture-minter-token|token create -role=project--acme--web-app--write -field=token"
+        revoke_minter = "fixture-minter-token|token revoke -self"
+        ref = {"BAO_MINTER_PASSWORD_REF": "op://vault/bao-minter/password"}
+
+        result = self.run_write("login", BAO_TOKEN="stale-token", **ref)
+        for secret in ("fixture-minter", "fixture-write-token"):
+            self.assertNotIn(secret, result.stdout + result.stderr)
+        self.assertEqual(self.token.read_text(), "fixture-write-token")
+        self.assertEqual(self.token.stat().st_mode & 0o777, 0o600)
+        self.assertEqual(self.take_calls(), [login, mint, revoke_minter])
+        self.assertEqual(
+            (self.root / "run/op-calls").read_text(),
+            "read --no-newline op://vault/bao-minter/password\n",
+        )
+
+        self.run_write("login", stdin="fixture-minter-password\n")
+        self.assertEqual(
+            self.take_calls(),
+            ["fixture-write-token|token revoke -self", login, mint, revoke_minter],
+        )
+
+        self.token.unlink()
+        for failure, calls in (
+            ({"LOGIN_FAIL": "1"}, [login]),
+            ({"CREATE_FAIL": "1"}, [login, mint, revoke_minter]),
+            ({"XDG_RUNTIME_DIR": "/run/missing"}, [login, revoke_minter]),
+        ):
+            with self.subTest(failure=failure):
+                self.run_write("login", success=False, **ref, **failure)
+                self.assertEqual(self.take_calls(), calls)
+                self.assertEqual(list(self.runtime.iterdir()), [])
+        self.run_write("login", success=False)
+        self.assertEqual(self.take_calls(), [])
+
+    def test_write_logout_revokes_and_removes_the_token(self):
+        self.stub_write_bao()
+        self.run_write("logout")
+        self.assertEqual(self.take_calls(), [])
+        self.token.write_text("fixture-write-token")
+        self.run_write("logout")
+        self.assertEqual(self.take_calls(), ["fixture-write-token|token revoke -self"])
+        self.assertFalse(self.token.exists())
+
+    def test_write_put_sends_values_only_on_stdin_and_never_replaces(self):
+        self.stub_write_bao()
+        put = "fixture-write-token|kv put -mount=projects/acme/web-app -cas=0 prod/app/payload -"
+        patch = "fixture-write-token|kv patch -mount=projects/acme/web-app prod/app/payload -"
+        values = {"A": " gen-$'\"\\ a ", "B": "b", "C": "c"}
+        lines = "".join(value + "\n" for value in values.values())
+
+        self.run_write("put", "prod/app/payload", "A", success=False, stdin="a\n")
+        self.assertEqual(self.take_calls(), [])
+        self.token.write_text("fixture-write-token")
+
+        result = self.run_write("put", "prod/app/payload", "A", "B", "C", stdin=lines)
+        self.assertEqual(self.take_calls(), [put])
+        self.assertEqual(json.loads(self.written.read_text()), values)
+        for value in values.values():
+            self.assertNotIn(value, result.stdout + result.stderr)
+
+        self.written.unlink()
+        (self.root / "run/exists").touch()
+        self.run_write("put", "prod/app/payload", "B", stdin="b")
+        self.assertEqual(self.take_calls(), [put, patch])
+        self.assertEqual(
+            [json.loads(line) for line in self.written.read_text().splitlines()],
+            [{"B": "b"}, {"B": "b"}],
+        )
+
+        self.run_write(
+            "put", "prod/app/payload", "B", stdin="b\n", BAO_TOKEN="fixture-admin-token"
+        )
+        self.assertEqual(
+            self.take_calls(),
+            [
+                put.replace("fixture-write-token", "fixture-admin-token"),
+                patch.replace("fixture-write-token", "fixture-admin-token"),
+            ],
+        )
+
+        (self.root / "run/patch-fail").touch()
+        result = self.run_write(
+            "put", "prod/app/payload", "B", success=False, stdin="b\n"
+        )
+        self.assertIn("access:bao-write -- login", result.stderr)
+        self.take_calls()
+        for args, stdin in (
+            (("A",), "\n"),
+            (("A", "B"), "a\n"),
+            (("A",), "a\nextra\n"),
+            ((), "a\n"),
+        ):
+            with self.subTest(args=args, stdin=stdin):
+                self.run_write(
+                    "put", "prod/app/payload", *args, success=False, stdin=stdin
+                )
+                self.assertEqual(self.take_calls(), [])
 
     def test_bao_is_command_scoped_and_never_cached(self):
         result = self.run_shell(

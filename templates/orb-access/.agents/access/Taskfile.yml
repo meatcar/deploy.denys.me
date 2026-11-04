@@ -17,6 +17,12 @@ tasks:
     cmds:
       - bash .agents/access/bao.sh {{.CLI_ARGS}}
 
+  bao-write:
+    desc: "Local only: login, logout, or write values (put DOCUMENT KEY...)"
+    interactive: true
+    cmds:
+      - bash .agents/access/bao-write.sh {{.CLI_ARGS}}
+
   cleanup:
     desc: Stop NetBird and remove snapshot credentials
     cmds:
